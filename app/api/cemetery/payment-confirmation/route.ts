@@ -68,11 +68,34 @@ export async function GET(req: NextRequest) {
       }
     })
 
+    // Fetch death certificate requests with payment submitted
+    const deathCertificateRequests = await prisma.deathCertificateRequest.findMany({
+      where: {
+        status: "PAYMENT_SUBMITTED"
+      },
+      include: {
+        user: {
+          select: {
+            name: true,
+            email: true
+          }
+        }
+      },
+      orderBy: {
+        createdAt: "asc"
+      }
+    })
+
     // Combine all submissions with type indicator
     const allSubmissions = [
       ...deathRegistrations.map(reg => ({ ...reg, type: 'death_registration' as const })),
       ...burialPermits.map(permit => ({ ...permit, type: 'burial_permit' as const })),
-      ...exhumationPermits.map(permit => ({ ...permit, type: 'exhumation_permit' as const }))
+      ...exhumationPermits.map(permit => ({ ...permit, type: 'exhumation_permit' as const })),
+      ...deathCertificateRequests.map(req => ({ 
+        ...req, 
+        type: 'death_certificate_request' as const,
+        proofOfPayment: req.paymentProof // Normalize field name for frontend
+      }))
     ].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
 
     return NextResponse.json({ submissions: allSubmissions })

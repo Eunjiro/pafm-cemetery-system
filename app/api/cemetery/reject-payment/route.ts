@@ -15,51 +15,100 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const { registrationId, remarks } = await req.json()
+    const { registrationId, requestId, remarks } = await req.json()
 
-    if (!registrationId || !remarks) {
-      return NextResponse.json({ error: "Registration ID and remarks are required" }, { status: 400 })
+    const entityId = registrationId || requestId
+    const entityType = registrationId ? "registration" : "request"
+
+    if (!entityId || !remarks) {
+      return NextResponse.json({ error: "Entity ID and remarks are required" }, { status: 400 })
     }
 
-    const registration = await prisma.deathRegistration.findUnique({
-      where: { id: registrationId }
-    })
+    if (entityType === "registration") {
+      // Handle Death Registration
+      const registration = await prisma.deathRegistration.findUnique({
+        where: { id: entityId }
+      })
 
-    if (!registration) {
-      return NextResponse.json({ error: "Registration not found" }, { status: 404 })
-    }
-
-    if (registration.status !== "PAYMENT_SUBMITTED") {
-      return NextResponse.json({ error: "Registration is not awaiting payment confirmation" }, { status: 400 })
-    }
-
-    // Return to approved for payment status so user can resubmit
-    await prisma.deathRegistration.update({
-      where: { id: registrationId },
-      data: {
-        status: "APPROVED_FOR_PAYMENT",
-        proofOfPayment: null,
-        remarks: `Payment rejected: ${remarks}`,
-        processedBy: session.user.id,
-        processedAt: new Date()
+      if (!registration) {
+        return NextResponse.json({ error: "Registration not found" }, { status: 404 })
       }
-    })
 
-    // Get user for audit log
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email! }
-    })
+      if (registration.status !== "PAYMENT_SUBMITTED") {
+        return NextResponse.json({ error: "Registration is not awaiting payment confirmation" }, { status: 400 })
+      }
 
-    if (user) {
-      await createAuditLog({
-        userId: user.id,
-        action: AUDIT_ACTIONS.PAYMENT_REJECTED,
-        entityType: "DeathRegistration",
-        entityId: registrationId,
-        details: {
-          remarks
+      // Return to approved for payment status so user can resubmit
+      await prisma.deathRegistration.update({
+        where: { id: entityId },
+        data: {
+          status: "APPROVED_FOR_PAYMENT",
+          proofOfPayment: null,
+          remarks: `Payment rejected: ${remarks}`,
+          processedBy: session.user.id,
+          processedAt: new Date()
         }
       })
+
+      // Get user for audit log
+      const user = await prisma.user.findUnique({
+        where: { email: session.user.email! }
+      })
+
+      if (user) {
+        await createAuditLog({
+          userId: user.id,
+          action: AUDIT_ACTIONS.PAYMENT_REJECTED,
+          entityType: "DeathRegistration",
+          entityId: entityId,
+          details: {
+            remarks
+          }
+        })
+      }
+    } else {
+      // Handle Death Certificate Request
+      const request = await prisma.deathCertificateRequest.findUnique({
+        where: { id: entityId }
+      })
+
+      if (!request) {
+        return NextResponse.json({ error: "Certificate request not found" }, { status: 404 })
+      }
+
+      if (request.status !== "PAYMENT_SUBMITTED") {
+        return NextResponse.json({ error: "Request is not awaiting payment confirmation" }, { status: 400 })
+      }
+
+      // Return to approved for payment status so user can resubmit
+      await prisma.deathCertificateRequest.update({
+        where: { id: entityId },
+        data: {
+          status: "APPROVED_FOR_PAYMENT",
+          paymentProof: null,
+          paymentSubmittedAt: null,
+          verificationNotes: `Payment rejected: ${remarks}`,
+          verifiedBy: session.user.id,
+          verifiedAt: new Date()
+        }
+      })
+
+      // Get user for audit log
+      const user = await prisma.user.findUnique({
+        where: { email: session.user.email! }
+      })
+
+      if (user) {
+        await createAuditLog({
+          userId: user.id,
+          action: AUDIT_ACTIONS.PAYMENT_REJECTED,
+          entityType: "DeathCertificateRequest",
+          entityId: entityId,
+          details: {
+            remarks
+          }
+        })
+      }
     }
 
     return NextResponse.json({ 

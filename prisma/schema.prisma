@@ -21,6 +21,8 @@ model User {
   deathRegistrations DeathRegistration[]
   burialPermits      BurialPermit[]
   exhumationPermits  ExhumationPermit[]
+  cremationPermits   CremationPermit[]
+  deathCertificateRequests DeathCertificateRequest[]
   auditLogs          AuditLog[]
   transactions       Transaction[]
 }
@@ -220,7 +222,74 @@ enum BurialPermitStatus {
   COMPLETED
   REJECTED
 }
+model DeathCertificateRequest {
+  id                    String                         @id @default(uuid())
+  userId                String
+  user                  User                           @relation(fields: [userId], references: [id])
+  
+  // Deceased Information
+  deceasedFullName      String
+  deceasedDateOfDeath   DateTime
+  deceasedPlaceOfDeath  String
+  
+  // Requester Information
+  requesterName         String
+  requesterRelation     String
+  requesterContactNumber String
+  requesterAddress      String
+  purpose               String                         // Purpose of request
+  
+  // Certificate Details
+  numberOfCopies        Int                            @default(1)
+  pickupMethod          String                         @default("PICKUP_ONLY")  // Always pickup only
+  
+  // Document Uploads
+  validId               String                         // Requester's ID
+  authorizationLetter   String?                        // If not next of kin
+  
+  // Payment and Processing
+  orderOfPayment        String?
+  certificateFee        Float                          // ₱50 for first copy
+  additionalCopiesFee   Float                          @default(0)  // ₱50 per additional copy
+  totalFee              Float                          // Total amount
+  submittedOrderNumber  String?                        // OR number submitted by user
+  paymentProof          String?                        // Path to payment proof document
+  paymentSubmittedAt    DateTime?
+  paymentVerifiedBy     String?                        // Employee who verified payment
+  paymentVerifiedAt     DateTime?
+  
+  // Verification
+  verifiedBy            String?                        // Employee who verified the request
+  verifiedAt            DateTime?
+  verificationNotes     String?
+  
+  // Certificate Processing
+  certificatePrintedBy  String?                        // Employee who printed certificate
+  certificatePrintedAt  DateTime?
+  claimSchedule         String?                        // Scheduled date for pickup
+  
+  // Status and Processing
+  status                DeathCertificateRequestStatus  @default(PENDING_VERIFICATION)
+  remarks               String?
+  processedBy           String?
+  processedAt           DateTime?
+  
+  createdAt             DateTime                       @default(now())
+  updatedAt             DateTime                       @updatedAt
+  
+  @@index([userId])
+  @@index([status])
+}
 
+enum DeathCertificateRequestStatus {
+  PENDING_VERIFICATION
+  RETURNED_FOR_CORRECTION
+  APPROVED_FOR_PAYMENT
+  PAYMENT_SUBMITTED
+  REGISTERED_FOR_PICKUP
+  COMPLETED
+  REJECTED
+}
 model ExhumationPermit {
   id                    String                    @id @default(uuid())
   userId                String
@@ -264,6 +333,67 @@ model ExhumationPermit {
 }
 
 enum ExhumationPermitStatus {
+  PENDING_VERIFICATION
+  RETURNED_FOR_CORRECTION
+  APPROVED_FOR_PAYMENT
+  PAYMENT_SUBMITTED
+  REGISTERED_FOR_PICKUP
+  COMPLETED
+  REJECTED
+}
+model CremationPermit {
+  id                    String                    @id @default(uuid())
+  userId                String
+  user                  User                      @relation(fields: [userId], references: [id])
+  
+  // Deceased Information
+  deceasedName          String
+  deceasedDateOfDeath   DateTime
+  
+  // Requester Information
+  requesterName         String
+  requesterRelation     String
+  requesterContactNumber String
+  requesterAddress      String
+  
+  // Funeral Home (optional)
+  funeralHomeName       String?
+  funeralHomeContact    String?
+  
+  // Document Uploads
+  deathCertificate      String                    // Path to death certificate
+  cremationForm         String                    // QCHD cremation form
+  transferPermit        String?                   // If from another location
+  validId               String                    // Requester's ID
+  
+  // Payment and Processing
+  orderOfPayment        String?
+  permitFee             Float                     @default(100.00)
+  submittedOrderNumber  String?                   // OR number submitted by user
+  paymentProof          String?                   // Path to payment proof document
+  paymentSubmittedAt    DateTime?
+  paymentVerifiedBy     String?                   // Employee who verified payment
+  paymentVerifiedAt     DateTime?
+  
+  // Verification
+  verifiedBy            String?                   // Employee who verified the documents
+  verifiedAt            DateTime?
+  verificationNotes     String?
+  
+  // Status and Processing
+  status                CremationPermitStatus     @default(PENDING_VERIFICATION)
+  remarks               String?
+  processedBy           String?
+  processedAt           DateTime?
+  
+  createdAt             DateTime                  @default(now())
+  updatedAt             DateTime                  @updatedAt
+  
+  @@index([userId])
+  @@index([status])
+}
+
+enum CremationPermitStatus {
   PENDING_VERIFICATION
   RETURNED_FOR_CORRECTION
   APPROVED_FOR_PAYMENT

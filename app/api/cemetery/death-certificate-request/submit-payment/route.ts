@@ -1,0 +1,81 @@
+import { auth } from "@/auth"
+import { prisma } from "@/lib/prisma"
+import { NextResponse } from "next/server"
+import { writeFile } from "fs/promises"
+import path from "path"
+import { createAuditLog, AUDIT_ACTIONS } from "@/lib/auditLog"
+
+export async function POST(request: Request) {
+  try {
+    const session = await auth()
+    
+    if (!session || !session.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    const formData = await request.formData()
+    const requestId = formData.get("requestId") as string
+    const submittedOrderNumber = formData.get("submittedOrderNumber") as string
+    const paymentProofFile = formData.get("paymentProof") as File | null
+
+    if (!requestId) {
+      return NextResponse.json({ error: "Request ID is required" }, { status: 400 })
+    }
+
+    if (!submittedOrderNumber && !paymentProofFile) {
+      return NextResponse.json(
+        { error: "Either OR number or payment proof must be provided" },
+        { status: 400 }
+      )
+    }
+
+    // Save payment proof if provided
+    let paymentProofPath = null
+    if (paymentProofFile) {
+      const uploadDir = path.join(process.cwd(), "uploads", "payment-proofs", session.user.id!)
+      const proofBuffer = Buffer.from(await paymentProofFile.arrayBuffer())
+      paymentProofPath = path.join(uploadDir, `payment_${Date.now()}_${paymentProofFile.name}`)
+      await writeFile(paymentProofPath, proofBuffer)
+    }
+
+    const paymentProof = paymentProofFile 
+      ? `OR:${submittedOrderNumber}`
+      : submittedOrderNumber ? `OR:${submittedOrderNumber}` : null
+
+    if (!paymentProof) {
+      return NextResponse.json({ error: "Payment information required" }, { status: 400 })
+    }
+
+    // Update certificate request
+    await prisma.deathCertificateRequest.update({
+      where: { id: requestId },
+      data: {
+        status: "PAYMENT_SUBMITTED",
+        submittedOrderNumber,
+        paymentProof: paymentProofPath ? paymentProofPath.replace(process.cwd(), "") : paymentProof,
+        paymentSubmittedAt: new Date()
+      }
+    })
+
+    // Create audit log
+    await createAuditLog({
+      userId: session.user.id!,
+      action: AUDIT_ACTIONS.DEATH_CERTIFICATE_REQUEST_PAYMENT_SUBMITTED,
+      entityType: "DeathCertificateRequest",
+      entityId: requestId,
+      details: {
+        submittedOrderNumber,
+        hasPaymentProof: !!paymentProofFile
+      }
+    })
+
+    return NextResponse.json({ success: true })
+
+  } catch (error) {
+    console.error("Error submitting payment:", error)
+    return NextResponse.json(
+      { error: "Failed to submit payment" },
+      { status: 500 }
+    )
+  }
+}

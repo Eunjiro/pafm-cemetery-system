@@ -24,20 +24,44 @@ export async function POST(req: NextRequest) {
 
   try {
     const formData = await req.formData()
-    const registrationId = formData.get("registrationId") as string
+    const registrationId = formData.get("registrationId") as string | null
+    const requestId = formData.get("requestId") as string | null
     const uploadMode = formData.get("uploadMode") as string
 
-    // Verify registration exists and belongs to user
-    const registration = await prisma.deathRegistration.findFirst({
-      where: {
-        id: registrationId,
-        userId: user.id,
-        status: "APPROVED_FOR_PAYMENT"
-      }
-    })
+    // Determine which entity type we're dealing with
+    const entityId = registrationId || requestId
+    const entityType = registrationId ? "registration" : "request"
 
-    if (!registration) {
-      return NextResponse.json({ error: "Registration not found or not eligible for payment" }, { status: 404 })
+    if (!entityId) {
+      return NextResponse.json({ error: "Missing entity ID (registrationId or requestId)" }, { status: 400 })
+    }
+
+    // Verify entity exists and belongs to user
+    let entity: any = null
+    let entityModel: string = ""
+
+    if (entityType === "registration") {
+      entity = await prisma.deathRegistration.findFirst({
+        where: {
+          id: entityId,
+          userId: user.id,
+          status: "APPROVED_FOR_PAYMENT"
+        }
+      })
+      entityModel = "DeathRegistration"
+    } else {
+      entity = await prisma.deathCertificateRequest.findFirst({
+        where: {
+          id: entityId,
+          userId: user.id,
+          status: "APPROVED_FOR_PAYMENT"
+        }
+      })
+      entityModel = "DeathCertificateRequest"
+    }
+
+    if (!entity) {
+      return NextResponse.json({ error: `${entityModel} not found or not eligible for payment` }, { status: 404 })
     }
 
     let proofOfPaymentPath = null
@@ -58,7 +82,7 @@ export async function POST(req: NextRequest) {
         await mkdir(uploadDir, { recursive: true })
       }
 
-      const fileName = `payment-${registrationId}-${Date.now()}${path.extname(proofFile.name)}`
+      const fileName = `payment-${entityId}-${Date.now()}${path.extname(proofFile.name)}`
       const filePath = path.join(uploadDir, fileName)
       await writeFile(filePath, buffer)
 
@@ -73,21 +97,32 @@ export async function POST(req: NextRequest) {
       proofOfPaymentPath = `OR:${orNumber.trim()}`
     }
 
-    // Update registration
-    await prisma.deathRegistration.update({
-      where: { id: registrationId },
-      data: {
-        proofOfPayment: proofOfPaymentPath,
-        status: "PAYMENT_SUBMITTED"
-      }
-    })
+    // Update entity
+    if (entityType === "registration") {
+      await prisma.deathRegistration.update({
+        where: { id: entityId },
+        data: {
+          proofOfPayment: proofOfPaymentPath,
+          status: "PAYMENT_SUBMITTED"
+        }
+      })
+    } else {
+      await prisma.deathCertificateRequest.update({
+        where: { id: entityId },
+        data: {
+          paymentProof: proofOfPaymentPath,
+          status: "PAYMENT_SUBMITTED",
+          paymentSubmittedAt: new Date()
+        }
+      })
+    }
 
     // Audit log
     await createAuditLog({
       userId: user.id,
       action: AUDIT_ACTIONS.PAYMENT_SUBMITTED,
-      entityType: "DeathRegistration",
-      entityId: registrationId,
+      entityType: entityModel,
+      entityId: entityId,
       details: {
         uploadMode,
         proofType: uploadMode === "file" ? "Upload" : "OR Number"
