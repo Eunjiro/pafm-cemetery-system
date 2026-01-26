@@ -123,7 +123,7 @@ export default function DeathRegistrationForm() {
                   required
                   value={formData.deceasedFirstName}
                   onChange={(e) => setFormData({ ...formData, deceasedFirstName: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900"
                 />
               </div>
 
@@ -135,7 +135,7 @@ export default function DeathRegistrationForm() {
                   type="text"
                   value={formData.deceasedMiddleName}
                   onChange={(e) => setFormData({ ...formData, deceasedMiddleName: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900"
                 />
               </div>
 
@@ -148,7 +148,7 @@ export default function DeathRegistrationForm() {
                   required
                   value={formData.deceasedLastName}
                   onChange={(e) => setFormData({ ...formData, deceasedLastName: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900"
                 />
               </div>
             </div>
@@ -163,7 +163,7 @@ export default function DeathRegistrationForm() {
                   required
                   value={formData.deceasedDateOfBirth}
                   onChange={(e) => setFormData({ ...formData, deceasedDateOfBirth: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900"
                 />
               </div>
 
@@ -176,7 +176,7 @@ export default function DeathRegistrationForm() {
                   required
                   value={formData.deceasedDateOfDeath}
                   onChange={(e) => setFormData({ ...formData, deceasedDateOfDeath: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900"
                 />
               </div>
             </div>
@@ -190,7 +190,7 @@ export default function DeathRegistrationForm() {
                   required
                   value={formData.deceasedGender}
                   onChange={(e) => setFormData({ ...formData, deceasedGender: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900"
                 >
                   <option value="MALE">Male</option>
                   <option value="FEMALE">Female</option>
@@ -206,7 +206,7 @@ export default function DeathRegistrationForm() {
                   required
                   value={formData.deceasedPlaceOfDeath}
                   onChange={(e) => setFormData({ ...formData, deceasedPlaceOfDeath: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900"
                   placeholder="Hospital, Address, etc."
                 />
               </div>
@@ -221,7 +221,7 @@ export default function DeathRegistrationForm() {
                 value={formData.deceasedCauseOfDeath}
                 onChange={(e) => setFormData({ ...formData, deceasedCauseOfDeath: e.target.value })}
                 rows={3}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900"
                 placeholder="As stated in death certificate..."
               />
             </div>
@@ -241,7 +241,7 @@ export default function DeathRegistrationForm() {
                   required
                   value={formData.informantName}
                   onChange={(e) => setFormData({ ...formData, informantName: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900"
                 />
               </div>
 
@@ -254,7 +254,7 @@ export default function DeathRegistrationForm() {
                   required
                   value={formData.informantRelation}
                   onChange={(e) => setFormData({ ...formData, informantRelation: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900"
                   placeholder="e.g., Spouse, Child, Sibling"
                 />
               </div>
@@ -270,7 +270,7 @@ export default function DeathRegistrationForm() {
                   required
                   value={formData.informantContactNumber}
                   onChange={(e) => setFormData({ ...formData, informantContactNumber: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900"
                   placeholder="09XXXXXXXXX"
                 />
               </div>
@@ -284,7 +284,7 @@ export default function DeathRegistrationForm() {
                   required
                   value={formData.informantAddress}
                   onChange={(e) => setFormData({ ...formData, informantAddress: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900"
                 />
               </div>
             </div>
@@ -304,7 +304,7 @@ export default function DeathRegistrationForm() {
                   required
                   onChange={(e) => handleFileChange(e, 'municipalForm103')}
                   accept=".pdf,.jpg,.jpeg,.png"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900"
                 />
                 <p className="text-xs text-gray-500 mt-1">Accepted formats: PDF, JPG, PNG (Max 5MB)</p>
               </div>
@@ -318,7 +318,7 @@ export default function DeathRegistrationForm() {
                   required
                   onChange={(e) => handleFileChange(e, 'informantValidId')}
                   accept=".pdf,.jpg,.jpeg,.png"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900"
                 />
                 <p className="text-xs text-gray-500 mt-1">Any government-issued ID</p>
               </div>
@@ -331,7 +331,7 @@ export default function DeathRegistrationForm() {
                   type="file"
                   onChange={(e) => handleFileChange(e, 'swabTestResult')}
                   accept=".pdf,.jpg,.jpeg,.png"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900"
                 />
                 <p className="text-xs text-gray-500 mt-1">Optional - only if cause of death is Covid-19 related</p>
               </div>

@@ -242,14 +242,22 @@ export default function SubmissionDetail() {
                 <div className="flex gap-4 mb-4">
                   <button
                     type="button"
-                    onClick={() => setUploadMode("file")}
+                    onClick={() => {
+                      setUploadMode("file")
+                      setOrNumber("")
+                      setProofFile(null)
+                    }}
                     className={`px-4 py-2 rounded-lg font-medium ${uploadMode === "file" ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-700"}`}
                   >
                     Upload Receipt
                   </button>
                   <button
                     type="button"
-                    onClick={() => setUploadMode("or")}
+                    onClick={() => {
+                      setUploadMode("or")
+                      setOrNumber("")
+                      setProofFile(null)
+                    }}
                     className={`px-4 py-2 rounded-lg font-medium ${uploadMode === "or" ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-700"}`}
                   >
                     Enter OR Number
@@ -257,7 +265,7 @@ export default function SubmissionDetail() {
                 </div>
 
                 {uploadMode === "file" ? (
-                  <div>
+                  <div key="file-upload">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Upload Proof of Payment (Receipt/Screenshot)
                     </label>
@@ -265,12 +273,12 @@ export default function SubmissionDetail() {
                       type="file"
                       accept=".pdf,.jpg,.jpeg,.png"
                       onChange={(e) => setProofFile(e.target.files?.[0] || null)}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
                     />
                     <p className="text-xs text-gray-500 mt-1">Accepted: PDF, JPG, PNG (Max 5MB)</p>
                   </div>
                 ) : (
-                  <div>
+                  <div key="or-input">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Enter Official Receipt Number
                     </label>
@@ -279,7 +287,7 @@ export default function SubmissionDetail() {
                       value={orNumber}
                       onChange={(e) => setOrNumber(e.target.value)}
                       placeholder="e.g., OR-123456789"
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
                     />
                   </div>
                 )}

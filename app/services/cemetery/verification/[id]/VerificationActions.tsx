@@ -122,7 +122,7 @@ export default function VerificationActions({ registrationId, employeeName }: Ve
               value={remarks}
               onChange={(e) => setRemarks(e.target.value)}
               rows={4}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-900"
               placeholder="e.g., Municipal Form 103 is not clearly visible. Please upload a clearer copy."
             />
 

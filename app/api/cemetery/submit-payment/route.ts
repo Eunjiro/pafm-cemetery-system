@@ -8,8 +8,17 @@ import path from "path"
 export async function POST(req: NextRequest) {
   const session = await auth()
 
-  if (!session?.user) {
+  if (!session?.user?.email) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
+  // Get user from database
+  const user = await prisma.user.findUnique({
+    where: { email: session.user.email }
+  })
+
+  if (!user) {
+    return NextResponse.json({ error: "User not found" }, { status: 404 })
   }
 
   try {
@@ -21,7 +30,7 @@ export async function POST(req: NextRequest) {
     const registration = await prisma.deathRegistration.findFirst({
       where: {
         id: registrationId,
-        userId: session.user.id,
+        userId: user.id,
         status: "APPROVED_FOR_PAYMENT"
       }
     })
@@ -43,8 +52,7 @@ export async function POST(req: NextRequest) {
       const bytes = await proofFile.arrayBuffer()
       const buffer = Buffer.from(bytes)
 
-      const userId = session.user.id!
-      const uploadDir = path.join(process.cwd(), "uploads", "payment-proofs", userId)
+      const uploadDir = path.join(process.cwd(), "uploads", "payment-proofs", user.id)
       if (!existsSync(uploadDir)) {
         await mkdir(uploadDir, { recursive: true })
       }
@@ -53,7 +61,7 @@ export async function POST(req: NextRequest) {
       const filePath = path.join(uploadDir, fileName)
       await writeFile(filePath, buffer)
 
-      proofOfPaymentPath = path.join("uploads", "payment-proofs", userId, fileName)
+      proofOfPaymentPath = path.join("uploads", "payment-proofs", user.id, fileName)
     } else if (uploadMode === "or") {
       const orNumber = formData.get("orNumber") as string
       

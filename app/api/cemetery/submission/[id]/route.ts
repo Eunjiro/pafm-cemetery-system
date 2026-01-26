@@ -8,8 +8,17 @@ export async function GET(
 ) {
   const session = await auth()
   
-  if (!session?.user) {
+  if (!session?.user?.email) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
+  // Get user from database
+  const user = await prisma.user.findUnique({
+    where: { email: session.user.email }
+  })
+
+  if (!user) {
+    return NextResponse.json({ error: "User not found" }, { status: 404 })
   }
 
   const { id } = await params
@@ -18,7 +27,7 @@ export async function GET(
     const registration = await prisma.deathRegistration.findFirst({
       where: {
         id,
-        userId: session.user.id
+        userId: user.id
       }
     })
 
