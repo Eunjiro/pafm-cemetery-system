@@ -107,16 +107,27 @@ export default function BurialPermitRequest() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="mb-8">
-          <Link href="/services/cemetery" className="text-blue-600 hover:text-blue-700 text-sm font-medium">
-            ← Back to Cemetery Services
-          </Link>
-          <h1 className="text-3xl font-bold text-gray-900 mt-4">Burial Permit Request</h1>
-          <p className="text-gray-600 mt-2">Submit your burial permit application</p>
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <div className="bg-green-600 text-white py-6 shadow-lg">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between">
+            <div>
+              <Link href="/services/cemetery" className="text-sm text-green-100 hover:text-white mb-2 inline-block">
+                ← Back to Cemetery Services
+              </Link>
+              <h1 className="text-3xl font-bold">Burial Permit Request</h1>
+              <p className="text-green-100 mt-1">Apply for a burial permit online</p>
+            </div>
+            <div className="text-right">
+              <p className="text-sm text-green-100">Welcome</p>
+              <p className="font-semibold">{session?.user?.name}</p>
+            </div>
+          </div>
         </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-6">

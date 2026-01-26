@@ -5,7 +5,7 @@ import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 
-type SubmissionType = 'death_registration' | 'burial_permit' | 'exhumation_permit'
+type SubmissionType = 'death_registration' | 'burial_permit' | 'exhumation_permit' | 'death_certificate_request'
 
 interface BaseSubmission {
   id: string
@@ -49,7 +49,17 @@ interface ExhumationPermitSubmission extends BaseSubmission {
   deceasedPlaceOfBurial: string
 }
 
-type PaymentSubmission = DeathRegistrationSubmission | BurialPermitSubmission | ExhumationPermitSubmission
+interface DeathCertificateRequestSubmission extends BaseSubmission {
+  type: 'death_certificate_request'
+  deceasedFullName: string
+  requesterName: string
+  requesterContactNumber: string
+  numberOfCopies: number
+  totalFee: number
+  purpose: string
+}
+
+type PaymentSubmission = DeathRegistrationSubmission | BurialPermitSubmission | ExhumationPermitSubmission | DeathCertificateRequestSubmission
 
 export default function PaymentConfirmation() {
   const { data: session, status } = useSession()
@@ -99,6 +109,9 @@ export default function PaymentConfirmation() {
       } else if (type === 'exhumation_permit') {
         endpoint = "/api/cemetery/exhumation-permit/confirm-payment"
         body = { permitId: id }
+      } else if (type === 'death_certificate_request') {
+        endpoint = "/api/cemetery/confirm-payment"
+        body = { requestId: id }
       }
 
       const response = await fetch(endpoint, {
@@ -137,6 +150,9 @@ export default function PaymentConfirmation() {
       } else if (type === 'exhumation_permit') {
         endpoint = "/api/cemetery/exhumation-permit/reject-payment"
         body = { permitId: id, remarks: reason }
+      } else if (type === 'death_certificate_request') {
+        endpoint = "/api/cemetery/reject-payment"
+        body = { requestId: id, remarks: reason }
       }
 
       const response = await fetch(endpoint, {
@@ -369,7 +385,7 @@ export default function PaymentConfirmation() {
                     </div>
                   </div>
                 )
-              } else {
+              } else if (submission.type === 'exhumation_permit') {
                 // Exhumation permit
                 const exhumationSub = submission as ExhumationPermitSubmission
                 
@@ -400,6 +416,79 @@ export default function PaymentConfirmation() {
                       <div className="bg-green-50 p-3 rounded">
                         <p className="text-xs text-green-700">Permit Fee</p>
                         <p className="font-bold text-green-900">₱{exhumationSub.permitFee.toFixed(2)}</p>
+                      </div>
+                      <div className="bg-purple-50 p-3 rounded">
+                        <p className="text-xs text-purple-700">Submitted</p>
+                        <p className="font-bold text-purple-900 text-sm">
+                          {new Date(submission.createdAt).toLocaleDateString()}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="mb-4 p-3 bg-gray-50 rounded">
+                      <p className="text-sm font-medium text-gray-700 mb-2">Payment Proof:</p>
+                      {isORNumber ? (
+                        <p className="text-lg font-bold text-gray-900">
+                          OR: {submission.proofOfPayment.substring(3)}
+                        </p>
+                      ) : (
+                        <button
+                          onClick={() => viewProof(submission.proofOfPayment)}
+                          className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700"
+                        >
+                          📄 View Payment Receipt
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="flex gap-3">
+                      <button
+                        onClick={() => handleConfirmPayment(submission.id, submission.type)}
+                        className="flex-1 px-6 py-3 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700"
+                      >
+                        ✅ Confirm Payment
+                      </button>
+                      <button
+                        onClick={() => handleRejectPayment(submission.id, submission.type)}
+                        className="flex-1 px-6 py-3 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700"
+                      >
+                        ❌ Reject Payment
+                      </button>
+                    </div>
+                  </div>
+                )
+              } else {
+                // Death Certificate Request
+                const certSub = submission as DeathCertificateRequestSubmission
+                
+                return (
+                  <div key={submission.id} className="bg-white rounded-lg shadow-md p-6 border-l-4 border-blue-500">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded">Death Certificate Request</span>
+                          <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs font-medium rounded">{certSub.numberOfCopies} {certSub.numberOfCopies > 1 ? 'copies' : 'copy'}</span>
+                        </div>
+                        <h3 className="text-xl font-bold text-gray-900">{certSub.deceasedFullName}</h3>
+                        <p className="text-sm text-gray-600 mt-1">Requested by: {certSub.requesterName}</p>
+                        <p className="text-sm text-gray-600">Contact: {certSub.requesterContactNumber}</p>
+                        <p className="text-sm text-gray-600">Purpose: {certSub.purpose}</p>
+                      </div>
+                      <div className="text-right">
+                        <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-lg text-sm font-medium block">
+                          Payment Submitted
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-4 mb-4">
+                      <div className="bg-blue-50 p-3 rounded">
+                        <p className="text-xs text-blue-700">Order of Payment</p>
+                        <p className="font-bold text-blue-900">{submission.orderOfPayment}</p>
+                      </div>
+                      <div className="bg-green-50 p-3 rounded">
+                        <p className="text-xs text-green-700">Total Fee</p>
+                        <p className="font-bold text-green-900">₱{certSub.totalFee.toFixed(2)}</p>
                       </div>
                       <div className="bg-purple-50 p-3 rounded">
                         <p className="text-xs text-purple-700">Submitted</p>

@@ -28,8 +28,8 @@ interface ExhumationPermit {
 const statusConfig: Record<string, { label: string; color: string; bgColor: string; icon: string }> = {
   PENDING_VERIFICATION: {
     label: "Pending Verification",
-    color: "text-yellow-700",
-    bgColor: "bg-yellow-100",
+    color: "text-green-700",
+    bgColor: "bg-green-100",
     icon: "⏳"
   },
   RETURNED_FOR_CORRECTION: {
@@ -159,7 +159,7 @@ export default function ExhumationPermitSubmission() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto"></div>
           <p className="mt-4 text-gray-600">Loading permit details...</p>
         </div>
       </div>
@@ -173,7 +173,7 @@ export default function ExhumationPermitSubmission() {
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Permit Not Found</h2>
           <p className="text-gray-600 mb-6">The exhumation permit you're looking for doesn't exist or you don't have access to it.</p>
           <Link href="/services/cemetery/my-submissions">
-            <button className="px-6 py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700">
+            <button className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700">
               Back to My Submissions
             </button>
           </Link>
@@ -199,19 +199,30 @@ export default function ExhumationPermitSubmission() {
   const isRejected = permit.status === "REJECTED"
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="mb-8">
-          <Link href="/services/cemetery/my-submissions" className="text-orange-600 hover:text-orange-700 text-sm font-medium">
-            ← Back to My Submissions
-          </Link>
-          <h1 className="text-3xl font-bold text-gray-900 mt-4">Exhumation Permit Details</h1>
-          <p className="text-gray-600 mt-2">Track your exhumation permit request</p>
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <div className="bg-green-600 text-white py-6 shadow-lg">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between">
+            <div>
+              <Link href="/services/cemetery/my-submissions" className="text-sm text-green-100 hover:text-white mb-2 inline-block">
+                ← Back to My Submissions
+              </Link>
+              <h1 className="text-3xl font-bold">Exhumation Permit Details</h1>
+              <p className="text-green-100 mt-1">Track your exhumation permit request</p>
+            </div>
+            <div className="text-right">
+              <p className="text-sm text-green-100">Welcome</p>
+              <p className="font-semibold">{session?.user?.name}</p>
+            </div>
+          </div>
         </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
         {/* Status Card */}
-        <div className={`rounded-lg p-6 mb-6 ${statusInfo.bgColor} border-l-4 border-orange-600`}>
+        <div className={`rounded-lg p-6 mb-6 ${statusInfo.bgColor} border-l-4 border-green-600`}>
           <div className="flex items-center justify-between">
             <div>
               <h2 className={`text-2xl font-bold ${statusInfo.color} flex items-center gap-2`}>
@@ -229,7 +240,7 @@ export default function ExhumationPermitSubmission() {
             </div>
             <div className="text-right">
               <p className="text-sm text-gray-700">Permit Fee</p>
-              <p className="text-3xl font-bold text-orange-600">₱{permit.permitFee.toFixed(2)}</p>
+              <p className="text-3xl font-bold text-green-600">₱{permit.permitFee.toFixed(2)}</p>
             </div>
           </div>
         </div>
@@ -247,16 +258,16 @@ export default function ExhumationPermitSubmission() {
                   <div key={status.key} className="flex items-center flex-1">
                     <div className="flex flex-col items-center flex-1">
                       <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${
-                        isComplete ? 'bg-orange-600 text-white' : 'bg-gray-200 text-gray-400'
+                        isComplete ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-400'
                       }`}>
                         {isComplete ? '✓' : index + 1}
                       </div>
-                      <p className={`text-xs mt-2 font-medium ${isCurrent ? 'text-orange-600' : 'text-gray-600'}`}>
+                      <p className={`text-xs mt-2 font-medium ${isCurrent ? 'text-green-600' : 'text-gray-600'}`}>
                         {status.label}
                       </p>
                     </div>
                     {index < statuses.length - 1 && (
-                      <div className={`h-1 flex-1 ${isComplete ? 'bg-orange-600' : 'bg-gray-200'}`} />
+                      <div className={`h-1 flex-1 ${isComplete ? 'bg-green-600' : 'bg-gray-200'}`} />
                     )}
                   </div>
                 )
@@ -354,7 +365,7 @@ export default function ExhumationPermitSubmission() {
         {/* Remarks Section */}
         {permit.remarks && (
           <div className={`rounded-lg p-6 mb-6 ${
-            isReturned ? 'bg-red-50 border-l-4 border-red-500' : 'bg-yellow-50 border-l-4 border-yellow-500'
+            isReturned ? 'bg-red-50 border-l-4 border-red-500' : 'bg-green-50 border-l-4 border-green-500'
           }`}>
             <h3 className="text-lg font-bold text-gray-900 mb-2">
               {isReturned ? '⚠️ Action Required' : 'ℹ️ Remarks'}

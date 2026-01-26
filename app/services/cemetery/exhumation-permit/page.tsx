@@ -94,16 +94,27 @@ export default function ExhumationPermitRequest() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="mb-8">
-          <Link href="/services/cemetery/user-dashboard" className="text-orange-600 hover:text-orange-700 text-sm font-medium">
-            ← Back to Cemetery Services
-          </Link>
-          <h1 className="text-3xl font-bold text-gray-900 mt-4">Exhumation Permit Request</h1>
-          <p className="text-gray-600 mt-2">Submit your exhumation permit application</p>
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <div className="bg-green-600 text-white py-6 shadow-lg">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between">
+            <div>
+              <Link href="/services/cemetery" className="text-sm text-green-100 hover:text-white mb-2 inline-block">
+                ← Back to Cemetery Services
+              </Link>
+              <h1 className="text-3xl font-bold">Exhumation Permit Request</h1>
+              <p className="text-green-100 mt-1">Apply for an exhumation permit online</p>
+            </div>
+            <div className="text-right">
+              <p className="text-sm text-green-100">Welcome</p>
+              <p className="font-semibold">{session?.user?.name}</p>
+            </div>
+          </div>
         </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
         {/* Fee Information */}
         <div className="bg-gradient-to-r from-orange-500 to-orange-600 rounded-lg shadow-md p-6 text-white mb-8">
@@ -321,9 +332,9 @@ export default function ExhumationPermitRequest() {
           </div>
 
           {/* Important Notes */}
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
-            <h3 className="text-lg font-bold text-yellow-900 mb-3">📌 Important Notes</h3>
-            <ul className="space-y-2 text-sm text-yellow-800">
+          <div className="bg-green-50 border border-green-200 rounded-lg p-6">
+            <h3 className="text-lg font-bold text-green-900 mb-3">📌 Important Notes</h3>
+            <ul className="space-y-2 text-sm text-green-800">
               <li>• Exhumation letter from QC Health Department is mandatory</li>
               <li>• Processing time is 5-7 business days after payment confirmation</li>
               <li>• Permit fee is ₱100.00</li>
