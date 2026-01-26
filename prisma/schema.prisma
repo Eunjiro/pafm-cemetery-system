@@ -1,0 +1,83 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                 String             @id @default(uuid())
+  email              String             @unique
+  password           String
+  name               String
+  role               Role               @default(USER)
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+  deathRegistrations DeathRegistration[]
+}
+
+enum Role {
+  USER
+  EMPLOYEE
+  ADMIN
+}
+
+model DeathRegistration {
+  id                    String                    @id @default(uuid())
+  userId                String
+  user                  User                      @relation(fields: [userId], references: [id])
+  
+  // Deceased Details
+  deceasedFirstName     String
+  deceasedMiddleName    String?
+  deceasedLastName      String
+  deceasedDateOfBirth   DateTime
+  deceasedDateOfDeath   DateTime
+  deceasedPlaceOfDeath  String
+  deceasedCauseOfDeath  String
+  deceasedGender        String
+  
+  // Informant Details
+  informantName         String
+  informantRelation     String
+  informantContactNumber String
+  informantAddress      String
+  
+  // Document Uploads (file paths)
+  municipalForm103      String  // Death Certificate Form
+  informantValidId      String
+  swabTestResult        String? // Optional, only if Covid-related
+  
+  // Payment Details
+  orderOfPayment        String? // Generated OR number
+  proofOfPayment        String? // Uploaded proof
+  paymentConfirmed      Boolean                   @default(false)
+  
+  // Status and Processing
+  status                DeathRegistrationStatus   @default(PENDING_VERIFICATION)
+  remarks               String?
+  processedBy           String? // Employee ID who processed
+  processedAt           DateTime?
+  
+  createdAt             DateTime                  @default(now())
+  updatedAt             DateTime                  @updatedAt
+  
+  @@index([userId])
+  @@index([status])
+}
+
+enum DeathRegistrationStatus {
+  PENDING_VERIFICATION
+  RETURNED_FOR_CORRECTION
+  APPROVED_FOR_PAYMENT
+  PAYMENT_SUBMITTED
+  PAYMENT_CONFIRMED
+  REGISTERED_FOR_PICKUP
+  COMPLETED
+  REJECTED
+}
