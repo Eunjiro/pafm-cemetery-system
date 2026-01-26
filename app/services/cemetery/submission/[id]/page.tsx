@@ -217,7 +217,7 @@ export default function SubmissionDetail() {
         {/* Order of Payment */}
         {registration.orderOfPayment && (
           <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-6 mb-6">
-            <h3 className="text-xl font-bold text-blue-900 mb-3">💰 Order of Payment Generated</h3>
+            <h3 className="text-xl font-bold text-blue-900 mb-3">Order of Payment Generated</h3>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <p className="text-sm text-blue-700">OR Number</p>

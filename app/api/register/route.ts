@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import bcrypt from "bcryptjs"
+import { createAuditLog, AUDIT_ACTIONS } from "@/lib/auditLog"
 
 export async function POST(request: NextRequest) {
   try {
@@ -36,6 +37,19 @@ export async function POST(request: NextRequest) {
         password: hashedPassword,
         name,
         role: "USER"
+      }
+    })
+
+    // Audit log
+    await createAuditLog({
+      userId: user.id,
+      action: AUDIT_ACTIONS.USER_REGISTERED,
+      entityType: "User",
+      entityId: user.id,
+      details: {
+        email: user.email,
+        name: user.name,
+        role: user.role
       }
     })
 

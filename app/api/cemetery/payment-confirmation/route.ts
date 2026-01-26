@@ -14,7 +14,8 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const submissions = await prisma.deathRegistration.findMany({
+    // Fetch death registrations with payment submitted
+    const deathRegistrations = await prisma.deathRegistration.findMany({
       where: {
         status: "PAYMENT_SUBMITTED"
       },
@@ -31,7 +32,50 @@ export async function GET(req: NextRequest) {
       }
     })
 
-    return NextResponse.json({ submissions })
+    // Fetch burial permits with payment submitted
+    const burialPermits = await prisma.burialPermit.findMany({
+      where: {
+        status: "PAYMENT_SUBMITTED"
+      },
+      include: {
+        user: {
+          select: {
+            name: true,
+            email: true
+          }
+        }
+      },
+      orderBy: {
+        createdAt: "asc"
+      }
+    })
+
+    // Fetch exhumation permits with payment submitted
+    const exhumationPermits = await prisma.exhumationPermit.findMany({
+      where: {
+        status: "PAYMENT_SUBMITTED"
+      },
+      include: {
+        user: {
+          select: {
+            name: true,
+            email: true
+          }
+        }
+      },
+      orderBy: {
+        createdAt: "asc"
+      }
+    })
+
+    // Combine all submissions with type indicator
+    const allSubmissions = [
+      ...deathRegistrations.map(reg => ({ ...reg, type: 'death_registration' as const })),
+      ...burialPermits.map(permit => ({ ...permit, type: 'burial_permit' as const })),
+      ...exhumationPermits.map(permit => ({ ...permit, type: 'exhumation_permit' as const }))
+    ].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+
+    return NextResponse.json({ submissions: allSubmissions })
   } catch (error) {
     console.error("Error fetching payment submissions:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })

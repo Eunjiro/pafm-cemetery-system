@@ -40,25 +40,42 @@ export default async function VerificationDashboard() {
       {/* Header */}
       <div className="bg-orange-600 text-white py-6 shadow-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <Link href="/services/cemetery" className="text-sm text-orange-100 hover:text-white mb-2 inline-block">
-            ← Back to Cemetery Services
-          </Link>
-          <h1 className="text-3xl font-bold">Death Registration Verification</h1>
-          <p className="text-orange-100 mt-1">Review and process pending submissions</p>
+          <div className="flex items-center justify-between">
+            <div>
+              <Link href="/services/cemetery/employee-dashboard" className="text-sm text-orange-100 hover:text-white mb-2 inline-block">
+                ← Back to Dashboard
+              </Link>
+              <h1 className="text-3xl font-bold">Death Registration Verification</h1>
+              <p className="text-orange-100 mt-1">Review and process pending submissions</p>
+            </div>
+            <div className="text-right">
+              <p className="text-sm text-orange-100">Civil Registry Staff</p>
+              <p className="font-semibold">{session.user?.name}</p>
+              <span className="inline-block mt-1 px-2 py-1 bg-orange-700 text-orange-100 text-xs font-medium rounded">
+                {userRole}
+              </span>
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <div className="bg-white rounded-lg shadow-md p-6">
             <p className="text-sm text-gray-600 mb-1">Pending Verification</p>
             <p className="text-3xl font-bold text-orange-600">{pendingRegistrations.length}</p>
           </div>
           <div className="bg-white rounded-lg shadow-md p-6">
-            <p className="text-sm text-gray-600 mb-1">Processing Fee</p>
+            <p className="text-sm text-gray-600 mb-1">Regular Fee</p>
             <p className="text-3xl font-bold text-green-600">₱50.00</p>
+            <p className="text-xs text-gray-500 mt-1">3-5 business days</p>
+          </div>
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <p className="text-sm text-gray-600 mb-1">Delayed Fee</p>
+            <p className="text-3xl font-bold text-orange-600">₱150.00</p>
+            <p className="text-xs text-gray-500 mt-1">11 working days</p>
           </div>
           <div className="bg-white rounded-lg shadow-md p-6">
             <p className="text-sm text-gray-600 mb-1">Your Role</p>
@@ -84,6 +101,9 @@ export default async function VerificationDashboard() {
                       Deceased Name
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Type
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Informant
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -106,6 +126,18 @@ export default async function VerificationDashboard() {
                         </div>
                         <div className="text-sm text-gray-500">
                           {new Date(reg.deceasedDateOfDeath).toLocaleDateString()}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded ${
+                          reg.registrationType === "DELAYED" 
+                            ? "bg-orange-100 text-orange-800" 
+                            : "bg-green-100 text-green-800"
+                        }`}>
+                          {reg.registrationType === "DELAYED" ? "Delayed" : "Regular"}
+                        </span>
+                        <div className="text-xs text-gray-500 mt-1">
+                          ₱{reg.registrationFee?.toFixed(2) || "50.00"}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">

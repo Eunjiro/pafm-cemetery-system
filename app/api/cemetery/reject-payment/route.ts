@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
+import { createAuditLog, AUDIT_ACTIONS } from "@/lib/auditLog"
 
 export async function POST(req: NextRequest) {
   const session = await auth()
@@ -43,6 +44,23 @@ export async function POST(req: NextRequest) {
         processedAt: new Date()
       }
     })
+
+    // Get user for audit log
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email! }
+    })
+
+    if (user) {
+      await createAuditLog({
+        userId: user.id,
+        action: AUDIT_ACTIONS.PAYMENT_REJECTED,
+        entityType: "DeathRegistration",
+        entityId: registrationId,
+        details: {
+          remarks
+        }
+      })
+    }
 
     return NextResponse.json({ 
       success: true,

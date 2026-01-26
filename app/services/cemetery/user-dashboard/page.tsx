@@ -45,11 +45,47 @@ export default async function UserDashboard() {
             <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow cursor-pointer border-l-4 border-blue-500">
               <div className="flex items-start">
                 <div className="w-16 h-16 bg-blue-100 rounded-lg flex items-center justify-center mr-4">
-                  <span className="text-3xl">📋</span>
+                  <svg className="w-10 h-10 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">New Death Registration</h3>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">Death Registration</h3>
                   <p className="text-sm text-gray-600">Submit a new death certificate application</p>
+                </div>
+              </div>
+            </div>
+          </Link>
+
+          {/* Burial Permit */}
+          <Link href="/services/cemetery/burial-permit">
+            <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow cursor-pointer border-l-4 border-orange-500">
+              <div className="flex items-start">
+                <div className="w-16 h-16 bg-orange-100 rounded-lg flex items-center justify-center mr-4">
+                  <svg className="w-10 h-10 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">Burial Permit</h3>
+                  <p className="text-sm text-gray-600">Request burial, entrance, or niche permit</p>
+                </div>
+              </div>
+            </div>
+          </Link>
+
+          {/* Exhumation Permit */}
+          <Link href="/services/cemetery/exhumation-permit">
+            <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow cursor-pointer border-l-4 border-orange-500">
+              <div className="flex items-start">
+                <div className="w-16 h-16 bg-orange-100 rounded-lg flex items-center justify-center mr-4">
+                  <svg className="w-10 h-10 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">Exhumation Permit</h3>
+                  <p className="text-sm text-gray-600">Request permit for exhumation with QC Health letter</p>
                 </div>
               </div>
             </div>
@@ -60,7 +96,9 @@ export default async function UserDashboard() {
             <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow cursor-pointer border-l-4 border-purple-500">
               <div className="flex items-start">
                 <div className="w-16 h-16 bg-purple-100 rounded-lg flex items-center justify-center mr-4">
-                  <span className="text-3xl">📄</span>
+                  <svg className="w-10 h-10 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                  </svg>
                 </div>
                 <div>
                   <h3 className="text-xl font-bold text-gray-900 mb-2">My Submissions</h3>

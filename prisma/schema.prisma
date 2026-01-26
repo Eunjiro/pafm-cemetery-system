@@ -19,6 +19,10 @@ model User {
   createdAt          DateTime           @default(now())
   updatedAt          DateTime           @updatedAt
   deathRegistrations DeathRegistration[]
+  burialPermits      BurialPermit[]
+  exhumationPermits  ExhumationPermit[]
+  auditLogs          AuditLog[]
+  transactions       Transaction[]
 }
 
 enum Role {
@@ -31,6 +35,10 @@ model DeathRegistration {
   id                    String                    @id @default(uuid())
   userId                String
   user                  User                      @relation(fields: [userId], references: [id])
+  
+  // Registration Type
+  registrationType      RegistrationType          @default(REGULAR)
+  registrationFee       Float                     @default(50.00)
   
   // Deceased Details
   deceasedFirstName     String
@@ -53,6 +61,12 @@ model DeathRegistration {
   informantValidId      String
   swabTestResult        String? // Optional, only if Covid-related
   
+  // Delayed Registration Documents
+  affidavitOfDelayed    String? // For delayed registration
+  burialCertificate     String? // For delayed registration
+  funeralCertificate    String? // For delayed registration
+  psaNoRecord           String? // PSA Certificate of No Record
+  
   // Payment Details
   orderOfPayment        String? // Generated OR number
   proofOfPayment        String? // Uploaded proof
@@ -63,12 +77,19 @@ model DeathRegistration {
   remarks               String?
   processedBy           String? // Employee ID who processed
   processedAt           DateTime?
+  processingDeadline    DateTime? // For delayed: 11 working days from payment
   
   createdAt             DateTime                  @default(now())
   updatedAt             DateTime                  @updatedAt
   
   @@index([userId])
   @@index([status])
+  @@index([registrationType])
+}
+
+enum RegistrationType {
+  REGULAR
+  DELAYED
 }
 
 enum DeathRegistrationStatus {
@@ -77,6 +98,176 @@ enum DeathRegistrationStatus {
   APPROVED_FOR_PAYMENT
   PAYMENT_SUBMITTED
   PAYMENT_CONFIRMED
+  REGISTERED_FOR_PICKUP
+  COMPLETED
+  REJECTED
+}
+
+model AuditLog {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  action      String   // e.g., "DEATH_REGISTRATION_SUBMITTED", "DEATH_REGISTRATION_APPROVED"
+  entityType  String   // e.g., "DeathRegistration", "User"
+  entityId    String?  // ID of the affected entity
+  details     String?  // JSON string with additional details
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime @default(now())
+  
+  @@index([userId])
+  @@index([entityType])
+  @@index([createdAt])
+}
+
+model Transaction {
+  id                String   @id @default(uuid())
+  userId            String   // Citizen who paid
+  user              User     @relation(fields: [userId], references: [id])
+  transactionType   String   // e.g., "DEATH_REGISTRATION_FEE"
+  amount            Float
+  orderOfPayment    String   // OR number
+  paymentMethod     String?  // e.g., "CASH", "ONLINE", "GCASH"
+  referenceNumber   String?  // Reference from payment proof
+  status            TransactionStatus @default(CONFIRMED)
+  confirmedBy       String?  // Employee who confirmed
+  confirmedAt       DateTime @default(now())
+  entityType        String   // e.g., "DeathRegistration"
+  entityId          String   // ID of related entity
+  remarks           String?
+  createdAt         DateTime @default(now())
+  
+  @@index([userId])
+  @@index([status])
+  @@index([transactionType])
+  @@index([createdAt])
+}
+
+enum TransactionStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  REFUNDED
+}
+
+model BurialPermit {
+  id                    String                @id @default(uuid())
+  userId                String
+  user                  User                  @relation(fields: [userId], references: [id])
+  
+  // Deceased Information
+  deceasedName          String
+  deceasedDateOfDeath   DateTime
+  
+  // Requester Information
+  requesterName         String
+  requesterRelation     String
+  requesterContactNumber String
+  requesterAddress      String
+  
+  // Burial Details
+  burialType            BurialType            @default(BURIAL)
+  nicheType             NicheType?            // Only for niche/columbarium
+  cemeteryLocation      String?               // Bagbag, Novaliches, or other
+  isFromAnotherLGU      Boolean               @default(false)
+  
+  // Document Uploads
+  deathCertificate      String                // Path to death certificate
+  transferPermit        String?               // If from another LGU
+  affidavitOfUndertaking String?              // If Bagbag/Novaliches
+  burialForm            String                // QCHD form
+  validId               String                // Requester's ID
+  
+  // Payment and Processing
+  orderOfPayment        String?
+  permitFee             Float                 @default(100.00)
+  nicheFee              Float?                // For niche: 750 (child) or 1500 (adult)
+  totalFee              Float                 @default(100.00)
+  proofOfPayment        String?
+  paymentConfirmed      Boolean               @default(false)
+  
+  // Status and Processing
+  status                BurialPermitStatus    @default(PENDING_VERIFICATION)
+  remarks               String?
+  processedBy           String?
+  processedAt           DateTime?
+  
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+  
+  @@index([userId])
+  @@index([status])
+  @@index([burialType])
+}
+
+enum BurialType {
+  BURIAL           // Regular burial - ₱100
+  ENTRANCE         // Entrance permit - ₱100  
+  NICHE            // Niche/Columbarium - ₱100 + niche fee
+}
+
+enum NicheType {
+  CHILD            // ₱750
+  ADULT            // ₱1500
+}
+
+enum BurialPermitStatus {
+  PENDING_VERIFICATION
+  RETURNED_FOR_CORRECTION
+  APPROVED_FOR_PAYMENT
+  PAYMENT_SUBMITTED
+  REGISTERED_FOR_PICKUP
+  COMPLETED
+  REJECTED
+}
+
+model ExhumationPermit {
+  id                    String                    @id @default(uuid())
+  userId                String
+  user                  User                      @relation(fields: [userId], references: [id])
+  
+  // Deceased Information
+  deceasedName          String
+  deceasedDateOfDeath   DateTime
+  deceasedDateOfBurial  DateTime
+  deceasedPlaceOfBurial String
+  
+  // Requester Information
+  requesterName         String
+  requesterRelation     String
+  requesterContactNumber String
+  requesterAddress      String
+  reasonForExhumation   String
+  
+  // Document Uploads
+  exhumationLetter      String                    // QC Health Dept letter
+  deathCertificate      String                    // Certified death certificate
+  validId               String                    // Requester's ID
+  
+  // Payment and Processing
+  orderOfPayment        String?
+  permitFee             Float                     @default(100.00)
+  proofOfPayment        String?
+  paymentConfirmed      Boolean                   @default(false)
+  
+  // Status and Processing
+  status                ExhumationPermitStatus    @default(PENDING_VERIFICATION)
+  remarks               String?
+  processedBy           String?
+  processedAt           DateTime?
+  
+  createdAt             DateTime                  @default(now())
+  updatedAt             DateTime                  @updatedAt
+  
+  @@index([userId])
+  @@index([status])
+}
+
+enum ExhumationPermitStatus {
+  PENDING_VERIFICATION
+  RETURNED_FOR_CORRECTION
+  APPROVED_FOR_PAYMENT
+  PAYMENT_SUBMITTED
   REGISTERED_FOR_PICKUP
   COMPLETED
   REJECTED

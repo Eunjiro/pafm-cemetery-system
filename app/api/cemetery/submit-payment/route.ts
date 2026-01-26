@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma"
 import { writeFile, mkdir } from "fs/promises"
 import { existsSync } from "fs"
 import path from "path"
+import { createAuditLog, AUDIT_ACTIONS } from "@/lib/auditLog"
 
 export async function POST(req: NextRequest) {
   const session = await auth()
@@ -78,6 +79,18 @@ export async function POST(req: NextRequest) {
       data: {
         proofOfPayment: proofOfPaymentPath,
         status: "PAYMENT_SUBMITTED"
+      }
+    })
+
+    // Audit log
+    await createAuditLog({
+      userId: user.id,
+      action: AUDIT_ACTIONS.PAYMENT_SUBMITTED,
+      entityType: "DeathRegistration",
+      entityId: registrationId,
+      details: {
+        uploadMode,
+        proofType: uploadMode === "file" ? "Upload" : "OR Number"
       }
     })
 

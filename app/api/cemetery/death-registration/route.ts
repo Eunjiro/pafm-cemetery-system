@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma"
 import { writeFile, mkdir } from "fs/promises"
 import { join } from "path"
 import { existsSync } from "fs"
+import { createAuditLog, AUDIT_ACTIONS } from "@/lib/auditLog"
 
 export async function POST(request: NextRequest) {
   try {
@@ -24,6 +25,10 @@ export async function POST(request: NextRequest) {
 
     const formData = await request.formData()
     
+    // Extract registration type
+    const registrationType = (formData.get("registrationType") as string) || "REGULAR"
+    const isDelayed = registrationType === "DELAYED"
+    
     // Extract text fields
     const data = {
       deceasedFirstName: formData.get("deceasedFirstName") as string,
@@ -38,6 +43,8 @@ export async function POST(request: NextRequest) {
       informantRelation: formData.get("informantRelation") as string,
       informantContactNumber: formData.get("informantContactNumber") as string,
       informantAddress: formData.get("informantAddress") as string,
+      registrationType: registrationType as "REGULAR" | "DELAYED",
+      registrationFee: isDelayed ? 150.00 : 50.00,
     }
 
     // Validate required fields
@@ -55,10 +62,22 @@ export async function POST(request: NextRequest) {
       municipalForm103: formData.get("municipalForm103") as File,
       informantValidId: formData.get("informantValidId") as File,
       swabTestResult: formData.get("swabTestResult") as File | null,
+      // Delayed registration additional documents
+      affidavitOfDelayed: isDelayed ? formData.get("affidavitOfDelayed") as File : null,
+      burialCertificate: isDelayed ? formData.get("burialCertificate") as File : null,
+      funeralCertificate: isDelayed ? formData.get("funeralCertificate") as File : null,
+      psaNoRecord: isDelayed ? formData.get("psaNoRecord") as File : null,
     }
 
     if (!files.municipalForm103 || !files.informantValidId) {
       return NextResponse.json({ error: "Required documents missing" }, { status: 400 })
+    }
+
+    // Validate delayed registration documents
+    if (isDelayed) {
+      if (!files.affidavitOfDelayed || !files.burialCertificate || !files.funeralCertificate || !files.psaNoRecord) {
+        return NextResponse.json({ error: "All delayed registration documents are required" }, { status: 400 })
+      }
     }
 
     // Save files
@@ -85,6 +104,37 @@ export async function POST(request: NextRequest) {
       filePaths.swabTestResult = swabPath
     }
 
+    // Save delayed registration documents
+    if (isDelayed) {
+      if (files.affidavitOfDelayed) {
+        const affidavitBuffer = Buffer.from(await files.affidavitOfDelayed.arrayBuffer())
+        const affidavitPath = join(uploadDir, `affidavit_${timestamp}_${files.affidavitOfDelayed.name}`)
+        await writeFile(affidavitPath, affidavitBuffer)
+        filePaths.affidavitOfDelayed = affidavitPath
+      }
+
+      if (files.burialCertificate) {
+        const burialBuffer = Buffer.from(await files.burialCertificate.arrayBuffer())
+        const burialPath = join(uploadDir, `burial_${timestamp}_${files.burialCertificate.name}`)
+        await writeFile(burialPath, burialBuffer)
+        filePaths.burialCertificate = burialPath
+      }
+
+      if (files.funeralCertificate) {
+        const funeralBuffer = Buffer.from(await files.funeralCertificate.arrayBuffer())
+        const funeralPath = join(uploadDir, `funeral_${timestamp}_${files.funeralCertificate.name}`)
+        await writeFile(funeralPath, funeralBuffer)
+        filePaths.funeralCertificate = funeralPath
+      }
+
+      if (files.psaNoRecord) {
+        const psaBuffer = Buffer.from(await files.psaNoRecord.arrayBuffer())
+        const psaPath = join(uploadDir, `psa_no_record_${timestamp}_${files.psaNoRecord.name}`)
+        await writeFile(psaPath, psaBuffer)
+        filePaths.psaNoRecord = psaPath
+      }
+    }
+
     // Create death registration record
     const registration = await prisma.deathRegistration.create({
       data: {
@@ -93,7 +143,25 @@ export async function POST(request: NextRequest) {
         municipalForm103: filePaths.municipalForm103,
         informantValidId: filePaths.informantValidId,
         swabTestResult: filePaths.swabTestResult || null,
+        affidavitOfDelayed: filePaths.affidavitOfDelayed || null,
+        burialCertificate: filePaths.burialCertificate || null,
+        funeralCertificate: filePaths.funeralCertificate || null,
+        psaNoRecord: filePaths.psaNoRecord || null,
         status: "PENDING_VERIFICATION"
+      }
+    })
+
+    // Audit log
+    await createAuditLog({
+      userId: user.id,
+      action: isDelayed ? AUDIT_ACTIONS.DEATH_REGISTRATION_SUBMITTED : AUDIT_ACTIONS.DEATH_REGISTRATION_SUBMITTED,
+      entityType: "DeathRegistration",
+      entityId: registration.id,
+      details: {
+        registrationType: registrationType,
+        registrationFee: data.registrationFee,
+        deceasedName: `${data.deceasedFirstName} ${data.deceasedLastName}`,
+        informantName: data.informantName
       }
     })
 

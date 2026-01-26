@@ -10,6 +10,7 @@ export default function DeathRegistrationForm() {
   const { data: session, status } = useSession()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
+  const [registrationType, setRegistrationType] = useState<"REGULAR" | "DELAYED">("REGULAR")
   
   const [formData, setFormData] = useState({
     // Deceased Details
@@ -28,10 +29,16 @@ export default function DeathRegistrationForm() {
     informantContactNumber: "",
     informantAddress: "",
     
-    // Files
+    // Regular Files
     municipalForm103: null as File | null,
     informantValidId: null as File | null,
     swabTestResult: null as File | null,
+    
+    // Delayed Registration Files
+    affidavitOfDelayed: null as File | null,
+    burialCertificate: null as File | null,
+    funeralCertificate: null as File | null,
+    psaNoRecord: null as File | null,
   })
 
   if (status === "loading") {
@@ -57,17 +64,30 @@ export default function DeathRegistrationForm() {
       // Create FormData for file upload
       const submitData = new FormData()
       
+      // Add registration type
+      submitData.append('registrationType', registrationType)
+      
       // Add text fields
       Object.keys(formData).forEach(key => {
-        if (key !== 'municipalForm103' && key !== 'informantValidId' && key !== 'swabTestResult') {
+        const fileKeys = ['municipalForm103', 'informantValidId', 'swabTestResult', 
+                         'affidavitOfDelayed', 'burialCertificate', 'funeralCertificate', 'psaNoRecord']
+        if (!fileKeys.includes(key)) {
           submitData.append(key, formData[key as keyof typeof formData] as string)
         }
       })
       
-      // Add files
+      // Add required files based on registration type
       if (formData.municipalForm103) submitData.append('municipalForm103', formData.municipalForm103)
       if (formData.informantValidId) submitData.append('informantValidId', formData.informantValidId)
       if (formData.swabTestResult) submitData.append('swabTestResult', formData.swabTestResult)
+      
+      // Add delayed registration files
+      if (registrationType === 'DELAYED') {
+        if (formData.affidavitOfDelayed) submitData.append('affidavitOfDelayed', formData.affidavitOfDelayed)
+        if (formData.burialCertificate) submitData.append('burialCertificate', formData.burialCertificate)
+        if (formData.funeralCertificate) submitData.append('funeralCertificate', formData.funeralCertificate)
+        if (formData.psaNoRecord) submitData.append('psaNoRecord', formData.psaNoRecord)
+      }
 
       const response = await fetch("/api/cemetery/death-registration", {
         method: "POST",
@@ -109,6 +129,56 @@ export default function DeathRegistrationForm() {
             </div>
           )}
 
+          {/* Registration Type Selection */}
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <h2 className="text-xl font-bold text-gray-900 mb-4">Select Registration Type</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div 
+                onClick={() => setRegistrationType("REGULAR")}
+                className={`p-6 border-2 rounded-lg cursor-pointer transition-all ${
+                  registrationType === "REGULAR" 
+                    ? "border-green-600 bg-green-50" 
+                    : "border-gray-300 hover:border-green-300"
+                }`}
+              >
+                <div className="flex items-center mb-2">
+                  <input
+                    type="radio"
+                    checked={registrationType === "REGULAR"}
+                    onChange={() => setRegistrationType("REGULAR")}
+                    className="mr-3"
+                  />
+                  <h3 className="text-lg font-bold text-gray-900">Regular Registration</h3>
+                </div>
+                <p className="text-sm text-gray-600 mb-2">For deaths registered within 30 days</p>
+                <p className="text-2xl font-bold text-green-600">₱50.00</p>
+                <p className="text-xs text-gray-500 mt-2">Processing: 3-5 business days</p>
+              </div>
+
+              <div 
+                onClick={() => setRegistrationType("DELAYED")}
+                className={`p-6 border-2 rounded-lg cursor-pointer transition-all ${
+                  registrationType === "DELAYED" 
+                    ? "border-orange-600 bg-orange-50" 
+                    : "border-gray-300 hover:border-orange-300"
+                }`}
+              >
+                <div className="flex items-center mb-2">
+                  <input
+                    type="radio"
+                    checked={registrationType === "DELAYED"}
+                    onChange={() => setRegistrationType("DELAYED")}
+                    className="mr-3"
+                  />
+                  <h3 className="text-lg font-bold text-gray-900">Delayed Registration</h3>
+                </div>
+                <p className="text-sm text-gray-600 mb-2">For deaths registered after 30 days</p>
+                <p className="text-2xl font-bold text-orange-600">₱150.00</p>
+                <p className="text-xs text-gray-500 mt-2">Processing: 11 working days</p>
+              </div>
+            </div>
+          </div>
+
           {/* Deceased Details Section */}
           <div className="bg-white rounded-lg shadow-md p-6">
             <h2 className="text-xl font-bold text-gray-900 mb-4">Deceased Person Details</h2>
@@ -123,7 +193,7 @@ export default function DeathRegistrationForm() {
                   required
                   value={formData.deceasedFirstName}
                   onChange={(e) => setFormData({ ...formData, deceasedFirstName: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900 placeholder:text-gray-400"
                 />
               </div>
 
@@ -135,7 +205,7 @@ export default function DeathRegistrationForm() {
                   type="text"
                   value={formData.deceasedMiddleName}
                   onChange={(e) => setFormData({ ...formData, deceasedMiddleName: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900 placeholder:text-gray-400"
                 />
               </div>
 
@@ -148,7 +218,7 @@ export default function DeathRegistrationForm() {
                   required
                   value={formData.deceasedLastName}
                   onChange={(e) => setFormData({ ...formData, deceasedLastName: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900 placeholder:text-gray-400"
                 />
               </div>
             </div>
@@ -163,7 +233,7 @@ export default function DeathRegistrationForm() {
                   required
                   value={formData.deceasedDateOfBirth}
                   onChange={(e) => setFormData({ ...formData, deceasedDateOfBirth: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900 placeholder:text-gray-400"
                 />
               </div>
 
@@ -176,7 +246,7 @@ export default function DeathRegistrationForm() {
                   required
                   value={formData.deceasedDateOfDeath}
                   onChange={(e) => setFormData({ ...formData, deceasedDateOfDeath: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900 placeholder:text-gray-400"
                 />
               </div>
             </div>
@@ -190,7 +260,7 @@ export default function DeathRegistrationForm() {
                   required
                   value={formData.deceasedGender}
                   onChange={(e) => setFormData({ ...formData, deceasedGender: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900 placeholder:text-gray-400"
                 >
                   <option value="MALE">Male</option>
                   <option value="FEMALE">Female</option>
@@ -206,7 +276,7 @@ export default function DeathRegistrationForm() {
                   required
                   value={formData.deceasedPlaceOfDeath}
                   onChange={(e) => setFormData({ ...formData, deceasedPlaceOfDeath: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900 placeholder:text-gray-400"
                   placeholder="Hospital, Address, etc."
                 />
               </div>
@@ -221,7 +291,7 @@ export default function DeathRegistrationForm() {
                 value={formData.deceasedCauseOfDeath}
                 onChange={(e) => setFormData({ ...formData, deceasedCauseOfDeath: e.target.value })}
                 rows={3}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900 placeholder:text-gray-400"
                 placeholder="As stated in death certificate..."
               />
             </div>
@@ -241,7 +311,7 @@ export default function DeathRegistrationForm() {
                   required
                   value={formData.informantName}
                   onChange={(e) => setFormData({ ...formData, informantName: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900 placeholder:text-gray-400"
                 />
               </div>
 
@@ -254,7 +324,7 @@ export default function DeathRegistrationForm() {
                   required
                   value={formData.informantRelation}
                   onChange={(e) => setFormData({ ...formData, informantRelation: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900 placeholder:text-gray-400"
                   placeholder="e.g., Spouse, Child, Sibling"
                 />
               </div>
@@ -270,7 +340,7 @@ export default function DeathRegistrationForm() {
                   required
                   value={formData.informantContactNumber}
                   onChange={(e) => setFormData({ ...formData, informantContactNumber: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900 placeholder:text-gray-400"
                   placeholder="09XXXXXXXXX"
                 />
               </div>
@@ -284,7 +354,7 @@ export default function DeathRegistrationForm() {
                   required
                   value={formData.informantAddress}
                   onChange={(e) => setFormData({ ...formData, informantAddress: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900 placeholder:text-gray-400"
                 />
               </div>
             </div>
@@ -292,9 +362,12 @@ export default function DeathRegistrationForm() {
 
           {/* Document Upload Section */}
           <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">Required Documents</h2>
+            <h2 className="text-xl font-bold text-gray-900 mb-4">
+              Required Documents {registrationType === "DELAYED" && <span className="text-orange-600">(Delayed Registration)</span>}
+            </h2>
             
             <div className="space-y-4">
+              {/* Common for both types */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Municipal Form 103 (Death Certificate) <span className="text-red-500">*</span>
@@ -304,9 +377,83 @@ export default function DeathRegistrationForm() {
                   required
                   onChange={(e) => handleFileChange(e, 'municipalForm103')}
                   accept=".pdf,.jpg,.jpeg,.png"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900 placeholder:text-gray-400"
                 />
                 <p className="text-xs text-gray-500 mt-1">Accepted formats: PDF, JPG, PNG (Max 5MB)</p>
+              </div>
+
+              {/* Delayed Registration Additional Documents */}
+              {registrationType === "DELAYED" && (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Affidavit of Delayed Registration <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="file"
+                      required
+                      onChange={(e) => handleFileChange(e, 'affidavitOfDelayed')}
+                      accept=".pdf,.jpg,.jpeg,.png"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-gray-900 placeholder:text-gray-400"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Notarized affidavit explaining reason for delay</p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Burial or Cremation Certificate <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="file"
+                      required
+                      onChange={(e) => handleFileChange(e, 'burialCertificate')}
+                      accept=".pdf,.jpg,.jpeg,.png"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-gray-900 placeholder:text-gray-400"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">From cemetery or crematorium</p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Funeral Service Certificate <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="file"
+                      required
+                      onChange={(e) => handleFileChange(e, 'funeralCertificate')}
+                      accept=".pdf,.jpg,.jpeg,.png"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-gray-900 placeholder:text-gray-400"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">From funeral service provider</p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      PSA Certificate of No Record <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="file"
+                      required
+                      onChange={(e) => handleFileChange(e, 'psaNoRecord')}
+                      accept=".pdf,.jpg,.jpeg,.png"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-gray-900 placeholder:text-gray-400"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Proof that death was not previously registered with PSA</p>
+                  </div>
+                </>
+              )}
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Swab Test Result {registrationType === "DELAYED" ? "(if applicable)" : "(if Covid-related)"}
+                </label>
+                <input
+                  type="file"
+                  onChange={(e) => handleFileChange(e, 'swabTestResult')}
+                  accept=".pdf,.jpg,.jpeg,.png"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900 placeholder:text-gray-400"
+                />
+                <p className="text-xs text-gray-500 mt-1">Optional - only if cause of death is Covid-19 related</p>
               </div>
 
               <div>
@@ -318,22 +465,9 @@ export default function DeathRegistrationForm() {
                   required
                   onChange={(e) => handleFileChange(e, 'informantValidId')}
                   accept=".pdf,.jpg,.jpeg,.png"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900 placeholder:text-gray-400"
                 />
                 <p className="text-xs text-gray-500 mt-1">Any government-issued ID</p>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Swab Test Result (if Covid-related)
-                </label>
-                <input
-                  type="file"
-                  onChange={(e) => handleFileChange(e, 'swabTestResult')}
-                  accept=".pdf,.jpg,.jpeg,.png"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900"
-                />
-                <p className="text-xs text-gray-500 mt-1">Optional - only if cause of death is Covid-19 related</p>
               </div>
             </div>
           </div>
