@@ -3,6 +3,9 @@ import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { randomBytes } from "crypto"
 
+// Force dynamic rendering - don't try to build statically
+export const dynamic = 'force-dynamic'
+
 export async function GET(req: NextRequest) {
   const session = await auth()
 
