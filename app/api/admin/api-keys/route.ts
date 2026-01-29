@@ -5,6 +5,7 @@ import { randomBytes } from "crypto"
 
 // Force dynamic rendering - don't try to build statically
 export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
 
 export async function GET(req: NextRequest) {
   const session = await auth()
