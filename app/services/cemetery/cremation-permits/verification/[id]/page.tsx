@@ -179,7 +179,7 @@ export default async function CremationPermitVerificationDetail({ params }: { pa
                     </div>
                   </div>
                   <a 
-                    href={`/api/view-document?path=${encodeURIComponent(permit.deathCertificate)}`}
+                    href={`/api/cemetery/view-document?path=${encodeURIComponent(permit.deathCertificate)}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-orange-600 hover:text-orange-800 font-medium text-sm"
@@ -200,7 +200,7 @@ export default async function CremationPermitVerificationDetail({ params }: { pa
                     </div>
                   </div>
                   <a 
-                    href={`/api/view-document?path=${encodeURIComponent(permit.cremationForm)}`}
+                    href={`/api/cemetery/view-document?path=${encodeURIComponent(permit.cremationForm)}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-blue-600 hover:text-blue-800 font-medium text-sm"
@@ -221,7 +221,7 @@ export default async function CremationPermitVerificationDetail({ params }: { pa
                     </div>
                   </div>
                   <a 
-                    href={`/api/view-document?path=${encodeURIComponent(permit.validId)}`}
+                    href={`/api/cemetery/view-document?path=${encodeURIComponent(permit.validId)}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-blue-600 hover:text-blue-800 font-medium text-sm"
@@ -243,7 +243,7 @@ export default async function CremationPermitVerificationDetail({ params }: { pa
                       </div>
                     </div>
                     <a 
-                      href={`/api/view-document?path=${encodeURIComponent(permit.transferPermit)}`}
+                      href={`/api/cemetery/view-document?path=${encodeURIComponent(permit.transferPermit)}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-blue-600 hover:text-blue-800 font-medium text-sm"

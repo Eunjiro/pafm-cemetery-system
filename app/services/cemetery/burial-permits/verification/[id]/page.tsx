@@ -201,7 +201,7 @@ export default async function BurialPermitVerificationDetail({ params }: { param
                     </div>
                   </div>
                   <a 
-                    href={`/api/view-document?path=${encodeURIComponent(permit.deathCertificate)}`}
+                    href={`/api/cemetery/view-document?path=${encodeURIComponent(permit.deathCertificate)}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-blue-600 hover:text-blue-800 font-medium text-sm"
@@ -222,7 +222,7 @@ export default async function BurialPermitVerificationDetail({ params }: { param
                     </div>
                   </div>
                   <a 
-                    href={`/api/view-document?path=${encodeURIComponent(permit.burialForm)}`}
+                    href={`/api/cemetery/view-document?path=${encodeURIComponent(permit.burialForm)}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-blue-600 hover:text-blue-800 font-medium text-sm"
@@ -243,7 +243,7 @@ export default async function BurialPermitVerificationDetail({ params }: { param
                     </div>
                   </div>
                   <a 
-                    href={`/api/view-document?path=${encodeURIComponent(permit.validId)}`}
+                    href={`/api/cemetery/view-document?path=${encodeURIComponent(permit.validId)}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-blue-600 hover:text-blue-800 font-medium text-sm"
@@ -265,7 +265,7 @@ export default async function BurialPermitVerificationDetail({ params }: { param
                       </div>
                     </div>
                     <a 
-                      href={`/api/view-document?path=${encodeURIComponent(permit.transferPermit)}`}
+                      href={`/api/cemetery/view-document?path=${encodeURIComponent(permit.transferPermit)}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-blue-600 hover:text-blue-800 font-medium text-sm"
@@ -288,7 +288,7 @@ export default async function BurialPermitVerificationDetail({ params }: { param
                       </div>
                     </div>
                     <a 
-                      href={`/api/view-document?path=${encodeURIComponent(permit.affidavitOfUndertaking)}`}
+                      href={`/api/cemetery/view-document?path=${encodeURIComponent(permit.affidavitOfUndertaking)}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-blue-600 hover:text-blue-800 font-medium text-sm"
