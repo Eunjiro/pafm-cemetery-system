@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+export const dynamic = 'force-dynamic'
 import { auth } from "@/auth"
 import { readFile } from "fs/promises"
 import { existsSync } from "fs"

@@ -6,6 +6,8 @@ import { join } from "path"
 import { existsSync } from "fs"
 import { createAuditLog, AUDIT_ACTIONS } from "@/lib/auditLog"
 
+export const dynamic = 'force-dynamic'
+
 export async function POST(request: NextRequest) {
   try {
     const session = await auth()

@@ -1,4 +1,6 @@
 import { auth } from "@/auth"
+export const dynamic = 'force-dynamic'
+
 import { prisma } from "@/lib/prisma"
 import { NextResponse } from "next/server"
 import { writeFile } from "fs/promises"
