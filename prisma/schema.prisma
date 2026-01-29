@@ -33,6 +33,19 @@ enum Role {
   ADMIN
 }
 
+model ApiKey {
+  id          String   @id @default(uuid())
+  name        String   // Descriptive name for the API key
+  key         String   @unique
+  isActive    Boolean  @default(true)
+  createdBy   String   // Admin who created it
+  createdAt   DateTime @default(now())
+  lastUsedAt  DateTime?
+  expiresAt   DateTime?
+  
+  @@index([key])
+}
+
 model DeathRegistration {
   id                    String                    @id @default(uuid())
   userId                String
@@ -401,4 +414,27 @@ enum CremationPermitStatus {
   REGISTERED_FOR_PICKUP
   COMPLETED
   REJECTED
+}
+
+model Event {
+  id          String   @id @default(uuid())
+  title       String
+  description String
+  eventDate   DateTime
+  location    String
+  category    EventCategory @default(OTHER)
+  createdBy   String   // Employee/Admin who created the event
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([eventDate])
+  @@index([category])
+}
+
+enum EventCategory {
+  MEMORIAL
+  ALL_SOULS
+  UNDAS
+  MAINTENANCE
+  OTHER
 }

@@ -267,6 +267,21 @@ export default async function EmployeeDashboard() {
                   </nav>
                 </div>
 
+                {/* EVENT MANAGEMENT */}
+                <div className="mb-4 pb-4 border-b border-gray-200">
+                  <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 px-3">Event Management</h3>
+                  <nav className="space-y-1">
+                    <Link href="/services/cemetery/events" className="block">
+                      <div className="flex items-center px-3 py-3 rounded-lg text-gray-700 hover:bg-gray-50 transition-all border-l-4 border-transparent hover:border-blue-300">
+                        <svg className="w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        <p className="font-medium text-sm">Events List</p>
+                      </div>
+                    </Link>
+                  </nav>
+                </div>
+
                 {/* OTHER ACTIONS */}
                 <div className="mb-4">
                   <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 px-3">Other Actions</h3>
