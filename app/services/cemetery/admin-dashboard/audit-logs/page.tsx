@@ -94,7 +94,7 @@ export default function AuditLogs() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
             <div>
-              <Link href="/services/cemetery/employee-dashboard" className="text-sm text-orange-100 hover:text-white mb-2 inline-block">
+              <Link href="/services/cemetery/admin-dashboard" className="text-sm text-orange-100 hover:text-white mb-2 inline-block">
                 ← Back to Dashboard
               </Link>
               <h1 className="text-3xl font-bold">System Audit Logs</h1>

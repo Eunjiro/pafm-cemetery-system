@@ -16,13 +16,28 @@ export default async function AdminDashboard() {
     redirect("/services/cemetery")
   }
 
-  // Fetch statistics
+  // Fetch statistics from all cemetery services
   const stats = await prisma.deathRegistration.groupBy({
     by: ['status'],
     _count: true
   })
 
-  const totalCount = stats.reduce((acc, s) => acc + s._count, 0)
+  // Count all permit types
+  const [
+    burialPermitCount,
+    exhumationPermitCount,
+    cremationPermitCount,
+    deathCertificateCount
+  ] = await Promise.all([
+    prisma.burialPermit.count(),
+    prisma.exhumationPermit.count(),
+    prisma.cremationPermit.count(),
+    prisma.deathCertificateRequest.count()
+  ])
+
+  const deathRegistrationCount = stats.reduce((acc, s) => acc + s._count, 0)
+  const totalCount = deathRegistrationCount + burialPermitCount + exhumationPermitCount + cremationPermitCount + deathCertificateCount
+
   const pendingCount = stats.find(s => s.status === 'PENDING_VERIFICATION')?._count || 0
   const approvedCount = stats.find(s => s.status === 'APPROVED_FOR_PAYMENT')?._count || 0
   const completedCount = stats.find(s => s.status === 'COMPLETED')?._count || 0
@@ -150,7 +165,7 @@ export default async function AdminDashboard() {
           </Link>
 
           {/* Audit Logs */}
-          <Link href="/services/cemetery/audit-logs">
+          <Link href="/services/cemetery/admin-dashboard/audit-logs">
             <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow cursor-pointer border-l-4 border-purple-500">
               <div className="flex items-start">
                 <div className="w-16 h-16 bg-purple-100 rounded-lg flex items-center justify-center mr-4">

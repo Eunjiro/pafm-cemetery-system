@@ -76,6 +76,8 @@ export default function TransactionsPage() {
     return matchesType && matchesStatus && matchesSearch
   })
 
+  
+
   const totalAmount = filteredTransactions.reduce((sum, txn) => sum + txn.amount, 0)
   const todayTransactions = transactions.filter(t => 
     new Date(t.confirmedAt).toDateString() === new Date().toDateString()
@@ -162,6 +164,11 @@ export default function TransactionsPage() {
               >
                 <option value="all">All Types</option>
                 <option value="DEATH_REGISTRATION_FEE">Death Registration Fee</option>
+                <option value="DELAYED_DEATH_REGISTRATION_FEE">Delayed Death Registration Fee</option>
+                <option value="BURIAL_PERMIT_FEE">Burial Permit Fee</option>
+                <option value="EXHUMATION_PERMIT_FEE">Exhumation Permit Fee</option>
+                <option value="CREMATION_PERMIT_FEE">Cremation Permit Fee</option>
+                <option value="DEATH_CERTIFICATE_FEE">Death Certificate Fee</option>
               </select>
             </div>
             <div>
@@ -185,7 +192,7 @@ export default function TransactionsPage() {
         <div className="bg-white rounded-lg shadow-md overflow-hidden">
           {filteredTransactions.length === 0 ? (
             <div className="p-12 text-center">
-              <div className="text-6xl mb-4">💰</div>
+              <div className="text-6xl mb-4"></div>
               <h3 className="text-xl font-bold text-gray-900 mb-2">No Transactions Found</h3>
               <p className="text-gray-600">No transactions match your search criteria.</p>
             </div>
@@ -266,7 +273,7 @@ export default function TransactionsPage() {
             onClick={() => alert('Export functionality coming soon!')}
             className="px-6 py-3 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors"
           >
-            📥 Export to Excel
+            Export to Excel
           </button>
         </div>
       </div>
