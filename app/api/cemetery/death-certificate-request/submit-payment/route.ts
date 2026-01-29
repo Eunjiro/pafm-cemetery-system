@@ -3,8 +3,7 @@ export const dynamic = 'force-dynamic'
 
 import { prisma } from "@/lib/prisma"
 import { NextResponse } from "next/server"
-import { writeFile } from "fs/promises"
-import path from "path"
+import { saveFile } from "@/lib/upload"
 import { createAuditLog, AUDIT_ACTIONS } from "@/lib/auditLog"
 
 export async function POST(request: Request) {
@@ -34,10 +33,9 @@ export async function POST(request: Request) {
     // Save payment proof if provided
     let paymentProofPath = null
     if (paymentProofFile) {
-      const uploadDir = path.join(process.cwd(), "uploads", "payment-proofs", session.user.id!)
-      const proofBuffer = Buffer.from(await paymentProofFile.arrayBuffer())
-      paymentProofPath = path.join(uploadDir, `payment_${Date.now()}_${paymentProofFile.name}`)
-      await writeFile(paymentProofPath, proofBuffer)
+      const folder = `payment-proofs/${session.user.id!}`
+      const fileName = `payment_${Date.now()}_${paymentProofFile.name}`
+      paymentProofPath = await saveFile(paymentProofFile, folder, fileName)
     }
 
     const paymentProof = paymentProofFile 
@@ -54,7 +52,7 @@ export async function POST(request: Request) {
       data: {
         status: "PAYMENT_SUBMITTED",
         submittedOrderNumber,
-        paymentProof: paymentProofPath ? paymentProofPath.replace(process.cwd(), "") : paymentProof,
+        paymentProof: paymentProofPath || paymentProof,
         paymentSubmittedAt: new Date()
       }
     })

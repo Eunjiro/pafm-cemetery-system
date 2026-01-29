@@ -2,10 +2,8 @@ import { NextRequest, NextResponse } from "next/server"
 export const dynamic = 'force-dynamic'
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
-import { writeFile, mkdir } from "fs/promises"
-import { join } from "path"
-import { existsSync } from "fs"
 import { createAuditLog, AUDIT_ACTIONS } from "@/lib/auditLog"
+import { saveFile } from "@/lib/upload"
 
 export async function POST(request: NextRequest) {
   try {
@@ -45,11 +43,6 @@ export async function POST(request: NextRequest) {
     }
 
     // Handle file uploads
-    const uploadDir = join(process.cwd(), "uploads", "exhumation-permits", user.id)
-    if (!existsSync(uploadDir)) {
-      await mkdir(uploadDir, { recursive: true })
-    }
-
     const files = {
       exhumationLetter: formData.get("exhumationLetter") as File,
       deathCertificate: formData.get("deathCertificate") as File,
@@ -60,27 +53,31 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Required documents missing" }, { status: 400 })
     }
 
-    // Save files
+    // Save files using Vercel Blob or local storage
     const timestamp = Date.now()
+    const folder = `exhumation-permits/${user.id}`
     const filePaths: any = {}
 
     // Save Exhumation Letter
-    const exhumationLetterBuffer = Buffer.from(await files.exhumationLetter.arrayBuffer())
-    const exhumationLetterPath = join(uploadDir, `exhumation_letter_${timestamp}_${files.exhumationLetter.name}`)
-    await writeFile(exhumationLetterPath, exhumationLetterBuffer)
-    filePaths.exhumationLetter = exhumationLetterPath
+    filePaths.exhumationLetter = await saveFile(
+      files.exhumationLetter,
+      folder,
+      `exhumation_letter_${timestamp}_${files.exhumationLetter.name}`
+    )
 
     // Save Death Certificate
-    const deathCertBuffer = Buffer.from(await files.deathCertificate.arrayBuffer())
-    const deathCertPath = join(uploadDir, `death_cert_${timestamp}_${files.deathCertificate.name}`)
-    await writeFile(deathCertPath, deathCertBuffer)
-    filePaths.deathCertificate = deathCertPath
+    filePaths.deathCertificate = await saveFile(
+      files.deathCertificate,
+      folder,
+      `death_cert_${timestamp}_${files.deathCertificate.name}`
+    )
 
     // Save Valid ID
-    const validIdBuffer = Buffer.from(await files.validId.arrayBuffer())
-    const validIdPath = join(uploadDir, `valid_id_${timestamp}_${files.validId.name}`)
-    await writeFile(validIdPath, validIdBuffer)
-    filePaths.validId = validIdPath
+    filePaths.validId = await saveFile(
+      files.validId,
+      folder,
+      `valid_id_${timestamp}_${files.validId.name}`
+    )
 
     // Create exhumation permit record
     const permit = await prisma.exhumationPermit.create({

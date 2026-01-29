@@ -2,9 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 export const dynamic = 'force-dynamic'
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
-import { writeFile, mkdir } from "fs/promises"
-import { existsSync } from "fs"
-import path from "path"
+import { saveFile } from "@/lib/upload"
 import { createAuditLog, AUDIT_ACTIONS } from "@/lib/auditLog"
 
 export async function POST(req: NextRequest) {
@@ -74,20 +72,10 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "Proof of payment file is required" }, { status: 400 })
       }
 
-      // Save file
-      const bytes = await proofFile.arrayBuffer()
-      const buffer = Buffer.from(bytes)
-
-      const uploadDir = path.join(process.cwd(), "uploads", "payment-proofs", user.id)
-      if (!existsSync(uploadDir)) {
-        await mkdir(uploadDir, { recursive: true })
-      }
-
-      const fileName = `payment-${entityId}-${Date.now()}${path.extname(proofFile.name)}`
-      const filePath = path.join(uploadDir, fileName)
-      await writeFile(filePath, buffer)
-
-      proofOfPaymentPath = path.join("uploads", "payment-proofs", user.id, fileName)
+      // Save file using Vercel Blob storage
+      const folder = `payment-proofs/${user.id}`
+      const fileName = `payment-${entityId}-${Date.now()}-${proofFile.name}`
+      proofOfPaymentPath = await saveFile(proofFile, folder, fileName)
     } else if (uploadMode === "or") {
       const orNumber = formData.get("orNumber") as string
       

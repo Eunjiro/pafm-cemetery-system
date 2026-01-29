@@ -2,9 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 export const dynamic = 'force-dynamic'
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
-import { writeFile, mkdir } from "fs/promises"
-import { join } from "path"
-import { existsSync } from "fs"
+import { saveFile } from "@/lib/upload"
 import { createAuditLog, AUDIT_ACTIONS } from "@/lib/auditLog"
 
 export async function GET() {
@@ -71,11 +69,6 @@ export async function POST(request: NextRequest) {
     }
 
     // Handle file uploads
-    const uploadDir = join(process.cwd(), "uploads", "cremation-permits", user.id)
-    if (!existsSync(uploadDir)) {
-      await mkdir(uploadDir, { recursive: true })
-    }
-
     const files = {
       deathCertificate: formData.get("deathCertificate") as File,
       cremationForm: formData.get("cremationForm") as File,
@@ -87,35 +80,40 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Required documents missing" }, { status: 400 })
     }
 
-    // Save files
+    // Save files using Vercel Blob storage
     const timestamp = Date.now()
+    const folder = `cremation-permits/${user.id}`
     const filePaths: any = {}
 
     // Death Certificate
-    const deathCertBuffer = Buffer.from(await files.deathCertificate.arrayBuffer())
-    const deathCertPath = join(uploadDir, `death_cert_${timestamp}_${files.deathCertificate.name}`)
-    await writeFile(deathCertPath, deathCertBuffer)
-    filePaths.deathCertificate = deathCertPath
+    filePaths.deathCertificate = await saveFile(
+      files.deathCertificate,
+      folder,
+      `death_cert_${timestamp}_${files.deathCertificate.name}`
+    )
 
     // Cremation Form
-    const cremationFormBuffer = Buffer.from(await files.cremationForm.arrayBuffer())
-    const cremationFormPath = join(uploadDir, `cremation_form_${timestamp}_${files.cremationForm.name}`)
-    await writeFile(cremationFormPath, cremationFormBuffer)
-    filePaths.cremationForm = cremationFormPath
+    filePaths.cremationForm = await saveFile(
+      files.cremationForm,
+      folder,
+      `cremation_form_${timestamp}_${files.cremationForm.name}`
+    )
 
     // Transfer Permit (optional)
     if (files.transferPermit) {
-      const transferBuffer = Buffer.from(await files.transferPermit.arrayBuffer())
-      const transferPath = join(uploadDir, `transfer_${timestamp}_${files.transferPermit.name}`)
-      await writeFile(transferPath, transferBuffer)
-      filePaths.transferPermit = transferPath
+      filePaths.transferPermit = await saveFile(
+        files.transferPermit,
+        folder,
+        `transfer_${timestamp}_${files.transferPermit.name}`
+      )
     }
 
     // Valid ID
-    const validIdBuffer = Buffer.from(await files.validId.arrayBuffer())
-    const validIdPath = join(uploadDir, `valid_id_${timestamp}_${files.validId.name}`)
-    await writeFile(validIdPath, validIdBuffer)
-    filePaths.validId = validIdPath
+    filePaths.validId = await saveFile(
+      files.validId,
+      folder,
+      `valid_id_${timestamp}_${files.validId.name}`
+    )
 
     // Create cremation permit
     const permit = await prisma.cremationPermit.create({

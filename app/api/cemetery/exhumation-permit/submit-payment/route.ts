@@ -3,9 +3,7 @@ export const dynamic = 'force-dynamic'
 
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
-import { writeFile, mkdir } from "fs/promises"
-import { join } from "path"
-import { existsSync } from "fs"
+import { saveFile } from "@/lib/upload"
 import { createAuditLog, AUDIT_ACTIONS } from "@/lib/auditLog"
 
 export async function POST(request: NextRequest) {
@@ -54,17 +52,12 @@ export async function POST(request: NextRequest) {
 
     let proofOfPaymentPath: string | null = null
 
-    // Handle file upload if provided
+    // Handle file upload if provided using Vercel Blob storage
     if (proofFile) {
-      const uploadDir = join(process.cwd(), "uploads", "exhumation-permits", user.id)
-      if (!existsSync(uploadDir)) {
-        await mkdir(uploadDir, { recursive: true })
-      }
-
+      const folder = `payment-proofs/${user.id}`
       const timestamp = Date.now()
-      const fileBuffer = Buffer.from(await proofFile.arrayBuffer())
-      proofOfPaymentPath = join(uploadDir, `payment_proof_${timestamp}_${proofFile.name}`)
-      await writeFile(proofOfPaymentPath, fileBuffer)
+      const fileName = `exhumation_payment_${timestamp}_${proofFile.name}`
+      proofOfPaymentPath = await saveFile(proofFile, folder, fileName)
     }
 
     // Update permit with payment information

@@ -1,10 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
-import { writeFile, mkdir } from "fs/promises"
-import { join } from "path"
-import { existsSync } from "fs"
 import { createAuditLog, AUDIT_ACTIONS } from "@/lib/auditLog"
+import { saveFile } from "@/lib/upload"
 
 export const dynamic = 'force-dynamic'
 
@@ -63,11 +61,6 @@ export async function POST(request: NextRequest) {
     }
 
     // Handle file uploads
-    const uploadDir = join(process.cwd(), "uploads", "burial-permits", user.id)
-    if (!existsSync(uploadDir)) {
-      await mkdir(uploadDir, { recursive: true })
-    }
-
     const files = {
       deathCertificate: formData.get("deathCertificate") as File,
       transferPermit: formData.get("transferPermit") as File | null,
@@ -80,42 +73,48 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Required documents missing" }, { status: 400 })
     }
 
-    // Save files
+    // Save files using Vercel Blob or local storage
     const timestamp = Date.now()
+    const folder = `burial-permits/${user.id}`
     const filePaths: any = {}
 
     // Save Death Certificate
-    const deathCertBuffer = Buffer.from(await files.deathCertificate.arrayBuffer())
-    const deathCertPath = join(uploadDir, `death_cert_${timestamp}_${files.deathCertificate.name}`)
-    await writeFile(deathCertPath, deathCertBuffer)
-    filePaths.deathCertificate = deathCertPath
+    filePaths.deathCertificate = await saveFile(
+      files.deathCertificate,
+      folder,
+      `death_cert_${timestamp}_${files.deathCertificate.name}`
+    )
 
     // Save Burial Form
-    const burialFormBuffer = Buffer.from(await files.burialForm.arrayBuffer())
-    const burialFormPath = join(uploadDir, `burial_form_${timestamp}_${files.burialForm.name}`)
-    await writeFile(burialFormPath, burialFormBuffer)
-    filePaths.burialForm = burialFormPath
+    filePaths.burialForm = await saveFile(
+      files.burialForm,
+      folder,
+      `burial_form_${timestamp}_${files.burialForm.name}`
+    )
 
     // Save Valid ID
-    const validIdBuffer = Buffer.from(await files.validId.arrayBuffer())
-    const validIdPath = join(uploadDir, `valid_id_${timestamp}_${files.validId.name}`)
-    await writeFile(validIdPath, validIdBuffer)
-    filePaths.validId = validIdPath
+    filePaths.validId = await saveFile(
+      files.validId,
+      folder,
+      `valid_id_${timestamp}_${files.validId.name}`
+    )
 
     // Save Transfer Permit (if provided)
     if (files.transferPermit) {
-      const transferPermitBuffer = Buffer.from(await files.transferPermit.arrayBuffer())
-      const transferPermitPath = join(uploadDir, `transfer_permit_${timestamp}_${files.transferPermit.name}`)
-      await writeFile(transferPermitPath, transferPermitBuffer)
-      filePaths.transferPermit = transferPermitPath
+      filePaths.transferPermit = await saveFile(
+        files.transferPermit,
+        folder,
+        `transfer_permit_${timestamp}_${files.transferPermit.name}`
+      )
     }
 
     // Save Affidavit of Undertaking (if provided)
     if (files.affidavitOfUndertaking) {
-      const affidavitBuffer = Buffer.from(await files.affidavitOfUndertaking.arrayBuffer())
-      const affidavitPath = join(uploadDir, `affidavit_${timestamp}_${files.affidavitOfUndertaking.name}`)
-      await writeFile(affidavitPath, affidavitBuffer)
-      filePaths.affidavitOfUndertaking = affidavitPath
+      filePaths.affidavitOfUndertaking = await saveFile(
+        files.affidavitOfUndertaking,
+        folder,
+        `affidavit_${timestamp}_${files.affidavitOfUndertaking.name}`
+      )
     }
 
     // Create burial permit record

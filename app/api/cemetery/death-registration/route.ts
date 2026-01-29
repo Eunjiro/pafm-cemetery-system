@@ -2,10 +2,8 @@ import { NextRequest, NextResponse } from "next/server"
 export const dynamic = 'force-dynamic'
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
-import { writeFile, mkdir } from "fs/promises"
-import { join } from "path"
-import { existsSync } from "fs"
 import { createAuditLog, AUDIT_ACTIONS } from "@/lib/auditLog"
+import { saveFile } from "@/lib/upload"
 
 export async function POST(request: NextRequest) {
   try {
@@ -54,11 +52,6 @@ export async function POST(request: NextRequest) {
     }
 
     // Handle file uploads
-    const uploadDir = join(process.cwd(), "uploads", "death-registrations", user.id)
-    if (!existsSync(uploadDir)) {
-      await mkdir(uploadDir, { recursive: true })
-    }
-
     const files = {
       municipalForm103: formData.get("municipalForm103") as File,
       informantValidId: formData.get("informantValidId") as File,
@@ -81,58 +74,66 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Save files
+    // Save files using Vercel Blob or local storage
     const timestamp = Date.now()
+    const folder = `death-registrations/${user.id}`
     const filePaths: any = {}
 
     // Save Municipal Form 103
-    const form103Buffer = Buffer.from(await files.municipalForm103.arrayBuffer())
-    const form103Path = join(uploadDir, `form103_${timestamp}_${files.municipalForm103.name}`)
-    await writeFile(form103Path, form103Buffer)
-    filePaths.municipalForm103 = form103Path
+    filePaths.municipalForm103 = await saveFile(
+      files.municipalForm103,
+      folder,
+      `form103_${timestamp}_${files.municipalForm103.name}`
+    )
 
     // Save Valid ID
-    const validIdBuffer = Buffer.from(await files.informantValidId.arrayBuffer())
-    const validIdPath = join(uploadDir, `valid_id_${timestamp}_${files.informantValidId.name}`)
-    await writeFile(validIdPath, validIdBuffer)
-    filePaths.informantValidId = validIdPath
+    filePaths.informantValidId = await saveFile(
+      files.informantValidId,
+      folder,
+      `valid_id_${timestamp}_${files.informantValidId.name}`
+    )
 
     // Save Swab Test (if provided)
     if (files.swabTestResult) {
-      const swabBuffer = Buffer.from(await files.swabTestResult.arrayBuffer())
-      const swabPath = join(uploadDir, `swab_test_${timestamp}_${files.swabTestResult.name}`)
-      await writeFile(swabPath, swabBuffer)
-      filePaths.swabTestResult = swabPath
+      filePaths.swabTestResult = await saveFile(
+        files.swabTestResult,
+        folder,
+        `swab_test_${timestamp}_${files.swabTestResult.name}`
+      )
     }
 
     // Save delayed registration documents
     if (isDelayed) {
       if (files.affidavitOfDelayed) {
-        const affidavitBuffer = Buffer.from(await files.affidavitOfDelayed.arrayBuffer())
-        const affidavitPath = join(uploadDir, `affidavit_${timestamp}_${files.affidavitOfDelayed.name}`)
-        await writeFile(affidavitPath, affidavitBuffer)
-        filePaths.affidavitOfDelayed = affidavitPath
+        filePaths.affidavitOfDelayed = await saveFile(
+          files.affidavitOfDelayed,
+          folder,
+          `affidavit_${timestamp}_${files.affidavitOfDelayed.name}`
+        )
       }
 
       if (files.burialCertificate) {
-        const burialBuffer = Buffer.from(await files.burialCertificate.arrayBuffer())
-        const burialPath = join(uploadDir, `burial_${timestamp}_${files.burialCertificate.name}`)
-        await writeFile(burialPath, burialBuffer)
-        filePaths.burialCertificate = burialPath
+        filePaths.burialCertificate = await saveFile(
+          files.burialCertificate,
+          folder,
+          `burial_${timestamp}_${files.burialCertificate.name}`
+        )
       }
 
       if (files.funeralCertificate) {
-        const funeralBuffer = Buffer.from(await files.funeralCertificate.arrayBuffer())
-        const funeralPath = join(uploadDir, `funeral_${timestamp}_${files.funeralCertificate.name}`)
-        await writeFile(funeralPath, funeralBuffer)
-        filePaths.funeralCertificate = funeralPath
+        filePaths.funeralCertificate = await saveFile(
+          files.funeralCertificate,
+          folder,
+          `funeral_${timestamp}_${files.funeralCertificate.name}`
+        )
       }
 
       if (files.psaNoRecord) {
-        const psaBuffer = Buffer.from(await files.psaNoRecord.arrayBuffer())
-        const psaPath = join(uploadDir, `psa_no_record_${timestamp}_${files.psaNoRecord.name}`)
-        await writeFile(psaPath, psaBuffer)
-        filePaths.psaNoRecord = psaPath
+        filePaths.psaNoRecord = await saveFile(
+          files.psaNoRecord,
+          folder,
+          `psa_no_record_${timestamp}_${files.psaNoRecord.name}`
+        )
       }
     }
 

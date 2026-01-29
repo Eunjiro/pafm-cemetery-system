@@ -2,8 +2,7 @@ import { auth } from "@/auth"
 export const dynamic = 'force-dynamic'
 import { prisma } from "@/lib/prisma"
 import { NextResponse } from "next/server"
-import { writeFile, mkdir } from "fs/promises"
-import path from "path"
+import { saveFile } from "@/lib/upload"
 import { createAuditLog, AUDIT_ACTIONS } from "@/lib/auditLog"
 
 export async function POST(request: Request) {
@@ -41,20 +40,23 @@ export async function POST(request: Request) {
       )
     }
 
-    // Create upload directory
-    const uploadDir = path.join(process.cwd(), "uploads", "death-certificate-requests", session.user.id!)
-    await mkdir(uploadDir, { recursive: true })
+    // Save files using Vercel Blob storage
+    const folder = `death-certificate-requests/${session.user.id!}`
+    const timestamp = Date.now()
     
-    // Save files
-    const validIdBuffer = Buffer.from(await validIdFile.arrayBuffer())
-    const validIdPath = path.join(uploadDir, `validId_${Date.now()}_${validIdFile.name}`)
-    await writeFile(validIdPath, validIdBuffer)
+    const validIdPath = await saveFile(
+      validIdFile,
+      folder,
+      `validId_${timestamp}_${validIdFile.name}`
+    )
     
     let authorizationLetterPath = null
     if (authorizationLetterFile) {
-      const authLetterBuffer = Buffer.from(await authorizationLetterFile.arrayBuffer())
-      authorizationLetterPath = path.join(uploadDir, `authLetter_${Date.now()}_${authorizationLetterFile.name}`)
-      await writeFile(authorizationLetterPath, authLetterBuffer)
+      authorizationLetterPath = await saveFile(
+        authorizationLetterFile,
+        folder,
+        `authLetter_${timestamp}_${authorizationLetterFile.name}`
+      )
     }
 
     // Calculate fees
@@ -75,8 +77,8 @@ export async function POST(request: Request) {
         requesterAddress,
         purpose,
         numberOfCopies,
-        validId: validIdPath.replace(process.cwd(), ""),
-        authorizationLetter: authorizationLetterPath ? authorizationLetterPath.replace(process.cwd(), "") : null,
+        validId: validIdPath,
+        authorizationLetter: authorizationLetterPath,
         certificateFee,
         additionalCopiesFee,
         totalFee,
