@@ -86,6 +86,7 @@ model DeathRegistration {
   orderOfPayment        String? // Generated OR number
   proofOfPayment        String? // Uploaded proof
   paymentConfirmed      Boolean                   @default(false)
+  paymentStatus         String?                   @default("PENDING") // PENDING, PAID, FAILED
   
   // Status and Processing
   status                DeathRegistrationStatus   @default(PENDING_VERIFICATION)
@@ -100,6 +101,7 @@ model DeathRegistration {
   @@index([userId])
   @@index([status])
   @@index([registrationType])
+  @@index([paymentStatus])
 }
 
 enum RegistrationType {
@@ -200,6 +202,7 @@ model BurialPermit {
   totalFee              Float                 @default(100.00)
   proofOfPayment        String?
   paymentConfirmed      Boolean               @default(false)
+  paymentStatus         String?               @default("PENDING") // PENDING, PAID, FAILED
   
   // Status and Processing
   status                BurialPermitStatus    @default(PENDING_VERIFICATION)
@@ -213,6 +216,7 @@ model BurialPermit {
   @@index([userId])
   @@index([status])
   @@index([burialType])
+  @@index([paymentStatus])
 }
 
 enum BurialType {
@@ -270,6 +274,7 @@ model DeathCertificateRequest {
   paymentSubmittedAt    DateTime?
   paymentVerifiedBy     String?                        // Employee who verified payment
   paymentVerifiedAt     DateTime?
+  paymentStatus         String?                        @default("PENDING") // PENDING, PAID, FAILED
   
   // Verification
   verifiedBy            String?                        // Employee who verified the request
@@ -292,6 +297,7 @@ model DeathCertificateRequest {
   
   @@index([userId])
   @@index([status])
+  @@index([paymentStatus])
 }
 
 enum DeathCertificateRequestStatus {
@@ -331,6 +337,7 @@ model ExhumationPermit {
   permitFee             Float                     @default(100.00)
   proofOfPayment        String?
   paymentConfirmed      Boolean                   @default(false)
+  paymentStatus         String?                   @default("PENDING") // PENDING, PAID, FAILED
   
   // Status and Processing
   status                ExhumationPermitStatus    @default(PENDING_VERIFICATION)
@@ -343,6 +350,7 @@ model ExhumationPermit {
   
   @@index([userId])
   @@index([status])
+  @@index([paymentStatus])
 }
 
 enum ExhumationPermitStatus {
@@ -387,6 +395,7 @@ model CremationPermit {
   paymentSubmittedAt    DateTime?
   paymentVerifiedBy     String?                   // Employee who verified payment
   paymentVerifiedAt     DateTime?
+  paymentStatus         String?                   @default("PENDING") // PENDING, PAID, FAILED
   
   // Verification
   verifiedBy            String?                   // Employee who verified the documents
@@ -404,6 +413,7 @@ model CremationPermit {
   
   @@index([userId])
   @@index([status])
+  @@index([paymentStatus])
 }
 
 enum CremationPermitStatus {

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { useSession } from "next-auth/react"
 import { useRouter, useParams } from "next/navigation"
 import Link from "next/link"
+import OnlinePaymentButton from "@/app/components/OnlinePaymentButton"
 
 interface ExhumationPermit {
   id: string
@@ -276,10 +277,34 @@ export default function ExhumationPermitSubmission() {
           </div>
         )}
 
+        {/* Online Payment Section */}
+        {canSubmitPayment && (
+          <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-lg shadow-md p-6 mb-6 border-2 border-green-200">
+            <h3 className="text-xl font-bold text-gray-900 mb-2">💳 Pay Online</h3>
+            <p className="text-sm text-gray-600 mb-4">
+              Pay securely online using GCash, PayMaya, or other payment methods
+            </p>
+            <OnlinePaymentButton
+              entityType="ExhumationPermit"
+              entityId={permit.id}
+              amount={permit.permitFee}
+              deceasedName={permit.deceasedName}
+              onPaymentInitiated={(transactionId) => {
+                console.log('Payment initiated:', transactionId);
+              }}
+            />
+            <div className="mt-4 pt-4 border-t border-gray-300">
+              <p className="text-xs text-gray-500 text-center">
+                Or pay at the office and submit proof below
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* Payment Section */}
         {canSubmitPayment && (
           <div className="bg-white rounded-lg shadow-md p-6 mb-6 border-l-4 border-blue-500">
-            <h3 className="text-xl font-bold text-gray-900 mb-4">💳 Submit Payment</h3>
+            <h3 className="text-xl font-bold text-gray-900 mb-4">🏢 Submit Manual Payment</h3>
             <div className="bg-blue-50 p-4 rounded-lg mb-6">
               <p className="text-sm font-medium text-blue-900">Order of Payment: {permit.orderOfPayment}</p>
               <p className="text-sm text-blue-700 mt-1">Amount Due: ₱{permit.permitFee.toFixed(2)}</p>

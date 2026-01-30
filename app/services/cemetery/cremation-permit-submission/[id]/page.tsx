@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { useSession } from "next-auth/react"
 import { useRouter, useParams } from "next/navigation"
 import Link from "next/link"
+import OnlinePaymentButton from "@/app/components/OnlinePaymentButton"
 
 interface CremationPermit {
   id: string
@@ -353,10 +354,34 @@ export default function CremationPermitSubmission() {
           </div>
         </div>
 
+        {/* Online Payment Section */}
+        {permit.status === "APPROVED_FOR_PAYMENT" && permit.orderOfPayment && (
+          <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-lg shadow-md p-6 mb-6 border-2 border-green-200">
+            <h3 className="text-xl font-bold text-gray-900 mb-2">💳 Pay Online</h3>
+            <p className="text-sm text-gray-600 mb-4">
+              Pay securely online using GCash, PayMaya, or other payment methods
+            </p>
+            <OnlinePaymentButton
+              entityType="CremationPermit"
+              entityId={permit.id}
+              amount={permit.permitFee}
+              deceasedName={permit.deceasedName}
+              onPaymentInitiated={(transactionId) => {
+                console.log('Payment initiated:', transactionId);
+              }}
+            />
+            <div className="mt-4 pt-4 border-t border-gray-300">
+              <p className="text-xs text-gray-500 text-center">
+                Or pay at the office and submit proof below
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* Payment Section */}
         {permit.status === "APPROVED_FOR_PAYMENT" && permit.orderOfPayment && (
           <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Payment Information</h2>
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">🏢 Submit Manual Payment</h2>
             
             <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
               <p className="text-sm text-blue-900">
