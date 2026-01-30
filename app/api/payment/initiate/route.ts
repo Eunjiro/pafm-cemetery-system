@@ -46,52 +46,10 @@ export async function POST(req: NextRequest) {
 
     console.log("Sending payment request to gateway:", JSON.stringify(paymentRequest, null, 2));
 
-    // Send payment request to external gateway
+    // PHP gateways expect direct browser POST, not server-side API calls
+    // We skip server-side validation and let the client POST the form directly
     const gatewayUrl = process.env.PAYMENT_GATEWAY_URL || 
       "https://revenuetreasury.goserveph.com/citizen_dashboard/digital/index.php";
-
-    let gatewayResponse: any = {};
-    let gatewayError: string | null = null;
-
-    try {
-      // Convert to form-encoded data for PHP gateway
-      const formData = new URLSearchParams({
-        system: paymentRequest.system,
-        ref: paymentRequest.ref,
-        amount: paymentRequest.amount,
-        purpose: paymentRequest.purpose,
-        callback: paymentRequest.callback,
-      });
-
-      const response = await fetch(gatewayUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-        body: formData.toString(),
-      });
-
-      console.log("Gateway response status:", response.status);
-
-      if (!response.ok) {
-        const responseText = await response.text();
-        console.log("Gateway error response:", responseText.substring(0, 200));
-        gatewayError = `Gateway responded with status ${response.status}`;
-      } else {
-        const contentType = response.headers.get("content-type");
-        if (contentType && contentType.includes("application/json")) {
-          gatewayResponse = await response.json();
-          console.log("Gateway success response:", gatewayResponse);
-        } else {
-          const responseText = await response.text();
-          console.log("Gateway returned non-JSON response:", responseText.substring(0, 200));
-          gatewayError = "Gateway returned invalid response format";
-        }
-      }
-    } catch (fetchError: any) {
-      gatewayError = fetchError.message;
-      console.warn("External gateway fetch error:", fetchError.message);
-    }
 
     // Create a pending transaction record
     const transaction = await prisma.transaction.create({
@@ -105,7 +63,7 @@ export async function POST(req: NextRequest) {
         status: "PENDING",
         entityType: entityType,
         entityId: entityId,
-        remarks: `Payment initiated via external gateway: ${purpose}${gatewayError ? ` (Gateway Error: ${gatewayError})` : ''}`,
+        remarks: `Payment initiated via external gateway: ${purpose}`,
       },
     });
 
@@ -120,17 +78,13 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // If gateway is accessible, return the payment URL and form data for client-side POST
+    // Return the payment URL and form data for client-side POST
     // PHP gateways expect direct browser form submission
-    const paymentUrl = gatewayError 
-      ? `${baseUrl}/api/payment/test-payment?transactionId=${transaction.id}&ref=${referenceId}&amount=${amount}`
-      : gatewayUrl;
-
     return NextResponse.json({
       success: true,
       transactionId: transaction.id,
       referenceId: referenceId,
-      paymentUrl: paymentUrl,
+      paymentUrl: gatewayUrl,
       paymentData: {
         system: paymentRequest.system,
         ref: paymentRequest.ref,
@@ -138,10 +92,8 @@ export async function POST(req: NextRequest) {
         purpose: paymentRequest.purpose,
         callback: paymentRequest.callback,
       },
-      message: gatewayError 
-        ? "Payment initiated in test mode (external gateway unavailable). Click to simulate payment."
-        : "Payment initiated successfully. Redirecting to payment gateway...",
-      testMode: !!gatewayError,
+      message: "Payment initiated successfully. Redirecting to payment gateway...",
+      testMode: false,
     });
 
   } catch (error) {
