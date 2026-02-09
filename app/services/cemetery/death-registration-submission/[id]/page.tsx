@@ -26,6 +26,7 @@ interface DeathRegistration {
   orderOfPayment: string | null
   proofOfPayment: string | null
   paymentConfirmed: boolean
+  paymentStatus: string | null
   remarks: string | null
   createdAt: string
   processedBy: string | null
@@ -88,12 +89,24 @@ export default function DeathRegistrationSubmission() {
   const [proofFile, setProofFile] = useState<File | null>(null)
   const [orNumber, setOrNumber] = useState("")
   const [submitting, setSubmitting] = useState(false)
+  const [checkingPayment, setCheckingPayment] = useState(false)
 
   useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/login")
     } else if (status === "authenticated" && params.id) {
       fetchRegistration()
+      
+      // Check if user is returning from payment gateway
+      const urlParams = new URLSearchParams(window.location.search)
+      if (urlParams.get('payment') === 'success' || urlParams.get('from') === 'payment') {
+        setCheckingPayment(true)
+        // Wait a bit for webhook to process
+        setTimeout(() => {
+          fetchRegistration()
+          setCheckingPayment(false)
+        }, 2000)
+      }
     }
   }, [status, params.id, router])
 
@@ -190,7 +203,10 @@ export default function DeathRegistrationSubmission() {
   }
 
   const statusInfo = statusConfig[registration.status] || statusConfig.PENDING_VERIFICATION
-  const canSubmitPayment = registration.status === "APPROVED_FOR_PAYMENT" && registration.orderOfPayment && !registration.proofOfPayment
+  const canSubmitPayment = registration.status === "APPROVED_FOR_PAYMENT" && 
+                          registration.orderOfPayment && 
+                          !registration.proofOfPayment &&
+                          registration.paymentStatus !== "PAID"
   const deceasedFullName = `${registration.deceasedFirstName} ${registration.deceasedMiddleName || ''} ${registration.deceasedLastName}`.trim()
 
   // Status timeline
@@ -262,6 +278,37 @@ export default function DeathRegistrationSubmission() {
             </div>
           </div>
         </div>
+
+        {/* Checking Payment Status Indicator */}
+        {checkingPayment && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+            <div className="flex items-center gap-3">
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+              <div>
+                <p className="font-medium text-blue-900">Checking payment status...</p>
+                <p className="text-sm text-blue-700">Please wait while we verify your payment.</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Payment Success Message */}
+        {registration.paymentStatus === "PAID" && registration.status === "PAYMENT_SUBMITTED" && (
+          <div className="bg-green-50 border border-green-200 rounded-lg p-6 mb-6">
+            <div className="flex items-center gap-3">
+              <span className="text-3xl">✅</span>
+              <div>
+                <h3 className="text-lg font-bold text-green-900">Payment Received!</h3>
+                <p className="text-sm text-green-700 mt-1">
+                  Your online payment has been confirmed. Your registration is now being processed.
+                </p>
+                <p className="text-xs text-green-600 mt-2">
+                  You will be notified once your certificate is ready for pickup.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Status Timeline */}
         {!isReturned && !isRejected && (

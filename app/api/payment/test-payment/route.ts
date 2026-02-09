@@ -266,11 +266,37 @@ export async function GET(req: NextRequest) {
         });
 
         if (response.ok) {
-          alert(status === 'paid' 
-            ? '✓ Payment successful! You can close this window and check your dashboard.' 
-            : '✗ Payment failed. Transaction has been cancelled.'
-          );
-          window.close();
+          const result = await response.json();
+          
+          if (status === 'paid') {
+            alert('✓ Payment successful! Redirecting back to your submission...');
+            
+            // Build the redirect URL based on entity type
+            let redirectUrl = '/services/cemetery/my-submissions?payment=success';
+            
+            if (result.entityType && result.entityId) {
+              const entityType = result.entityType;
+              const entityId = result.entityId;
+              
+              // Map entity types to their submission page URLs
+              const urlMap = {
+                'DeathRegistration': '/services/cemetery/death-registration-submission',
+                'BurialPermit': '/services/cemetery/burial-permit-submission',
+                'ExhumationPermit': '/services/cemetery/exhumation-permit-submission',
+                'CremationPermit': '/services/cemetery/cremation-permit-submission',
+                'DeathCertificateRequest': '/services/cemetery/death-certificate-request-submission'
+              };
+              
+              if (urlMap[entityType]) {
+                redirectUrl = urlMap[entityType] + '/' + entityId + '?payment=success';
+              }
+            }
+            
+            window.location.href = redirectUrl;
+          } else {
+            alert('✗ Payment failed. Transaction has been cancelled. Redirecting back...');
+            window.location.href = '/services/cemetery/my-submissions?payment=failed';
+          }
         } else {
           alert('Error processing callback. Please check the console.');
           console.error('Callback error:', await response.text());

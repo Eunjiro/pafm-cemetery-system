@@ -18,7 +18,10 @@ export async function POST(req: NextRequest) {
       phone,
     } = body;
 
-    console.log("Payment callback received:", body);
+    console.log("=".repeat(60));
+    console.log("Payment callback received at:", new Date().toISOString());
+    console.log("Callback data:", JSON.stringify(body, null, 2));
+    console.log("=".repeat(60));
 
     // Validate required fields
     if (!reference_id || !payment_status) {
@@ -48,12 +51,23 @@ export async function POST(req: NextRequest) {
     });
 
     if (!transaction) {
-      console.error("Transaction not found for reference:", reference_id);
+      console.error("❌ Transaction not found for reference:", reference_id);
+      console.error("Available transactions:", await prisma.transaction.findMany({
+        where: { referenceNumber: { contains: reference_id.substring(0, 10) } },
+        select: { id: true, referenceNumber: true, status: true }
+      }));
       return NextResponse.json(
         { error: "Transaction not found or already processed" },
         { status: 404 }
       );
     }
+
+    console.log("✓ Transaction found:", {
+      id: transaction.id,
+      entityType: transaction.entityType,
+      entityId: transaction.entityId,
+      currentStatus: transaction.status
+    });
 
     // Update transaction based on payment status
     if (payment_status === "paid") {
@@ -81,11 +95,16 @@ export async function POST(req: NextRequest) {
       // Update related entity status based on entityType
       await updateEntityStatus(transaction.entityType, transaction.entityId, "PAID");
 
+      console.log("✓ Payment confirmed successfully for:", reference_id);
+      console.log("✓ Entity updated:", transaction.entityType, transaction.entityId);
+
       return NextResponse.json({
         success: true,
         message: "Payment confirmed successfully",
         transactionId: transaction.id,
         referenceId: reference_id,
+        entityType: transaction.entityType,
+        entityId: transaction.entityId,
       });
 
     } else if (payment_status === "failed" || payment_status === "cancelled") {
@@ -142,35 +161,55 @@ async function updateEntityStatus(
       case "DeathRegistration":
         await prisma.deathRegistration.update({
           where: { id: entityId },
-          data: { paymentStatus: status },
+          data: { 
+            paymentStatus: status,
+            status: "PAYMENT_SUBMITTED",
+            paymentConfirmed: true
+          },
         });
         break;
       
       case "BurialPermit":
         await prisma.burialPermit.update({
           where: { id: entityId },
-          data: { paymentStatus: status },
+          data: { 
+            paymentStatus: status,
+            status: "PAYMENT_SUBMITTED",
+            paymentConfirmed: true
+          },
         });
         break;
       
       case "ExhumationPermit":
         await prisma.exhumationPermit.update({
           where: { id: entityId },
-          data: { paymentStatus: status },
+          data: { 
+            paymentStatus: status,
+            status: "PAYMENT_SUBMITTED",
+            paymentConfirmed: true
+          },
         });
         break;
       
       case "CremationPermit":
         await prisma.cremationPermit.update({
           where: { id: entityId },
-          data: { paymentStatus: status },
+          data: { 
+            paymentStatus: status,
+            status: "PAYMENT_SUBMITTED",
+            paymentSubmittedAt: new Date()
+          },
         });
         break;
       
       case "DeathCertificateRequest":
         await prisma.deathCertificateRequest.update({
           where: { id: entityId },
-          data: { paymentStatus: status },
+          data: { 
+            paymentStatus: status,
+            status: "PAYMENT_SUBMITTED",
+            paymentSubmittedAt: new Date()
+          },
         });
         break;
       

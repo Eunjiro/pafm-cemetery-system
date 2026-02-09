@@ -86,12 +86,24 @@ export default function BurialPermitSubmissionDetail() {
   const [proofFile, setProofFile] = useState<File | null>(null)
   const [orNumber, setOrNumber] = useState("")
   const [submitting, setSubmitting] = useState(false)
+  const [checkingPayment, setCheckingPayment] = useState(false)
 
   useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/login")
     } else if (status === "authenticated") {
       fetchPermit()
+      
+      // Check if user is returning from payment gateway
+      const urlParams = new URLSearchParams(window.location.search)
+      if (urlParams.get('payment') === 'success' || urlParams.get('from') === 'payment') {
+        setCheckingPayment(true)
+        // Wait a bit for webhook to process
+        setTimeout(() => {
+          fetchPermit()
+          setCheckingPayment(false)
+        }, 2000)
+      }
     }
   }, [status, router])
 

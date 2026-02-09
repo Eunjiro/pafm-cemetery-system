@@ -39,7 +39,7 @@ export default function Home() {
     <div className="min-h-screen bg-gray-50">
       <Navbar />
       
-      <section className="bg-gradient-to-br from-green-600 to-green-800 text-white py-20">
+      <section className="bg-cover bg-center text-white py-20" style={{ backgroundImage: 'url(/bg.png)' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-5xl font-bold mb-6">
             Public Assets & Facilities Management
