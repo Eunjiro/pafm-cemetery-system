@@ -93,7 +93,9 @@ export async function POST(req: NextRequest) {
       });
 
       // Update related entity status based on entityType
-      await updateEntityStatus(transaction.entityType, transaction.entityId, "PAID");
+      // Pass receipt info to store as proof of payment
+      const receiptInfo = `ONLINE_PAYMENT: Receipt #${receipt_number}, Payment ID: ${payment_id}, Method: ${payment_method}, Paid at: ${paid_at}`;
+      await updateEntityStatus(transaction.entityType, transaction.entityId, "PAID", receiptInfo);
 
       console.log("✓ Payment confirmed successfully for:", reference_id);
       console.log("✓ Entity updated:", transaction.entityType, transaction.entityId);
@@ -154,7 +156,8 @@ export async function POST(req: NextRequest) {
 async function updateEntityStatus(
   entityType: string,
   entityId: string,
-  status: string
+  status: string,
+  receiptInfo?: string
 ) {
   try {
     switch (entityType) {
@@ -163,8 +166,10 @@ async function updateEntityStatus(
           where: { id: entityId },
           data: { 
             paymentStatus: status,
-            status: "PAYMENT_SUBMITTED",
-            paymentConfirmed: true
+            status: "REGISTERED_FOR_PICKUP", // Skip manual confirmation for online payments
+            paymentConfirmed: true,
+            proofOfPayment: receiptInfo || null,
+            processedAt: new Date()
           },
         });
         break;
@@ -174,8 +179,10 @@ async function updateEntityStatus(
           where: { id: entityId },
           data: { 
             paymentStatus: status,
-            status: "PAYMENT_SUBMITTED",
-            paymentConfirmed: true
+            status: "REGISTERED_FOR_PICKUP", // Skip manual confirmation for online payments
+            paymentConfirmed: true,
+            proofOfPayment: receiptInfo || null,
+            processedAt: new Date()
           },
         });
         break;
@@ -185,8 +192,10 @@ async function updateEntityStatus(
           where: { id: entityId },
           data: { 
             paymentStatus: status,
-            status: "PAYMENT_SUBMITTED",
-            paymentConfirmed: true
+            status: "REGISTERED_FOR_PICKUP", // Skip manual confirmation for online payments
+            paymentConfirmed: true,
+            proofOfPayment: receiptInfo || null,
+            processedAt: new Date()
           },
         });
         break;
@@ -196,8 +205,10 @@ async function updateEntityStatus(
           where: { id: entityId },
           data: { 
             paymentStatus: status,
-            status: "PAYMENT_SUBMITTED",
-            paymentSubmittedAt: new Date()
+            status: "REGISTERED_FOR_PICKUP", // Skip manual confirmation for online payments
+            paymentProof: receiptInfo || null,
+            paymentSubmittedAt: new Date(),
+            processedAt: new Date()
           },
         });
         break;
@@ -207,8 +218,10 @@ async function updateEntityStatus(
           where: { id: entityId },
           data: { 
             paymentStatus: status,
-            status: "PAYMENT_SUBMITTED",
-            paymentSubmittedAt: new Date()
+            status: "REGISTERED_FOR_PICKUP", // Skip manual confirmation for online payments
+            paymentProof: receiptInfo || null,
+            paymentSubmittedAt: new Date(),
+            processedAt: new Date()
           },
         });
         break;
