@@ -52,21 +52,27 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     async signIn({ user, account, profile }) {
       // For Google OAuth, create/update user in database
       if (account?.provider === "google") {
-        const existingUser = await prisma.user.findUnique({
-          where: { email: user.email! }
-        })
-
-        if (!existingUser) {
-          // Create new user with Google info - profileComplete = false
-          await prisma.user.create({
-            data: {
-              email: user.email!,
-              name: user.name || "",
-              password: "", // No password for OAuth users
-              role: "USER",
-              profileComplete: false,
-            }
+        try {
+          const existingUser = await prisma.user.findUnique({
+            where: { email: user.email! }
           })
+
+          if (!existingUser) {
+            // Create new user with Google info - profileComplete = false
+            await prisma.user.create({
+              data: {
+                email: user.email!,
+                name: user.name || "",
+                password: "", // No password for OAuth users
+                role: "USER",
+                profileComplete: false,
+              }
+            })
+          }
+        } catch (error) {
+          console.error("Error during sign in:", error)
+          // Return false to show access denied
+          return false
         }
       }
       return true
