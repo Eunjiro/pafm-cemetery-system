@@ -6,7 +6,7 @@ import { createAuditLog, AUDIT_ACTIONS } from "@/lib/auditLog"
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, password, name } = await request.json()
+    const { email, password, name, mobile, birthdate, address, houseNumber, street, barangay } = await request.json()
 
     // Validate input
     if (!email || !password || !name) {
@@ -37,7 +37,14 @@ export async function POST(request: NextRequest) {
         email,
         password: hashedPassword,
         name,
-        role: "USER"
+        role: "USER",
+        mobile,
+        birthdate: birthdate ? new Date(birthdate) : null,
+        address,
+        houseNumber,
+        street,
+        barangay,
+        profileComplete: true, // Regular registration includes all info
       }
     })
 

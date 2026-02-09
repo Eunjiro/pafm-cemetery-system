@@ -10,6 +10,7 @@ export default function ExhumationPermitRequest() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
+  const [showGuide, setShowGuide] = useState(false)
 
   const [formData, setFormData] = useState({
     deceasedName: "",
@@ -26,11 +27,41 @@ export default function ExhumationPermitRequest() {
     validId: null as File | null,
   })
 
+  // Validation helper functions
+  const sanitizeText = (text: string) => {
+    return text.replace(/<[^>]*>/g, '').trim()
+  }
+
+  const sanitizeName = (name: string) => {
+    return name.replace(/[^a-zA-Z\s\-\.ñÑ]/g, '').trim()
+  }
+
+  const validatePhoneNumber = (phone: string) => {
+    return /^09\d{9}$/.test(phone)
+  }
+
+  const formatPhoneNumber = (value: string) => {
+    const numbers = value.replace(/\D/g, '')
+    return numbers.slice(0, 11)
+  }
+
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const sanitized = sanitizeName(e.target.value)
+    setFormData({ ...formData, [e.target.name]: sanitized })
+  }
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatPhoneNumber(e.target.value)
+    setFormData({ ...formData, requesterContactNumber: formatted })
+  }
+
+  const handleTextChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const sanitized = sanitizeText(e.target.value)
+    setFormData({ ...formData, [e.target.name]: sanitized })
+  }
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    })
+    setFormData({ ...formData, [e.target.name]: e.target.value })
   }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -49,6 +80,31 @@ export default function ExhumationPermitRequest() {
     setError("")
 
     try {
+      // Validate phone number
+      if (!validatePhoneNumber(formData.requesterContactNumber)) {
+        setError("Phone number must be 11 digits starting with 09")
+        setLoading(false)
+        return
+      }
+
+      // Validate name fields
+      const nameFields = ['deceasedName', 'requesterName']
+      for (const field of nameFields) {
+        const value = formData[field as keyof typeof formData] as string
+        if (!/^[a-zA-Z\s\-\.ñÑ]+$/.test(value)) {
+          setError(`${field.replace('Name', ' Name')} contains invalid characters`)
+          setLoading(false)
+          return
+        }
+      }
+
+      // Validate dates
+      if (new Date(formData.deceasedDateOfBurial) < new Date(formData.deceasedDateOfDeath)) {
+        setError("Date of burial cannot be before date of death")
+        setLoading(false)
+        return
+      }
+
       const data = new FormData()
       
       // Text fields
@@ -117,7 +173,7 @@ export default function ExhumationPermitRequest() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
         {/* Fee Information */}
-        <div className="bg-gradient-to-r from-orange-500 to-orange-600 rounded-lg shadow-md p-6 text-white mb-8">
+        <div className="bg-green-600 rounded-lg shadow-md p-6 text-white mb-8">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-orange-100 text-sm mb-1">Permit Fee</p>
@@ -150,7 +206,10 @@ export default function ExhumationPermitRequest() {
                   type="text"
                   name="deceasedName"
                   value={formData.deceasedName}
-                  onChange={handleChange}
+                  onChange={handleNameChange}
+                  pattern="[a-zA-Z\s\-\.\u00f1\u00d1]+"
+                  title="Only letters, spaces, hyphens, periods, and ñ allowed"
+                  maxLength={100}
                   required
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent placeholder:text-gray-400"
                 />
@@ -165,6 +224,7 @@ export default function ExhumationPermitRequest() {
                   name="deceasedDateOfDeath"
                   value={formData.deceasedDateOfDeath}
                   onChange={handleChange}
+                  max={new Date().toISOString().split('T')[0]}
                   required
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent placeholder:text-gray-400"
                 />
@@ -179,6 +239,7 @@ export default function ExhumationPermitRequest() {
                   name="deceasedDateOfBurial"
                   value={formData.deceasedDateOfBurial}
                   onChange={handleChange}
+                  max={new Date().toISOString().split('T')[0]}
                   required
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent placeholder:text-gray-400"
                 />
@@ -192,8 +253,9 @@ export default function ExhumationPermitRequest() {
                   type="text"
                   name="deceasedPlaceOfBurial"
                   value={formData.deceasedPlaceOfBurial}
-                  onChange={handleChange}
+                  onChange={handleTextChange}
                   placeholder="Cemetery name, block, lot number"
+                  maxLength={200}
                   required
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent placeholder:text-gray-400"
                 />
@@ -213,7 +275,10 @@ export default function ExhumationPermitRequest() {
                   type="text"
                   name="requesterName"
                   value={formData.requesterName}
-                  onChange={handleChange}
+                  onChange={handleNameChange}
+                  pattern="[a-zA-Z\s\-\.\u00f1\u00d1]+"
+                  title="Only letters, spaces, hyphens, periods, and ñ allowed"
+                  maxLength={100}
                   required
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent placeholder:text-gray-400"
                 />
@@ -227,8 +292,9 @@ export default function ExhumationPermitRequest() {
                   type="text"
                   name="requesterRelation"
                   value={formData.requesterRelation}
-                  onChange={handleChange}
+                  onChange={handleTextChange}
                   placeholder="e.g., Son, Daughter, Spouse"
+                  maxLength={50}
                   required
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent placeholder:text-gray-400"
                 />
@@ -242,11 +308,17 @@ export default function ExhumationPermitRequest() {
                   type="tel"
                   name="requesterContactNumber"
                   value={formData.requesterContactNumber}
-                  onChange={handleChange}
+                  onChange={handlePhoneChange}
                   placeholder="09XX-XXX-XXXX"
+                  pattern="09[0-9]{9}"
+                  maxLength={11}
+                  title="Must be 11 digits starting with 09"
                   required
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent placeholder:text-gray-400"
                 />
+                {formData.requesterContactNumber && !validatePhoneNumber(formData.requesterContactNumber) && (
+                  <p className="text-xs text-red-600 mt-1">Must be 11 digits starting with 09</p>
+                )}
               </div>
 
               <div>
@@ -257,7 +329,8 @@ export default function ExhumationPermitRequest() {
                   type="text"
                   name="requesterAddress"
                   value={formData.requesterAddress}
-                  onChange={handleChange}
+                  onChange={handleTextChange}
+                  maxLength={200}
                   required
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent placeholder:text-gray-400"
                 />
@@ -270,9 +343,10 @@ export default function ExhumationPermitRequest() {
                 <textarea
                   name="reasonForExhumation"
                   value={formData.reasonForExhumation}
-                  onChange={handleChange}
+                  onChange={handleTextChange}
                   rows={3}
                   placeholder="Explain the purpose of exhumation (e.g., transfer to another location, family request)"
+                  maxLength={500}
                   required
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent placeholder:text-gray-400"
                 />
@@ -363,6 +437,142 @@ export default function ExhumationPermitRequest() {
           </div>
         </form>
       </div>
+
+      {/* Floating Help Button */}
+      <button
+        onClick={() => setShowGuide(!showGuide)}
+        className="fixed bottom-6 right-6 w-14 h-14 bg-green-600 text-white rounded-full shadow-lg hover:bg-green-700 hover:shadow-xl transition-all duration-300 flex items-center justify-center z-50 group"
+        aria-label="Help Guide"
+      >
+        <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      </button>
+
+      {/* Guide Modal */}
+      {showGuide && (
+        <div 
+          className="fixed inset-0 flex items-center justify-center z-50 p-4"
+          style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
+        >
+          <div className="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+            {/* Modal Header */}
+            <div className="sticky top-0 bg-green-600 text-white px-8 py-6 rounded-t-2xl flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <h2 className="text-2xl font-bold">Exhumation Permit Guide</h2>
+              </div>
+              <button
+                onClick={() => setShowGuide(false)}
+                className="text-white hover:bg-green-700 rounded-full p-2 transition-colors"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="px-8 py-6">
+              <p className="text-sm text-gray-600 mb-6 italic">For Citizen / Family / Authorized Representative</p>
+
+              <ol className="space-y-4">
+                <li className="flex items-start">
+                  <span className="flex-shrink-0 w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3 mt-0.5">1</span>
+                  <div className="flex-1">
+                    <p className="font-semibold text-gray-900 mb-2">Select "Exhumation Permit Request"</p>
+                    <p className="text-sm text-gray-600">Fill out the exhumation permit application form</p>
+                  </div>
+                </li>
+
+                <li className="flex items-start">
+                  <span className="flex-shrink-0 w-8 h-8 bg-purple-600 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3 mt-0.5">2</span>
+                  <div className="flex-1">
+                    <p className="font-semibold text-gray-900 mb-2">Upload Required Documents</p>
+                    <div className="bg-purple-50 rounded-lg p-4 space-y-2">
+                      <ul className="list-disc list-inside space-y-1 text-sm text-gray-700 ml-2">
+                        <li>Exhumation Letter (QC Health Department)</li>
+                        <li>Certified Death Certificate</li>
+                        <li>Valid ID</li>
+                      </ul>
+                    </div>
+                  </div>
+                </li>
+
+                <li className="flex items-start">
+                  <span className="flex-shrink-0 w-8 h-8 bg-purple-600 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3 mt-0.5">3</span>
+                  <div className="flex-1">
+                    <p className="font-semibold text-gray-900 mb-1">Submit → Status: <span className="text-orange-600">Pending Review</span></p>
+                    <p className="text-sm text-gray-600">Staff will verify your documents and application</p>
+                  </div>
+                </li>
+
+                <li className="flex items-start">
+                  <span className="flex-shrink-0 w-8 h-8 bg-purple-600 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3 mt-0.5">4</span>
+                  <div className="flex-1">
+                    <p className="font-semibold text-gray-900 mb-1">Receive Order of Payment (<span className="text-green-600 font-bold">₱100</span>)</p>
+                    <p className="text-sm text-gray-600">Fixed fee for exhumation permit</p>
+                  </div>
+                </li>
+
+                <li className="flex items-start">
+                  <span className="flex-shrink-0 w-8 h-8 bg-purple-600 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3 mt-0.5">5</span>
+                  <div className="flex-1">
+                    <p className="font-semibold text-gray-900 mb-1">Upload Proof of Payment</p>
+                    <p className="text-sm text-gray-600">Submit payment receipt or OR number</p>
+                  </div>
+                </li>
+
+                <li className="flex items-start">
+                  <span className="flex-shrink-0 w-8 h-8 bg-purple-600 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3 mt-0.5">6</span>
+                  <div className="flex-1">
+                    <p className="font-semibold text-gray-900 mb-1">Status: <span className="text-green-600">"For Pickup"</span></p>
+                    <p className="text-sm text-gray-600">Wait for notification when permit is ready</p>
+                  </div>
+                </li>
+
+                <li className="flex items-start">
+                  <span className="flex-shrink-0 w-8 h-8 bg-purple-600 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3 mt-0.5">7</span>
+                  <div className="flex-1">
+                    <p className="font-semibold text-gray-900 mb-1">Claim Permit at Office</p>
+                    <p className="text-sm text-gray-600">Visit Civil Registry to collect your exhumation permit</p>
+                  </div>
+                </li>
+              </ol>
+
+              {/* Important Notes */}
+              <div className="mt-8 bg-yellow-50 border-l-4 border-yellow-500 rounded-lg p-6">
+                <div className="flex items-start">
+                  <svg className="w-6 h-6 text-yellow-600 mr-3 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                  <div>
+                    <h4 className="font-bold text-yellow-900 mb-2">Important Reminders</h4>
+                    <ul className="space-y-1 text-sm text-yellow-800">
+                      <li>• QC Health Department letter is mandatory</li>
+                      <li>• Death certificate must be certified/authenticated</li>
+                      <li>• Processing time may vary based on document completeness</li>
+                      <li>• Track application status in "My Submissions"</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="sticky bottom-0 bg-gray-100 px-8 py-4 rounded-b-2xl flex justify-end">
+              <button
+                onClick={() => setShowGuide(false)}
+                className="px-6 py-3 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors"
+              >
+                Got it, thanks!
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

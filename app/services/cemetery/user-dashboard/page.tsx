@@ -1,15 +1,59 @@
-import { auth } from "@/auth"
+"use client"
+
+import { useSession } from "next-auth/react"
 import { redirect } from "next/navigation"
 import Link from "next/link"
+import { useEffect, useState } from "react"
 
-export default async function UserDashboard() {
-  const session = await auth()
-  
-  if (!session) {
+export default function UserDashboard() {
+  const { data: session, status } = useSession()
+  const [showNotifications, setShowNotifications] = useState(false)
+  const [notifications, setNotifications] = useState<any[]>([])
+  const [unreadCount, setUnreadCount] = useState(0)
+
+  useEffect(() => {
+    if (status === "authenticated") {
+      fetchNotifications()
+    }
+
+    // Close dropdown when clicking outside
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement
+      if (!target.closest('.notifications-menu')) {
+        setShowNotifications(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [status])
+
+  const fetchNotifications = async () => {
+    try {
+      const response = await fetch("/api/notifications")
+      if (response.ok) {
+        const data = await response.json()
+        setNotifications(data.notifications || [])
+        setUnreadCount(data.unreadCount || 0)
+      }
+    } catch (error) {
+      console.error("Failed to fetch notifications:", error)
+    }
+  }
+
+  if (status === "loading") {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-xl">Loading...</div>
+      </div>
+    )
+  }
+
+  if (status === "unauthenticated") {
     redirect("/login")
   }
 
-  const userRole = session.user?.role || "USER"
+  const userRole = session?.user?.role || "USER"
   
   if (userRole !== "USER") {
     redirect("/services/cemetery")
@@ -22,15 +66,61 @@ export default async function UserDashboard() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
             <div>
-              <Link href="/dashboard" className="text-sm text-green-100 hover:text-white mb-2 inline-block">
-                ← Back to Dashboard
+              <Link href="/services" className="text-sm text-green-100 hover:text-white mb-2 inline-block">
+                ← Back to Services
               </Link>
               <h1 className="text-3xl font-bold">Cemetery & Burial Services</h1>
               <p className="text-green-100 mt-1">Submit and track your death registration applications</p>
             </div>
-            <div className="text-right">
-              <p className="text-sm text-green-100">Welcome</p>
-              <p className="font-semibold">{session.user?.name}</p>
+            <div className="flex items-center gap-4">
+              {/* Notifications */}
+              <div className="relative notifications-menu">
+                <button
+                  onClick={() => setShowNotifications(!showNotifications)}
+                  className="relative p-2 text-green-100 hover:text-white hover:bg-green-700 rounded-full transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                  </svg>
+                  {unreadCount > 0 && (
+                    <span className="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white transform translate-x-1/2 -translate-y-1/2 bg-red-600 rounded-full">
+                      {unreadCount}
+                    </span>
+                  )}
+                </button>
+
+                {/* Notifications Dropdown */}
+                {showNotifications && (
+                  <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 py-2 max-h-96 overflow-y-auto z-50">
+                    <div className="px-4 py-2 border-b border-gray-200">
+                      <h3 className="text-sm font-semibold text-gray-900">Notifications</h3>
+                    </div>
+                    {notifications.length > 0 ? (
+                      notifications.map((notif, index) => (
+                        <div key={index} className="px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100">
+                          <p className="text-sm text-gray-900 font-medium">{notif.title}</p>
+                          <p className="text-xs text-gray-600 mt-1">{notif.message}</p>
+                          <p className="text-xs text-gray-400 mt-1">{notif.time}</p>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="px-4 py-8 text-center text-gray-500 text-sm">
+                        No notifications yet
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* User Info */}
+              <div className="text-right">
+                <p className="text-lg font-semibold">{session?.user?.name}</p>
+                <Link href="/services/cemetery/my-submissions">
+                  <button className="text-sm text-green-100 hover:text-white hover:bg-green-700 px-4 py-1 rounded-md transition-colors">
+                    My Submissions →
+                  </button>
+                </Link>
+              </div>
             </div>
           </div>
         </div>
@@ -126,88 +216,6 @@ export default async function UserDashboard() {
             </div>
           </Link>
 
-          {/* My Submissions */}
-          <Link href="/services/cemetery/my-submissions">
-            <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow cursor-pointer border-l-4 border-purple-500">
-              <div className="flex items-start">
-                <div className="w-16 h-16 bg-purple-100 rounded-lg flex items-center justify-center mr-4">
-                  <svg className="w-10 h-10 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                  </svg>
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">My Submissions</h3>
-                  <p className="text-sm text-gray-600">View and track your applications</p>
-                </div>
-              </div>
-            </div>
-          </Link>
-
-        </div>
-
-        {/* Quick Stats */}
-        <div className="mt-8 bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">Registration Information</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="p-4 bg-blue-50 rounded-lg">
-              <p className="text-sm text-gray-600">Registration Fee</p>
-              <p className="text-2xl font-bold text-blue-600">₱50.00</p>
-            </div>
-            <div className="p-4 bg-green-50 rounded-lg">
-              <p className="text-sm text-gray-600">Processing Time</p>
-              <p className="text-2xl font-bold text-green-600">1-3 Days</p>
-            </div>
-            <div className="p-4 bg-orange-50 rounded-lg">
-              <p className="text-sm text-gray-600">Required Documents</p>
-              <p className="text-2xl font-bold text-orange-600">3 Files</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Instructions */}
-        <div className="mt-6 bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">How to Register a Death Certificate</h2>
-          <ol className="space-y-3 text-gray-700">
-            <li className="flex items-start">
-              <span className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3 mt-0.5">1</span>
-              <div>
-                <span className="font-semibold">Submit Application</span>
-                <p className="text-sm text-gray-600">Complete the online form and upload required documents (Municipal Form 103, Valid ID, and Swab Test if applicable)</p>
-              </div>
-            </li>
-            <li className="flex items-start">
-              <span className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3 mt-0.5">2</span>
-              <div>
-                <span className="font-semibold">Wait for Verification</span>
-                <p className="text-sm text-gray-600">Civil Registry staff will review your submission and generate an Order of Payment</p>
-              </div>
-            </li>
-            <li className="flex items-start">
-              <span className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3 mt-0.5">3</span>
-              <div>
-                <span className="font-semibold">Pay Registration Fee</span>
-                <p className="text-sm text-gray-600">Pay ₱50.00 and upload proof of payment or enter your OR number</p>
-              </div>
-            </li>
-            <li className="flex items-start">
-              <span className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3 mt-0.5">4</span>
-              <div>
-                <span className="font-semibold">Pick Up Certificate</span>
-                <p className="text-sm text-gray-600">Once approved, visit the Civil Registry Office to collect your physical death certificate</p>
-              </div>
-            </li>
-          </ol>
-        </div>
-
-        {/* Important Notes */}
-        <div className="mt-6 bg-yellow-50 border border-yellow-200 rounded-lg p-6">
-          <h3 className="text-lg font-bold text-yellow-900 mb-3">📌 Important Notes</h3>
-          <ul className="space-y-2 text-sm text-yellow-800">
-            <li>• All documents must be clear and readable (PDF, JPG, or PNG format)</li>
-            <li>• Maximum file size: 5MB per document</li>
-            <li>• Processing time may vary depending on completeness of documents</li>
-            <li>• You will be notified via your contact number for any updates</li>
-          </ul>
         </div>
       </div>
     </div>

@@ -78,8 +78,8 @@ export default async function EmployeeDashboard() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
             <div>
-              <Link href="/dashboard" className="text-sm text-orange-100 hover:text-white mb-2 inline-block">
-                ← Back to Dashboard
+              <Link href="/services" className="text-sm text-orange-100 hover:text-white mb-2 inline-block">
+                ← Back to Services
               </Link>
               <h1 className="text-3xl font-bold">Cemetery Services - Employee Portal</h1>
               <p className="text-orange-100 mt-1">Process death registrations and manage civil registry records</p>

@@ -28,6 +28,39 @@ export default function DeathCertificateRequestPage() {
     authorizationLetter: null as File | null,
   })
 
+  // Validation helper functions
+  const sanitizeText = (text: string) => {
+    return text.replace(/<[^>]*>/g, '').trim()
+  }
+
+  const sanitizeName = (name: string) => {
+    return name.replace(/[^a-zA-Z\s\-\.ñÑ]/g, '').trim()
+  }
+
+  const validatePhoneNumber = (phone: string) => {
+    return /^09\d{9}$/.test(phone)
+  }
+
+  const formatPhoneNumber = (value: string) => {
+    const numbers = value.replace(/\D/g, '')
+    return numbers.slice(0, 11)
+  }
+
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const sanitized = sanitizeName(e.target.value)
+    setFormData({ ...formData, [e.target.name]: sanitized })
+  }
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatPhoneNumber(e.target.value)
+    setFormData({ ...formData, requesterContactNumber: formatted })
+  }
+
+  const handleTextChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const sanitized = sanitizeText(e.target.value)
+    setFormData({ ...formData, [e.target.name]: sanitized })
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
@@ -38,6 +71,24 @@ export default function DeathCertificateRequestPage() {
         setError("Please upload your valid ID")
         setIsLoading(false)
         return
+      }
+
+      // Validate phone number
+      if (!validatePhoneNumber(formData.requesterContactNumber)) {
+        setError("Phone number must be 11 digits starting with 09")
+        setIsLoading(false)
+        return
+      }
+
+      // Validate name fields
+      const nameFields = ['deceasedFullName', 'requesterName']
+      for (const field of nameFields) {
+        const value = formData[field as keyof typeof formData] as string
+        if (!/^[a-zA-Z\s\-\.ñÑ]+$/.test(value)) {
+          setError(`${field.replace('Name', ' Name').replace('Full', '')} contains invalid characters`)
+          setIsLoading(false)
+          return
+        }
       }
 
       const submitData = new FormData()
@@ -109,7 +160,10 @@ export default function DeathCertificateRequestPage() {
                   type="text"
                   required
                   value={formData.deceasedFullName}
-                  onChange={(e) => setFormData({...formData, deceasedFullName: e.target.value})}
+                  onChange={handleNameChange}
+                  pattern="[a-zA-Z\s\-\.\u00f1\u00d1]+"
+                  title="Only letters, spaces, hyphens, periods, and ñ allowed"
+                  maxLength={100}
                   className="w-full border border-gray-300 rounded-lg px-4 py-2 text-gray-900"
                 />
               </div>
@@ -124,6 +178,7 @@ export default function DeathCertificateRequestPage() {
                     required
                     value={formData.deceasedDateOfDeath}
                     onChange={(e) => setFormData({...formData, deceasedDateOfDeath: e.target.value})}
+                    max={new Date().toISOString().split('T')[0]}
                     className="w-full border border-gray-300 rounded-lg px-4 py-2 text-gray-900"
                   />
                 </div>
@@ -136,7 +191,8 @@ export default function DeathCertificateRequestPage() {
                     type="text"
                     required
                     value={formData.deceasedPlaceOfDeath}
-                    onChange={(e) => setFormData({...formData, deceasedPlaceOfDeath: e.target.value})}
+                    onChange={handleTextChange}
+                    maxLength={200}
                     className="w-full border border-gray-300 rounded-lg px-4 py-2 text-gray-900"
                   />
                 </div>
@@ -156,7 +212,10 @@ export default function DeathCertificateRequestPage() {
                     type="text"
                     required
                     value={formData.requesterName}
-                    onChange={(e) => setFormData({...formData, requesterName: e.target.value})}
+                    onChange={handleNameChange}
+                    pattern="[a-zA-Z\s\-\.\u00f1\u00d1]+"
+                    title="Only letters, spaces, hyphens, periods, and ñ allowed"
+                    maxLength={100}
                     className="w-full border border-gray-300 rounded-lg px-4 py-2 text-gray-900"
                   />
                 </div>
@@ -169,7 +228,8 @@ export default function DeathCertificateRequestPage() {
                     type="text"
                     required
                     value={formData.requesterRelation}
-                    onChange={(e) => setFormData({...formData, requesterRelation: e.target.value})}
+                    onChange={handleTextChange}
+                    maxLength={50}
                     className="w-full border border-gray-300 rounded-lg px-4 py-2 text-gray-900"
                     placeholder="e.g., Spouse, Child, Sibling"
                   />
@@ -184,10 +244,16 @@ export default function DeathCertificateRequestPage() {
                   type="tel"
                   required
                   value={formData.requesterContactNumber}
-                  onChange={(e) => setFormData({...formData, requesterContactNumber: e.target.value})}
+                  onChange={handlePhoneChange}
+                  pattern="09[0-9]{9}"
+                  maxLength={11}
+                  title="Must be 11 digits starting with 09"
                   className="w-full border border-gray-300 rounded-lg px-4 py-2 text-gray-900"
                   placeholder="09XXXXXXXXX"
                 />
+                {formData.requesterContactNumber && !validatePhoneNumber(formData.requesterContactNumber) && (
+                  <p className="text-xs text-red-600 mt-1">Must be 11 digits starting with 09</p>
+                )}
               </div>
 
               <div>
@@ -197,7 +263,8 @@ export default function DeathCertificateRequestPage() {
                 <textarea
                   required
                   value={formData.requesterAddress}
-                  onChange={(e) => setFormData({...formData, requesterAddress: e.target.value})}
+                  onChange={handleTextChange}
+                  maxLength={200}
                   className="w-full border border-gray-300 rounded-lg px-4 py-2 text-gray-900"
                   rows={2}
                 />
@@ -216,7 +283,8 @@ export default function DeathCertificateRequestPage() {
                   type="text"
                   required
                   value={formData.purpose}
-                  onChange={(e) => setFormData({...formData, purpose: e.target.value})}
+                  onChange={handleTextChange}
+                  maxLength={200}
                   className="w-full border border-gray-300 rounded-lg px-4 py-2 text-gray-900"
                   placeholder="e.g., Insurance claim, Legal purposes"
                 />

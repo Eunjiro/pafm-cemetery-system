@@ -10,6 +10,7 @@ export default function BurialPermitRequest() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
+  const [showGuide, setShowGuide] = useState(false)
   
   const [burialType, setBurialType] = useState<"BURIAL" | "ENTRANCE" | "NICHE">("BURIAL")
   const [nicheType, setNicheType] = useState<"CHILD" | "ADULT">("ADULT")
@@ -29,6 +30,39 @@ export default function BurialPermitRequest() {
     burialForm: null as File | null,
     validId: null as File | null,
   })
+
+  // Validation helper functions
+  const sanitizeText = (text: string) => {
+    return text.replace(/<[^>]*>/g, '').trim()
+  }
+
+  const sanitizeName = (name: string) => {
+    return name.replace(/[^a-zA-Z\s\-\.ñÑ]/g, '').trim()
+  }
+
+  const validatePhoneNumber = (phone: string) => {
+    return /^09\d{9}$/.test(phone)
+  }
+
+  const formatPhoneNumber = (value: string) => {
+    const numbers = value.replace(/\D/g, '')
+    return numbers.slice(0, 11)
+  }
+
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const sanitized = sanitizeName(e.target.value)
+    setFormData({ ...formData, [e.target.name]: sanitized })
+  }
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatPhoneNumber(e.target.value)
+    setFormData({ ...formData, requesterContactNumber: formatted })
+  }
+
+  const handleTextChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const sanitized = sanitizeText(e.target.value)
+    setFormData({ ...formData, [e.target.name]: sanitized })
+  }
 
   const calculateFee = () => {
     let base = 100 // Burial or Entrance permit base
@@ -50,6 +84,24 @@ export default function BurialPermitRequest() {
     setError("")
 
     try {
+      // Validate phone number
+      if (!validatePhoneNumber(formData.requesterContactNumber)) {
+        setError("Phone number must be 11 digits starting with 09")
+        setLoading(false)
+        return
+      }
+
+      // Validate name fields
+      const nameFields = ['deceasedName', 'requesterName']
+      for (const field of nameFields) {
+        const value = formData[field as keyof typeof formData] as string
+        if (!/^[a-zA-Z\s\-\.ñÑ]+$/.test(value)) {
+          setError(`${field.replace('Name', ' Name')} contains invalid characters`)
+          setLoading(false)
+          return
+        }
+      }
+
       const data = new FormData()
       
       // Text fields
@@ -240,9 +292,13 @@ export default function BurialPermitRequest() {
                 </label>
                 <input
                   type="text"
+                  name="deceasedName"
                   required
                   value={formData.deceasedName}
-                  onChange={(e) => setFormData({ ...formData, deceasedName: e.target.value })}
+                  onChange={handleNameChange}
+                  pattern="[a-zA-Z\s\-\.ñÑ]+"
+                  title="Only letters, spaces, hyphens, periods, and ñ allowed"
+                  maxLength={100}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
                 />
               </div>
@@ -256,6 +312,7 @@ export default function BurialPermitRequest() {
                   required
                   value={formData.deceasedDateOfDeath}
                   onChange={(e) => setFormData({ ...formData, deceasedDateOfDeath: e.target.value })}
+                  max={new Date().toISOString().split('T')[0]}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
                 />
               </div>
@@ -272,9 +329,13 @@ export default function BurialPermitRequest() {
                 </label>
                 <input
                   type="text"
+                  name="requesterName"
                   required
                   value={formData.requesterName}
-                  onChange={(e) => setFormData({ ...formData, requesterName: e.target.value })}
+                  onChange={handleNameChange}
+                  pattern="[a-zA-Z\s\-\.ñÑ]+"
+                  title="Only letters, spaces, hyphens, periods, and ñ allowed"
+                  maxLength={100}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
                 />
               </div>
@@ -285,9 +346,11 @@ export default function BurialPermitRequest() {
                 </label>
                 <input
                   type="text"
+                  name="requesterRelation"
                   required
                   value={formData.requesterRelation}
-                  onChange={(e) => setFormData({ ...formData, requesterRelation: e.target.value })}
+                  onChange={handleTextChange}
+                  maxLength={50}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
                   placeholder="e.g., Spouse, Child, Funeral Home Representative"
                 />
@@ -299,12 +362,19 @@ export default function BurialPermitRequest() {
                 </label>
                 <input
                   type="tel"
+                  name="requesterContactNumber"
                   required
                   value={formData.requesterContactNumber}
-                  onChange={(e) => setFormData({ ...formData, requesterContactNumber: e.target.value })}
+                  onChange={handlePhoneChange}
+                  pattern="09[0-9]{9}"
+                  maxLength={11}
+                  title="Must be 11 digits starting with 09"
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
                   placeholder="09XXXXXXXXX"
                 />
+                {formData.requesterContactNumber && !validatePhoneNumber(formData.requesterContactNumber) && (
+                  <p className="text-xs text-red-600 mt-1">Must be 11 digits starting with 09</p>
+                )}
               </div>
 
               <div>
@@ -313,9 +383,11 @@ export default function BurialPermitRequest() {
                 </label>
                 <input
                   type="text"
+                  name="requesterAddress"
                   required
                   value={formData.requesterAddress}
-                  onChange={(e) => setFormData({ ...formData, requesterAddress: e.target.value })}
+                  onChange={handleTextChange}
+                  maxLength={200}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
                 />
               </div>
@@ -454,6 +526,151 @@ export default function BurialPermitRequest() {
           </div>
         </form>
       </div>
+
+      {/* Floating Help Button */}
+      <button
+        onClick={() => setShowGuide(!showGuide)}
+        className="fixed bottom-6 right-6 w-14 h-14 bg-green-600 text-white rounded-full shadow-lg hover:bg-green-700 hover:shadow-xl transition-all duration-300 flex items-center justify-center z-50 group"
+        aria-label="Help Guide"
+      >
+        <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      </button>
+
+      {/* Guide Modal */}
+      {showGuide && (
+        <div 
+          className="fixed inset-0 flex items-center justify-center z-50 p-4"
+          style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
+        >
+          <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+            {/* Modal Header */}
+            <div className="sticky top-0 bg-green-600 text-white px-8 py-6 rounded-t-2xl flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <h2 className="text-2xl font-bold">Burial Permit Request Guide</h2>
+              </div>
+              <button
+                onClick={() => setShowGuide(false)}
+                className="text-white hover:bg-green-700 rounded-full p-2 transition-colors"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="px-8 py-6">
+              <p className="text-sm text-gray-600 mb-6 italic">For Citizen / Family / Funeral Home</p>
+
+              <ol className="space-y-4">
+                <li className="flex items-start">
+                  <span className="flex-shrink-0 w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3 mt-0.5">1</span>
+                  <div className="flex-1">
+                    <p className="font-semibold text-gray-900 mb-2">Select "Burial Permit Request"</p>
+                    <p className="text-sm text-gray-600">Choose the appropriate permit type (Burial, Entrance, or Niche)</p>
+                  </div>
+                </li>
+
+                <li className="flex items-start">
+                  <span className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3 mt-0.5">2</span>
+                  <div className="flex-1">
+                    <p className="font-semibold text-gray-900 mb-2">Upload Required Documents</p>
+                    <div className="bg-blue-50 rounded-lg p-4 space-y-2">
+                      <ul className="list-disc list-inside space-y-1 text-sm text-gray-700 ml-2">
+                        <li>Certified Copy of Death Certificate</li>
+                        <li>Transfer/Entrance Permit (if from another LGU)</li>
+                        <li>Affidavit of Undertaking (if Bagbag/Novaliches)</li>
+                        <li>Burial Form (QCHD)</li>
+                        <li>Valid ID</li>
+                      </ul>
+                    </div>
+                  </div>
+                </li>
+
+                <li className="flex items-start">
+                  <span className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3 mt-0.5">3</span>
+                  <div className="flex-1">
+                    <p className="font-semibold text-gray-900 mb-1">Submit → Status: <span className="text-orange-600">Pending Review</span></p>
+                    <p className="text-sm text-gray-600">Civil Registry staff will review your documents</p>
+                  </div>
+                </li>
+
+                <li className="flex items-start">
+                  <span className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3 mt-0.5">4</span>
+                  <div className="flex-1">
+                    <p className="font-semibold text-gray-900 mb-1">Receive Order of Payment</p>
+                    <div className="bg-green-50 rounded-lg p-3 mt-2">
+                      <p className="text-sm font-semibold text-gray-800">Fee Range: <span className="text-green-600">₱100 – ₱1,500</span></p>
+                      <ul className="text-xs text-gray-600 mt-2 space-y-1">
+                        <li>• Burial/Entrance: ₱100</li>
+                        <li>• Niche (Child): ₱850 (₱100 + ₱750)</li>
+                        <li>• Niche (Adult): ₱1,600 (₱100 + ₱1,500)</li>
+                      </ul>
+                    </div>
+                  </div>
+                </li>
+
+                <li className="flex items-start">
+                  <span className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3 mt-0.5">5</span>
+                  <div className="flex-1">
+                    <p className="font-semibold text-gray-900 mb-1">Upload Proof of Payment / OR Number</p>
+                    <p className="text-sm text-gray-600">Submit payment receipt or Official Receipt number</p>
+                  </div>
+                </li>
+
+                <li className="flex items-start">
+                  <span className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3 mt-0.5">6</span>
+                  <div className="flex-1">
+                    <p className="font-semibold text-gray-900 mb-1">Wait for Status Update → <span className="text-green-600">"For Pickup"</span></p>
+                    <p className="text-sm text-gray-600">You will be notified when ready</p>
+                  </div>
+                </li>
+
+                <li className="flex items-start">
+                  <span className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3 mt-0.5">7</span>
+                  <div className="flex-1">
+                    <p className="font-semibold text-gray-900 mb-1">Claim Physical Burial Permit</p>
+                    <p className="text-sm text-gray-600">Visit the office to collect your permit (serves as OR)</p>
+                  </div>
+                </li>
+              </ol>
+
+              {/* Important Notes */}
+              <div className="mt-8 bg-yellow-50 border-l-4 border-yellow-500 rounded-lg p-6">
+                <div className="flex items-start">
+                  <svg className="w-6 h-6 text-yellow-600 mr-3 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                  <div>
+                    <h4 className="font-bold text-yellow-900 mb-2">Important Reminders</h4>
+                    <ul className="space-y-1 text-sm text-yellow-800">
+                      <li>• Ensure death certificate is certified/authenticated</li>
+                      <li>• Transfer permit required if deceased is from another city</li>
+                      <li>• Affidavit needed for Bagbag/Novaliches residents</li>
+                      <li>• Track your application in "My Submissions"</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="sticky bottom-0 bg-gray-100 px-8 py-4 rounded-b-2xl flex justify-end">
+              <button
+                onClick={() => setShowGuide(false)}
+                className="px-6 py-3 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors"
+              >
+                Got it, thanks!
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

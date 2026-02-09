@@ -17,6 +17,11 @@ export default async function VerificationDashboard() {
     redirect("/services/cemetery")
   }
 
+  // Determine dashboard URL based on role
+  const dashboardUrl = userRole === "ADMIN" 
+    ? "/services/cemetery/admin-dashboard" 
+    : "/services/cemetery/employee-dashboard"
+
   // Fetch pending registrations
   const pendingRegistrations = await prisma.deathRegistration.findMany({
     where: {
@@ -38,20 +43,20 @@ export default async function VerificationDashboard() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-orange-600 text-white py-6 shadow-lg">
+      <div className={userRole === "ADMIN" ? "bg-red-600 text-white py-6 shadow-lg" : "bg-orange-600 text-white py-6 shadow-lg"}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
             <div>
-              <Link href="/services/cemetery/employee-dashboard" className="text-sm text-orange-100 hover:text-white mb-2 inline-block">
+              <Link href={dashboardUrl} className={userRole === "ADMIN" ? "text-sm text-red-100 hover:text-white mb-2 inline-block" : "text-sm text-orange-100 hover:text-white mb-2 inline-block"}>
                 ← Back to Dashboard
               </Link>
               <h1 className="text-3xl font-bold">Death Registration Verification</h1>
-              <p className="text-orange-100 mt-1">Review and process pending submissions</p>
+              <p className={userRole === "ADMIN" ? "text-red-100 mt-1" : "text-orange-100 mt-1"}>Review and process pending submissions</p>
             </div>
             <div className="text-right">
-              <p className="text-sm text-orange-100">Civil Registry Staff</p>
+              <p className={userRole === "ADMIN" ? "text-sm text-red-100" : "text-sm text-orange-100"}>{userRole === "ADMIN" ? "System Administrator" : "Civil Registry Staff"}</p>
               <p className="font-semibold">{session.user?.name}</p>
-              <span className="inline-block mt-1 px-2 py-1 bg-orange-700 text-orange-100 text-xs font-medium rounded">
+              <span className={userRole === "ADMIN" ? "inline-block mt-1 px-2 py-1 bg-red-700 text-red-100 text-xs font-medium rounded" : "inline-block mt-1 px-2 py-1 bg-orange-700 text-orange-100 text-xs font-medium rounded"}>
                 {userRole}
               </span>
             </div>

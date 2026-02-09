@@ -16,6 +16,15 @@ model User {
   password           String
   name               String
   role               Role               @default(USER)
+  mobile             String?
+  birthdate          DateTime?
+  address            String?
+  houseNumber        String?
+  street             String?
+  barangay           String?
+  profileComplete    Boolean            @default(false)
+  resetToken         String?
+  resetTokenExpiry   DateTime?
   createdAt          DateTime           @default(now())
   updatedAt          DateTime           @updatedAt
   deathRegistrations DeathRegistration[]

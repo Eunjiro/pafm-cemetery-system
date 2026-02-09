@@ -2,11 +2,20 @@
 
 import { useSession } from "next-auth/react"
 import { signOut } from "next-auth/react"
-import { redirect } from "next/navigation"
+import { redirect, useRouter } from "next/navigation"
 import Link from "next/link"
+import { useEffect } from "react"
 
 export default function DashboardPage() {
   const { data: session, status } = useSession()
+  const router = useRouter()
+
+  useEffect(() => {
+    // If profile is incomplete, redirect to complete-profile page
+    if (status === "authenticated" && session?.user?.profileComplete === false) {
+      router.push("/complete-profile")
+    }
+  }, [status, session, router])
 
   if (status === "loading") {
     return (

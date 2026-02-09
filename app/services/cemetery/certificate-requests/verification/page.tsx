@@ -32,6 +32,10 @@ export default async function CertificateRequestsVerificationPage() {
     },
   })
 
+  const dashboardUrl = userRole === "ADMIN" 
+    ? "/services/cemetery/admin-dashboard" 
+    : "/services/cemetery/employee-dashboard"
+
   const formatDate = (date: Date) => {
     return new Date(date).toLocaleDateString("en-US", {
       year: "numeric",
@@ -47,8 +51,8 @@ export default async function CertificateRequestsVerificationPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
-          <Link href="/services/cemetery/employee-dashboard" className="text-orange-600 hover:underline mb-2 inline-block">
-            ← Back to Employee Dashboard
+          <Link href={dashboardUrl} className="text-orange-600 hover:underline mb-2 inline-block">
+            ← Back to Dashboard
           </Link>
           <h1 className="text-3xl font-bold text-gray-900">Death Certificate Request Verification</h1>
           <p className="text-gray-600 mt-2">Review and verify pending death certificate requests</p>

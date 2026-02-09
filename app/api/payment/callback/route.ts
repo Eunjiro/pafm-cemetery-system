@@ -166,10 +166,9 @@ async function updateEntityStatus(
           where: { id: entityId },
           data: { 
             paymentStatus: status,
-            status: "REGISTERED_FOR_PICKUP", // Skip manual confirmation for online payments
-            paymentConfirmed: true,
-            proofOfPayment: receiptInfo || null,
-            processedAt: new Date()
+            status: "PAYMENT_SUBMITTED", // Employee still needs to process and prepare documents
+            paymentConfirmed: true, // Mark as confirmed so employee knows it's verified
+            proofOfPayment: receiptInfo || null
           },
         });
         break;
@@ -179,10 +178,9 @@ async function updateEntityStatus(
           where: { id: entityId },
           data: { 
             paymentStatus: status,
-            status: "REGISTERED_FOR_PICKUP", // Skip manual confirmation for online payments
-            paymentConfirmed: true,
-            proofOfPayment: receiptInfo || null,
-            processedAt: new Date()
+            status: "PAYMENT_SUBMITTED", // Employee still needs to process and prepare documents
+            paymentConfirmed: true, // Mark as confirmed so employee knows it's verified
+            proofOfPayment: receiptInfo || null
           },
         });
         break;
@@ -192,10 +190,9 @@ async function updateEntityStatus(
           where: { id: entityId },
           data: { 
             paymentStatus: status,
-            status: "REGISTERED_FOR_PICKUP", // Skip manual confirmation for online payments
-            paymentConfirmed: true,
-            proofOfPayment: receiptInfo || null,
-            processedAt: new Date()
+            status: "PAYMENT_SUBMITTED", // Employee still needs to process and prepare documents
+            paymentConfirmed: true, // Mark as confirmed so employee knows it's verified
+            proofOfPayment: receiptInfo || null
           },
         });
         break;
@@ -205,10 +202,9 @@ async function updateEntityStatus(
           where: { id: entityId },
           data: { 
             paymentStatus: status,
-            status: "REGISTERED_FOR_PICKUP", // Skip manual confirmation for online payments
+            status: "PAYMENT_SUBMITTED", // Employee still needs to process and prepare documents
             paymentProof: receiptInfo || null,
-            paymentSubmittedAt: new Date(),
-            processedAt: new Date()
+            paymentSubmittedAt: new Date()
           },
         });
         break;
@@ -218,10 +214,9 @@ async function updateEntityStatus(
           where: { id: entityId },
           data: { 
             paymentStatus: status,
-            status: "REGISTERED_FOR_PICKUP", // Skip manual confirmation for online payments
+            status: "PAYMENT_SUBMITTED", // Employee still needs to process and prepare documents
             paymentProof: receiptInfo || null,
-            paymentSubmittedAt: new Date(),
-            processedAt: new Date()
+            paymentSubmittedAt: new Date()
           },
         });
         break;

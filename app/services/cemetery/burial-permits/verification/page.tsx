@@ -35,23 +35,28 @@ export default async function BurialPermitVerificationDashboard() {
     }
   })
 
+  const dashboardUrl = userRole === "ADMIN" 
+    ? "/services/cemetery/admin-dashboard" 
+    : "/services/cemetery/employee-dashboard"
+  const headerColor = userRole === "ADMIN" ? "red" : "orange"
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-orange-600 text-white py-6 shadow-lg">
+      <div className={`bg-${headerColor}-600 text-white py-6 shadow-lg`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
             <div>
-              <Link href="/services/cemetery/employee-dashboard" className="text-sm text-orange-100 hover:text-white mb-2 inline-block">
+              <Link href={dashboardUrl} className={`text-sm text-${headerColor}-100 hover:text-white mb-2 inline-block`}>
                 ← Back to Dashboard
               </Link>
               <h1 className="text-3xl font-bold">Burial Permit Verification</h1>
-              <p className="text-orange-100 mt-1">Review and process pending permit requests</p>
+              <p className={`text-${headerColor}-100 mt-1`}>Review and process pending permit requests</p>
             </div>
             <div className="text-right">
-              <p className="text-sm text-orange-100">Civil Registry Staff</p>
+              <p className={`text-sm text-${headerColor}-100`}>{userRole === "ADMIN" ? "System Administrator" : "Civil Registry Staff"}</p>
               <p className="font-semibold">{session.user?.name}</p>
-              <span className="inline-block mt-1 px-2 py-1 bg-orange-700 text-orange-100 text-xs font-medium rounded">
+              <span className={`inline-block mt-1 px-2 py-1 bg-${headerColor}-700 text-${headerColor}-100 text-xs font-medium rounded`}>
                 {userRole}
               </span>
             </div>

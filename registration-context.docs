@@ -1,0 +1,53 @@
+Create Account
+
+Personal Information
+First Name *
+Enter your first name
+Last Name *
+Enter your last name
+Middle Name*
+Enter your middle name
+I don't have a middle name
+Suffix
+Jr., Sr., III (optional)
+Birthdate *
+
+dd/mm/yyyy
+Email Address *
+your.email@example.com
+✓ Accepts all email providers (Gmail, Yahoo, Outlook, etc.)
+
+Mobile Number *
+09XXXXXXXXX
+Format: 09XXXXXXXXX (11 digits starting with 09)
+
+Address Information
+Complete Address *
+Lot/Unit, Building, Subdivision
+House Number *
+123
+Street *
+Main Street
+Barangay *
+Barangay Name
+Security Information
+Password *
+Create a strong password
+
+Very Weak
+At least 10 characters
+Has uppercase letter
+Has lowercase letter
+Has a number
+Has a special character
+Confirm Password *
+Confirm your password
+
+Terms & Privacy
+
+I agree to the Terms of Use and Privacy Policy
+OR
+Register with Google
+Cancel
+Create Account
+You must read and accept both Terms of Use and Data Privacy
