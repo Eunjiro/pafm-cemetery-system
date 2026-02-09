@@ -190,6 +190,11 @@ export default function PaymentConfirmation() {
   }
 
   const viewProof = (proofPath: string) => {
+    if (!proofPath) {
+      alert('No proof of payment available')
+      return
+    }
+    
     if (proofPath.startsWith("OR:")) {
       const orNumber = proofPath.substring(3)
       alert(`OR Number entered: ${orNumber}`)
@@ -247,7 +252,7 @@ export default function PaymentConfirmation() {
         ) : (
           <div className="grid gap-6">
             {submissions.map((submission) => {
-              const isORNumber = submission.proofOfPayment.startsWith("OR:")
+              const isORNumber = submission.proofOfPayment?.startsWith("OR:") || false
               
               // Render different card based on type
               if (submission.type === 'death_registration') {
