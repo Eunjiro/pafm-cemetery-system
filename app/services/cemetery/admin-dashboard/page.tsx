@@ -134,6 +134,21 @@ export default async function AdminDashboard() {
                         )}
                       </div>
                     </Link>
+                    <Link href="/services/cemetery/ready-for-pickup" className="block mt-1">
+                      <div className={`flex items-center px-3 py-3 rounded-lg transition-all ${
+                        (paymentSubmittedCount + permitPaymentSubmittedCount + exhumationPaymentSubmittedCount + cremationPaymentSubmittedCount + certificatePaymentSubmittedCount) > 0 
+                          ? 'bg-green-50 border-l-4 border-green-500 text-green-700 hover:bg-green-100' 
+                          : 'text-gray-700 hover:bg-gray-50 border-l-4 border-transparent'
+                      }`}>
+                        <svg className="w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-sm">Ready for Pickup</p>
+                          <p className="text-xs mt-0.5">Mark paid requests as ready for pickup</p>
+                        </div>
+                      </div>
+                    </Link>
                   </nav>
                 </div>
 

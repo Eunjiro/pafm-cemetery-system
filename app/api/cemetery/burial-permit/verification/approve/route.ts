@@ -68,6 +68,44 @@ export async function POST(request: NextRequest) {
       }
     })
 
+    // Attempt to create a CemeteryPermitSubmission record so staff can send to PAFM-C
+    try {
+      const nameParts = (permit.deceasedName || "").trim().split(/\s+/)
+      const deceasedFirstName = nameParts[0] || ""
+      const deceasedLastName = nameParts.length > 1 ? nameParts[nameParts.length - 1] : ""
+      const deceasedMiddleName = nameParts.length > 2 ? nameParts.slice(1, -1).join(" ") : null
+
+      await prisma.cemeteryPermitSubmission.create({
+        data: {
+          permitId: permit.id,
+          permitType: 'BURIAL',
+          deceasedFirstName,
+          deceasedMiddleName,
+          deceasedLastName,
+          deceasedSuffix: null,
+          dateOfDeath: permit.deceasedDateOfDeath,
+          gender: null,
+          applicantName: permit.requesterName || `${permit.user?.name || ''}`,
+          applicantEmail: permit.user?.email || null,
+          applicantPhone: permit.requesterContactNumber || null,
+          relationshipToDeceased: permit.requesterRelation || null,
+          preferredCemeteryId: permit.cemeteryLocation || null,
+          preferredPlotId: null,
+          preferredSection: null,
+          preferredLayer: null,
+          permitApprovedAt: updatedPermit.processedAt || new Date(),
+          permitExpiryDate: null,
+          permitDocumentUrl: updatedPermit.burialForm || permit.deathCertificate || null,
+          metadata: {
+            burialType: permit.burialType,
+            nicheType: permit.nicheType || null
+          }
+        }
+      })
+    } catch (err) {
+      console.error('Failed to create CemeteryPermitSubmission:', err)
+    }
+
     return NextResponse.json({
       message: "Permit approved successfully",
       orderOfPayment: orderOfPayment,
