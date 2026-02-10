@@ -1,0 +1,765 @@
+# PAFM-C Integration Guide for Permit System
+
+**Version**: 1.0  
+**Last Updated**: February 10, 2026  
+**Target System**: External Permit Management System
+
+---
+
+## 🎯 Overview
+
+This document provides complete integration instructions for connecting your **Permit System** with **PAFM-C (Cemetery Management System)**. PAFM-C serves as the **authoritative source** for cemetery, plot, and burial data.
+
+### System Responsibilities
+
+| System | Responsibilities |
+|--------|-----------------|
+| **Permit System** | Permit applications, approvals, document management, payments, workflow |
+| **PAFM-C** | Cemetery/plot master data, burial assignments, physical plot management, mapping |
+
+### Integration Flow
+
+```mermaid
+sequenceDiagram
+    Citizen->>Permit System: Apply for burial permit
+    Permit System->>PAFM-C API: GET /external/plots (fetch available)
+    PAFM-C API-->>Permit System: Return available plots
+    Citizen->>Permit System: Select preferred plot
+    Permit System->>Permit System: Approve permit
+    Permit System->>PAFM-C API: POST /external/permits (send approved permit)
+    PAFM-C API-->>Permit System: 201 Created
+    PAFM-C Admin->>PAFM-C: Review & assign burial
+    PAFM-C->>Permit System: Webhook notification (assignment complete)
+```
+
+---
+
+## 🔐 Authentication Setup
+
+### Step 1: Obtain API Key
+
+Ask PAFM-C administrator to generate an API key:
+
+```bash
+cd pafm-c
+npm run db:migrate:permits  # Create tables
+npm run db:seed:api-key     # Generate API key
+```
+
+The admin will provide you with an API key in this format:
+```
+pk_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2g3h4i5j6k7l8m9n0
+```
+
+### Step 2: Store API Key Securely
+
+**Environment Variable** (Recommended):
+```env
+# .env.local
+PAFM_API_KEY=pk_your_actual_api_key_here
+PAFM_API_BASE_URL=https://cemetery.yourserver.com
+```
+
+**Never commit API keys to version control!**
+
+### Step 3: Make Authenticated Requests
+
+Include API key in `Authorization` header:
+
+```typescript
+const headers = {
+  'Authorization': `Bearer ${process.env.PAFM_API_KEY}`,
+  'Content-Type': 'application/json',
+};
+```
+
+---
+
+## 📡 API Endpoints
+
+### Base URL
+```
+Production: https://cemetery.yourserver.com
+Development: http://localhost:3000
+```
+
+---
+
+## 1️⃣ Fetch Available Cemeteries
+
+**Endpoint**: `GET /api/external/cemeteries`  
+**Purpose**: Get list of active cemeteries for permit application form
+
+### Request
+```http
+GET /api/external/cemeteries?active=true HTTP/1.1
+Host: cemetery.yourserver.com
+Authorization: Bearer pk_your_api_key
+```
+
+### Query Parameters
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `active` | boolean | No | Filter to active cemeteries only (`true` recommended) |
+
+### Response (200 OK)
+```json
+{
+  "cemeteries": [
+    {
+      "id": 1,
+      "name": "Manila North Cemetery",
+      "location": "Santa Cruz, Manila",
+      "total_plots": 5000,
+      "available_plots": 1234,
+      "occupied_plots": 3766,
+      "sections": 8,
+      "coordinates": [[14.6091, 120.9828], ...]
+    }
+  ]
+}
+```
+
+### Example Code (TypeScript/Next.js)
+```typescript
+async function fetchCemeteries() {
+  const response = await fetch(`${process.env.PAFM_API_BASE_URL}/api/external/cemeteries?active=true`, {
+    headers: {
+      'Authorization': `Bearer ${process.env.PAFM_API_KEY}`,
+    },
+  });
+  
+  if (!response.ok) {
+    throw new Error(`Failed to fetch cemeteries: ${response.status}`);
+  }
+  
+  const data = await response.json();
+  return data.cemeteries;
+}
+```
+
+---
+
+## 2️⃣ Fetch Available Plots
+
+**Endpoint**: `GET /api/external/plots`  
+**Purpose**: Get available plots for applicant to select during permit application
+
+### Request
+```http
+GET /api/external/plots?cemetery_id=1&available=true HTTP/1.1
+Host: cemetery.yourserver.com
+Authorization: Bearer pk_your_api_key
+```
+
+### Query Parameters
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `cemetery_id` | number | Recommended | Filter plots by cemetery |
+| `section_id` | number | No | Filter plots by section |
+| `available` | boolean | **Yes** | Set to `true` to show only available plots |
+| `type` | string | No | Filter by plot type (e.g., `'lawn'`, `'family'`, `'mausoleum'`) |
+| `layer` | number | No | Filter by specific available layer (1-3) |
+
+### Response (200 OK)
+```json
+{
+  "plots": [
+    {
+      "id": 42,
+      "plot_number": "A-123",
+      "plot_type": "lawn",
+      "status": "available",
+      "cemetery": {
+        "id": 1,
+        "name": "Manila North Cemetery",
+        "location": "Santa Cruz, Manila"
+      },
+      "section": {
+        "id": 5,
+        "name": "Section A"
+      },
+      "coordinates": {
+        "latitude": 14.6091,
+        "longitude": 120.9828,
+        "polygon": [[14.609, 120.982], ...]
+      },
+      "layers": {
+        "total": 3,
+        "occupied": 1,
+        "available": [2, 3]
+      },
+      "burial_count": 1
+    }
+  ],
+  "total": 1234
+}
+```
+
+### Example Code
+```typescript
+async function fetchAvailablePlots(cemeteryId: number) {
+  const params = new URLSearchParams({
+    cemetery_id: cemeteryId.toString(),
+    available: 'true',
+  });
+  
+  const response = await fetch(
+    `${process.env.PAFM_API_BASE_URL}/api/external/plots?${params}`,
+    {
+      headers: {
+        'Authorization': `Bearer ${process.env.PAFM_API_KEY}`,
+      },
+    }
+  );
+  
+  if (!response.ok) {
+    throw new Error(`Failed to fetch plots: ${response.status}`);
+  }
+  
+  const data = await response.json();
+  return data.plots;
+}
+```
+
+### UI Integration Example
+```tsx
+// In your permit application form
+const [selectedCemetery, setSelectedCemetery] = useState<number | null>(null);
+const [availablePlots, setAvailablePlots] = useState([]);
+
+useEffect(() => {
+  if (selectedCemetery) {
+    fetchAvailablePlots(selectedCemetery).then(setAvailablePlots);
+  }
+}, [selectedCemetery]);
+
+return (
+  <select onChange={(e) => setPreferredPlot(e.target.value)}>
+    <option value="">Select Plot</option>
+    {availablePlots.map(plot => (
+      <option key={plot.id} value={plot.id}>
+        {plot.plot_number} - {plot.cemetery.name} / {plot.section?.name}
+        (Available Layers: {plot.layers.available.join(', ')})
+      </option>
+    ))}
+  </select>
+);
+```
+
+---
+
+## 3️⃣ Submit Approved Permit
+
+**Endpoint**: `POST /api/external/permits`  
+**Purpose**: Send approved burial permit to PAFM-C for admin assignment
+
+### When to Call This
+- ✅ After permit is **fully approved** by your system
+- ✅ After payment is processed (if applicable)
+- ✅ After all required documents are uploaded
+- ❌ Do NOT send pending/draft permits
+
+### Request
+```http
+POST /api/external/permits HTTP/1.1
+Host: cemetery.yourserver.com
+Authorization: Bearer pk_your_api_key
+Content-Type: application/json
+
+{
+  "permit_id": "PERMIT-2026-001234",
+  "permit_type": "burial",
+  
+  "deceased_first_name": "Juan",
+  "deceased_middle_name": "Garcia",
+  "deceased_last_name": "Dela Cruz",
+  "deceased_suffix": "Jr.",
+  "date_of_birth": "1950-05-15",
+  "date_of_death": "2026-02-01",
+  "gender": "male",
+  
+  "applicant_name": "Maria Dela Cruz",
+  "applicant_email": "maria.delacruz@example.com",
+  "applicant_phone": "+63912345678",
+  "relationship_to_deceased": "spouse",
+  
+  "preferred_cemetery_id": 1,
+  "preferred_plot_id": 42,
+  "preferred_section": "Section A",
+  "preferred_layer": 2,
+  
+  "permit_approved_at": "2026-02-08T10:30:00Z",
+  "permit_expiry_date": "2026-05-08",
+  "permit_document_url": "https://permits.yourserver.com/documents/PERMIT-2026-001234.pdf",
+  
+  "metadata": {
+    "payment_reference": "PAY-2026-5678",
+    "approved_by": "John Admin",
+    "special_instructions": "Family plot adjacent to existing burial"
+  }
+}
+```
+
+### Request Body Schema
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `permit_id` | string | ✅ Yes | **Unique** permit ID from your system |
+| `permit_type` | enum | ✅ Yes | `'burial'`, `'exhumation'`, `'niche'`, `'entrance'` |
+| **Deceased Info** | | | |
+| `deceased_first_name` | string | ✅ Yes | First name |
+| `deceased_middle_name` | string | No | Middle name |
+| `deceased_last_name` | string | ✅ Yes | Last name |
+| `deceased_suffix` | string | No | Sr., Jr., III, etc. |
+| `date_of_birth` | date (ISO) | No | Format: `YYYY-MM-DD` |
+| `date_of_death` | date (ISO) | ✅ Yes | Format: `YYYY-MM-DD` or ISO 8601 |
+| `gender` | string | No | `male`, `female`, etc. |
+| **Applicant Info** | | | |
+| `applicant_name` | string | ✅ Yes | Full name of permit applicant |
+| `applicant_email` | email | No | Email for notifications |
+| `applicant_phone` | string | No | Contact number |
+| `relationship_to_deceased` | string | No | e.g., `'spouse'`, `'child'`, `'sibling'` |
+| **Plot Preferences** | | | |
+| `preferred_cemetery_id` | number | No | From `/external/cemeteries` |
+| `preferred_plot_id` | number | No | From `/external/plots` |
+| `preferred_section` | string | No | Section name |
+| `preferred_layer` | number | No | 1, 2, or 3 |
+| **Permit Details** | | | |
+| `permit_approved_at` | datetime (ISO) | ✅ Yes | When permit was approved |
+| `permit_expiry_date` | date (ISO) | No | Permit expiration date |
+| `permit_document_url` | url | No | Link to approved permit PDF |
+| `metadata` | object | No | Additional data (JSON) |
+
+### Response (201 Created)
+```json
+{
+  "message": "Permit received successfully",
+  "permit": {
+    "id": 15,
+    "permit_id": "PERMIT-2026-001234",
+    "status": "pending",
+    "created_at": "2026-02-10T14:30:00Z"
+  }
+}
+```
+
+### Error Responses
+
+**409 Conflict** - Permit already exists
+```json
+{
+  "error": "Permit already exists",
+  "permit_id": "PERMIT-2026-001234",
+  "status": "pending"
+}
+```
+
+**400 Bad Request** - Validation failed
+```json
+{
+  "error": "Validation failed",
+  "details": [
+    {
+      "path": ["deceased_first_name"],
+      "message": "Required"
+    }
+  ]
+}
+```
+
+**401 Unauthorized** - Invalid API key
+```json
+{
+  "error": "Invalid or inactive API key"
+}
+```
+
+### Example Code
+```typescript
+interface PermitPayload {
+  permit_id: string;
+  permit_type: 'burial' | 'exhumation' | 'niche' | 'entrance';
+  deceased_first_name: string;
+  deceased_last_name: string;
+  date_of_death: string;
+  applicant_name: string;
+  // ... other fields
+}
+
+async function submitPermitToPAFMC(permit: PermitPayload) {
+  const response = await fetch(
+    `${process.env.PAFM_API_BASE_URL}/api/external/permits`,
+    {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${process.env.PAFM_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(permit),
+    }
+  );
+  
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || 'Failed to submit permit');
+  }
+  
+  const data = await response.json();
+  console.log('Permit submitted:', data.permit);
+  return data.permit;
+}
+
+// Usage in permit approval workflow
+async function approvePermit(permitId: string) {
+  // Your approval logic...
+  
+  // After approval, send to PAFM-C
+  await submitPermitToPAFMC({
+    permit_id: permitId,
+    permit_type: 'burial',
+    deceased_first_name: 'Juan',
+    deceased_last_name: 'Dela Cruz',
+    date_of_death: '2026-02-01',
+    applicant_name: 'Maria Dela Cruz',
+    preferred_cemetery_id: 1,
+    preferred_plot_id: 42,
+    permit_approved_at: new Date().toISOString(),
+    // ... other fields
+  });
+  
+  // Update your permit status
+  await updatePermitStatus(permitId, 'sent_to_cemetery');
+}
+```
+
+---
+
+## 4️⃣ Check Permit Status
+
+**Endpoint**: `GET /api/external/permits?permit_id={id}`  
+**Purpose**: Check if permit has been assigned by PAFM-C admin
+
+### Request
+```http
+GET /api/external/permits?permit_id=PERMIT-2026-001234 HTTP/1.1
+Host: cemetery.yourserver.com
+Authorization: Bearer pk_your_api_key
+```
+
+### Response (200 OK)
+```json
+{
+  "permit": {
+    "id": 15,
+    "permit_id": "PERMIT-2026-001234",
+    "permit_type": "burial",
+    "status": "assigned",
+    "deceased_name": "Juan Dela Cruz",
+    "applicant_name": "Maria Dela Cruz",
+    "assigned_plot": "A-123",
+    "assigned_cemetery": "Manila North Cemetery",
+    "assigned_at": "2026-02-10T15:45:00Z",
+    "assigned_by": "admin@cemetery.com",
+    "rejection_reason": null,
+    "created_at": "2026-02-10T14:30:00Z",
+    "updated_at": "2026-02-10T15:45:00Z"
+  }
+}
+```
+
+### Status Values
+| Status | Description | Next Action |
+|--------|-------------|-------------|
+| `pending` | Awaiting admin assignment | Check periodically or wait for webhook |
+| `assigned` | Burial assigned to plot | Update your system, notify applicant |
+| `rejected` | Admin rejected the permit | Review `rejection_reason`, notify applicant |
+| `expired` | Permit expired before assignment | Re-submit if still valid |
+
+### Example Code (Polling)
+```typescript
+async function checkPermitStatus(permitId: string) {
+  const response = await fetch(
+    `${process.env.PAFM_API_BASE_URL}/api/external/permits?permit_id=${permitId}`,
+    {
+      headers: {
+        'Authorization': `Bearer ${process.env.PAFM_API_KEY}`,
+      },
+    }
+  );
+  
+  if (!response.ok) {
+    if (response.status === 404) {
+      return null; // Permit not found
+    }
+    throw new Error('Failed to check permit status');
+  }
+  
+  const data = await response.json();
+  return data.permit;
+}
+
+// Poll every 5 minutes for pending permits
+setInterval(async () => {
+  const pendingPermits = await getPendingPermitsFromYourDB();
+  
+  for (const permit of pendingPermits) {
+    const status = await checkPermitStatus(permit.permit_id);
+    
+    if (status && status.status === 'assigned') {
+      // Update your database
+      await updatePermitInYourDB(permit.id, {
+        status: 'cemetery_assigned',
+        assigned_plot: status.assigned_plot,
+        assigned_at: status.assigned_at,
+      });
+      
+      // Notify applicant
+      await sendEmail(permit.applicant_email, 'Burial plot assigned', ...);
+    }
+  }
+}, 5 * 60 * 1000); // Every 5 minutes
+```
+
+---
+
+## 🔔 Webhook Notifications (Optional)
+
+For real-time updates, PAFM-C can send webhook notifications when permits are assigned or rejected.
+
+### Setup Webhook in Your System
+
+**Endpoint**: `POST https://permits.yourserver.com/api/webhooks/pafm`  
+**Method**: POST  
+**Content-Type**: application/json
+
+### Webhook Payload (Assignment)
+```json
+{
+  "event": "permit.assigned",
+  "permit_id": "PERMIT-2026-001234",
+  "timestamp": "2026-02-10T15:45:00Z",
+  "data": {
+    "status": "assigned",
+    "assigned_plot": "A-123",
+    "assigned_cemetery": "Manila North Cemetery",
+    "assigned_by": "admin@cemetery.com",
+    "burial_id": 87
+  }
+}
+```
+
+### Webhook Payload (Rejection)
+```json
+{
+  "event": "permit.rejected",
+  "permit_id": "PERMIT-2026-001234",
+  "timestamp": "2026-02-10T15:45:00Z",
+  "data": {
+    "status": "rejected",
+    "rejection_reason": "Plot no longer available, alternative plots suggested",
+    "rejected_by": "admin@cemetery.com"
+  }
+}
+```
+
+### Example Webhook Handler
+```typescript
+// pages/api/webhooks/pafm.ts (Next.js)
+export default async function handler(req, res) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+  
+  // Verify request is from PAFM-C (optional but recommended)
+  const signature = req.headers['x-pafm-signature'];
+  // ... verify signature logic
+  
+  const { event, permit_id, data } = req.body;
+  
+  if (event === 'permit.assigned') {
+    // Update your database
+    await db.permits.update({
+      where: { permit_id },
+      data: {
+        status: 'cemetery_assigned',
+        assigned_plot: data.assigned_plot,
+        assigned_at: data.timestamp,
+      },
+    });
+    
+    // Notify applicant
+    const permit = await db.permits.findUnique({ where: { permit_id } });
+    await sendEmail(permit.applicant_email, {
+      subject: 'Burial Plot Assigned',
+      body: `Your burial permit has been assigned to plot ${data.assigned_plot}...`,
+    });
+  }
+  
+  if (event === 'permit.rejected') {
+    // Update your database
+    await db.permits.update({
+      where: { permit_id },
+      data: {
+        status: 'cemetery_rejected',
+        rejection_reason: data.rejection_reason,
+      },
+    });
+    
+    // Notify applicant
+    await sendEmail(...);
+  }
+  
+  return res.status(200).json({ received: true });
+}
+```
+
+**To enable webhooks, provide your webhook URL to PAFM-C administrator.**
+
+---
+
+## 🛠️ Integration Checklist
+
+### Initial Setup
+- [ ] Receive API key from PAFM-C administrator
+- [ ] Store API key in environment variable (never commit to code)
+- [ ] Test API connection with `/external/cemeteries` endpoint
+- [ ] Set up error logging for API failures
+
+### Permit Application Form
+- [ ] Fetch cemeteries list on form load
+- [ ] Fetch available plots when cemetery selected
+- [ ] Display plot information (number, type, available layers)
+- [ ] Save applicant's plot preference in permit record
+
+### Permit Approval Workflow
+- [ ] After approval, submit permit to PAFM-C via `/external/permits`
+- [ ] Handle 409 conflict errors (duplicate permit_id)
+- [ ] Store PAFM-C permit ID in your database
+- [ ] Update permit status to "Sent to Cemetery"
+
+### Status Monitoring
+- [ ] Implement polling or webhook handler for status updates
+- [ ] Update permit status when assigned
+- [ ] Notify applicant when plot is assigned
+- [ ] Handle rejections gracefully (show reason to applicant)
+
+### Error Handling
+- [ ] Implement retry logic for network failures
+- [ ] Log all API errors with context
+- [ ] Show friendly error messages to users
+- [ ] Monitor API key expiration (if applicable)
+
+---
+
+## 🔍 Testing
+
+### Development/Staging Environment
+
+```bash
+# Test API connection
+curl -H "Authorization: Bearer pk_your_test_key" \
+  https://cemetery-staging.yourserver.com/api/external/cemeteries
+
+# Test permit submission
+curl -X POST https://cemetery-staging.yourserver.com/api/external/permits \
+  -H "Authorization: Bearer pk_your_test_key" \
+  -H "Content-Type: application/json" \
+  -d '{"permit_id":"TEST-001","permit_type":"burial",...}'
+```
+
+### Test Scenarios
+1. **Happy Path**: Submit permit → Admin assigns → Check status shows "assigned"
+2. **Duplicate Submit**: Submit same permit_id twice → 409 Conflict
+3. **Invalid Plot**: Submit with non-existent plot_id → 400 Bad Request
+4. **Rejection**: Submit permit → Admin rejects → Check status shows "rejected"
+5. **Invalid API Key**: Submit with wrong key → 401 Unauthorized
+
+---
+
+## 📊 Data Flow Summary
+
+```
+┌─────────────────┐
+│ Citizen applies │
+│  for permit     │
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────────────┐
+│  Permit System          │
+│  - Collects info        │
+│  - Processes payment    │
+│  - Approves permit      │
+└────────┬────────────────┘
+         │
+         │ POST /external/permits
+         ▼
+┌─────────────────────────┐
+│  PAFM-C API             │
+│  - Validates data       │
+│  - Creates pending      │
+│    permit record        │
+└────────┬────────────────┘
+         │
+         ▼
+┌─────────────────────────┐
+│  PAFM-C Admin           │
+│  - Reviews permit       │
+│  - Assigns plot         │
+│  - Creates burial       │
+└────────┬────────────────┘
+         │
+         │ Webhook (optional)
+         ▼
+┌─────────────────────────┐
+│  Permit System          │
+│  - Updates status       │
+│  - Notifies applicant   │
+└─────────────────────────┘
+```
+
+---
+
+## ❓ FAQ
+
+### Q: What if the preferred plot becomes unavailable before admin assigns?
+**A**: PAFM-C admin can select a different plot. The assignment notification will show the actual assigned plot (may differ from preferred).
+
+### Q: Can we assign plots directly without admin review?
+**A**: No. PAFM-C maintains plot integrity through admin verification. Admins validate plot condition, adjacency rules, and family plot arrangements.
+
+### Q: How often should we poll for status updates?
+**A**: Recommended: Every 5-10 minutes for pending permits. Use webhooks for real-time updates.
+
+### Q: What if API key is compromised?
+**A**: Contact PAFM-C admin immediately to revoke and generate new key. Update your environment variables.
+
+### Q: Can deceased info be updated after submission?
+**A**: Minor corrections can be made by PAFM-C admin. For major changes, contact admin directly.
+
+### Q: How long do permits stay "pending"?
+**A**: Typically 1-3 business days. If `permit_expiry_date` passes, status changes to "expired".
+
+---
+
+## 📞 Support
+
+For technical issues or questions:
+- **Email**: dev@cemetery.yourserver.com
+- **Documentation**: https://docs.cemetery.yourserver.com
+- **Status Page**: https://status.cemetery.yourserver.com
+
+---
+
+## 📝 Changelog
+
+**v1.0 (2026-02-10)**
+- Initial integration guide
+- External API endpoints documented
+- Webhook specification added
+- Example code provided
+
+---
+
+**End of Integration Guide**

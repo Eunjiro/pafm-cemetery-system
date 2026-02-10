@@ -210,8 +210,26 @@ export default function CemeterySubmissionsTable({ submissions }: { submissions:
                     </button>
                     {submission.status === "PENDING_SUBMISSION" && (
                       <button
-                        onClick={() => {
-                          alert("Send to Cemetery functionality coming soon!")
+                        onClick={async () => {
+                          try {
+                            const res = await fetch('/api/cemetery/submit-to-pafm', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ submissionId: submission.id })
+                            })
+
+                            const data = await res.json()
+                            if (!res.ok || !data?.success) {
+                              alert('Failed to send to cemetery: ' + (data?.error || 'unknown'))
+                              return
+                            }
+
+                            alert('Submission sent to cemetery successfully')
+                            router.refresh()
+                          } catch (err) {
+                            console.error(err)
+                            alert('Unexpected error sending to cemetery')
+                          }
                         }}
                         className="text-green-600 hover:text-green-900"
                       >

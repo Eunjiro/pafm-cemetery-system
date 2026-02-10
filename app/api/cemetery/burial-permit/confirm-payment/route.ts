@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Permit is not awaiting payment confirmation" }, { status: 400 })
     }
 
-    await prisma.burialPermit.update({
+    const updatedPermit = await prisma.burialPermit.update({
       where: { id: permitId },
       data: {
         status: "REGISTERED_FOR_PICKUP",
@@ -79,6 +79,45 @@ export async function POST(req: NextRequest) {
           amount: permit.totalFee
         }
       })
+    }
+
+    // Ensure a CemeteryPermitSubmission exists so staff can send to PAFM-C
+    try {
+      const existing = await prisma.cemeteryPermitSubmission.findUnique({
+        where: { permitId: permitId }
+      })
+
+      if (!existing) {
+        const nameParts = (updatedPermit.deceasedName || "").trim().split(/\s+/)
+        const deceasedFirstName = nameParts[0] || ""
+        const deceasedLastName = nameParts.length > 1 ? nameParts[nameParts.length - 1] : ""
+        const deceasedMiddleName = nameParts.length > 2 ? nameParts.slice(1, -1).join(" ") : null
+
+        await prisma.cemeteryPermitSubmission.create({
+          data: {
+            permitId: updatedPermit.id,
+            permitType: 'BURIAL',
+            deceasedFirstName,
+            deceasedMiddleName,
+            deceasedLastName,
+            deceasedSuffix: null,
+            dateOfDeath: updatedPermit.deceasedDateOfDeath,
+            gender: null,
+            applicantName: updatedPermit.requesterName || `${updatedPermit.userId}`,
+            applicantEmail: null,
+            applicantPhone: updatedPermit.requesterContactNumber || null,
+            relationshipToDeceased: updatedPermit.requesterRelation || null,
+            preferredCemeteryId: updatedPermit.cemeteryLocation || null,
+            permitApprovedAt: updatedPermit.processedAt || new Date(),
+            permitDocumentUrl: updatedPermit.burialForm || updatedPermit.deathCertificate || null,
+            metadata: {
+              createdFrom: 'confirm-payment'
+            }
+          }
+        })
+      }
+    } catch (err) {
+      console.error('Failed to create CemeteryPermitSubmission on payment confirmation:', err)
     }
 
     return NextResponse.json({ 
