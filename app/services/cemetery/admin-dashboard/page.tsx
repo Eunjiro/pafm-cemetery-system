@@ -71,6 +71,11 @@ export default async function AdminDashboard() {
   const certificateForPickupCount = certificateStats.find(s => s.status === 'REGISTERED_FOR_PICKUP')?._count || 0
   const certificateTotalCount = certificateStats.reduce((acc, s) => acc + s._count, 0)
 
+  // Fetch permits awaiting cemetery plot assignment
+  const permitsAwaitingCemetery = await prisma.cemeteryPermitSubmission.count({
+    where: { status: { in: ['PENDING_SUBMISSION', 'SUBMITTED'] } }
+  })
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -260,6 +265,35 @@ export default async function AdminDashboard() {
                         {(paymentSubmittedCount + permitPaymentSubmittedCount + exhumationPaymentSubmittedCount + cremationPaymentSubmittedCount + certificatePaymentSubmittedCount) > 0 && (
                           <span className="ml-2 px-2 py-1 bg-red-500 text-white text-xs font-bold rounded-full">
                             {paymentSubmittedCount + permitPaymentSubmittedCount + exhumationPaymentSubmittedCount + cremationPaymentSubmittedCount + certificatePaymentSubmittedCount}
+                          </span>
+                        )}
+                      </div>
+                    </Link>
+                  </nav>
+                </div>
+
+                {/* CEMETERY INTEGRATION */}
+                <div className="mb-4 pb-4 border-b border-gray-200">
+                  <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 px-3">Cemetery Integration</h3>
+                  <nav className="space-y-1">
+                    <Link href="/services/cemetery/pending-permits" className="block">
+                      <div className={`flex items-center px-3 py-3 rounded-lg transition-all ${
+                        permitsAwaitingCemetery > 0 
+                          ? 'bg-purple-50 border-l-4 border-purple-500 text-purple-700 hover:bg-purple-100' 
+                          : 'text-gray-700 hover:bg-gray-50 border-l-4 border-transparent hover:border-purple-300'
+                      }`}>
+                        <svg className="w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                        </svg>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-sm">Plot Assignment</p>
+                          {permitsAwaitingCemetery > 0 && (
+                            <p className="text-xs mt-0.5">{permitsAwaitingCemetery} need cemetery plot</p>
+                          )}
+                        </div>
+                        {permitsAwaitingCemetery > 0 && (
+                          <span className="ml-2 px-2 py-1 bg-purple-500 text-white text-xs font-bold rounded-full">
+                            {permitsAwaitingCemetery}
                           </span>
                         )}
                       </div>

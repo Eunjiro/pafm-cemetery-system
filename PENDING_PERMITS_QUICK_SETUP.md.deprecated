@@ -1,0 +1,345 @@
+# ⛔ DEPRECATED - DO NOT USE
+
+**This documentation describes the wrong architecture.**
+
+This guide was written for external permit systems integrating WITH us, but that's backwards.
+
+**THIS system IS the permit management system.**  
+**THIS system sends permits TO the external PAFM-C cemetery system.**
+
+## ✅ Use the Correct Guide
+
+See **[CEMETERY_INTEGRATION_GUIDE.md](./CEMETERY_INTEGRATION_GUIDE.md)** for setup instructions.
+
+---
+
+# Pending Permits System - Quick Setup Guide
+
+## 🎯 What This Feature Does
+
+This feature enables **external permit management systems** to integrate with PAFM-C cemetery services. External systems can:
+- Query available cemeteries and plots
+- Submit approved burial permits
+- Check permit assignment status
+
+PAFM-C administrators can then:
+- Review incoming permits
+- Assign burial plots
+- Manage cemetery plot availability
+
+---
+
+## 🚀 Quick Setup (3 Steps)
+
+### 1. Install Dependencies
+
+```bash
+npm install zod
+```
+
+### 2. Run Database Migration
+
+```bash
+npx prisma migrate dev --name add_pending_permits_system
+```
+
+This creates the following tables:
+- `Cemetery` - Cemetery master data
+- `Plot` - Individual plot records
+- `Burial` - Burial assignments
+- `PendingPermit` - Permits from external systems
+- `ApiKey` - Already exists, used for authentication
+
+### 3. Generate API Key and Sample Data
+
+```bash
+npm run seed:permits
+```
+
+**IMPORTANT**: This will display an API key that looks like:
+```
+pk_a1b2c3d4e5f6g7h8i9j0...
+```
+
+**Save this key securely!** You'll need to provide it to the external permit system.
+
+The script also creates:
+- 1 sample cemetery (Manila North Cemetery)
+- 20 sample plots for testing
+
+---
+
+## 📍 Access Points
+
+### For Administrators
+- **Pending Permits Dashboard**: `/services/cemetery/pending-permits`
+- **Admin Dashboard**: Link appears in sidebar under "External Integration"
+
+### For External Systems (API)
+- Cemeteries: `GET /api/external/cemeteries`
+- Available Plots: `GET /api/external/plots`
+- Submit Permit: `POST /api/external/permits`
+- Check Status: `GET /api/external/permits?permit_id={id}`
+
+---
+
+## 🧪 Testing the Integration
+
+### 1. Test API Authentication
+
+```bash
+curl -H "Authorization: Bearer pk_your_api_key_here" \
+  http://localhost:3000/api/external/cemeteries?active=true
+```
+
+Expected response:
+```json
+{
+  "cemeteries": [
+    {
+      "id": "...",
+      "name": "Manila North Cemetery",
+      "location": "Santa Cruz, Manila",
+      "total_plots": 100,
+      "available_plots": 85,
+      "occupied_plots": 15
+    }
+  ]
+}
+```
+
+### 2. Test Fetching Available Plots
+
+```bash
+curl -H "Authorization: Bearer pk_your_api_key_here" \
+  "http://localhost:3000/api/external/plots?available=true"
+```
+
+### 3. Test Submitting a Permit
+
+```bash
+curl -X POST http://localhost:3000/api/external/permits \
+  -H "Authorization: Bearer pk_your_api_key_here" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "permit_id": "TEST-2026-001",
+    "permit_type": "burial",
+    "deceased_first_name": "Juan",
+    "deceased_last_name": "Dela Cruz",
+    "date_of_death": "2026-02-01",
+    "applicant_name": "Maria Dela Cruz",
+    "permit_approved_at": "2026-02-10T10:00:00Z"
+  }'
+```
+
+Expected response (201 Created):
+```json
+{
+  "message": "Permit received successfully",
+  "permit": {
+    "id": "...",
+    "permit_id": "TEST-2026-001",
+    "status": "pending",
+    "created_at": "2026-02-10T14:30:00Z"
+  }
+}
+```
+
+### 4. Check Pending Permits Dashboard
+
+1. Log in as ADMIN
+2. Go to `/services/cemetery/pending-permits`
+3. You should see the test permit listed
+4. Try viewing details or assigning a plot
+
+---
+
+## 📖 Sharing with External Team
+
+Provide the external permit system team with:
+
+1. **API Key** (from seed script output)
+2. **Integration Documentation**: `PERMIT_SYSTEM_INTEGRATION.md`
+3. **Base URL**: Your production/staging URL
+
+Example `.env` for external system:
+```env
+PAFM_API_KEY=pk_your_actual_api_key_here
+PAFM_API_BASE_URL=https://cemetery.yourserver.com
+```
+
+---
+
+## 🔐 Security Best Practices
+
+### API Key Management
+- ✅ Never commit API keys to version control
+- ✅ Store in environment variables only
+- ✅ Use different keys for staging and production
+- ✅ Rotate keys periodically
+- ✅ Deactivate keys when no longer needed
+
+### To Deactivate an API Key
+```sql
+UPDATE "ApiKey" 
+SET "isActive" = false 
+WHERE key = 'pk_old_key_here';
+```
+
+### To Generate Additional Keys
+Run the seed script again:
+```bash
+npm run seed:permits
+```
+Or manually create via Prisma:
+```typescript
+await prisma.apiKey.create({
+  data: {
+    name: 'System Name',
+    key: 'pk_' + randomHexString(64),
+    isActive: true,
+    createdBy: 'admin@email.com'
+  }
+})
+```
+
+---
+
+## 🛠️ Common Tasks
+
+### Add More Sample Cemeteries
+
+```typescript
+// In Prisma Studio or via script
+await prisma.cemetery.create({
+  data: {
+    name: 'South Cemetery',
+    location: 'Makati, Metro Manila',
+    totalPlots: 500,
+    availablePlots: 450,
+    occupiedPlots: 50,
+    sections: 10,
+    active: true
+  }
+})
+```
+
+### Add More Plots
+
+```typescript
+await prisma.plot.create({
+  data: {
+    plotNumber: 'A-001',
+    plotType: 'LAWN',
+    status: 'AVAILABLE',
+    cemeteryId: 'cemetery_id_here',
+    sectionName: 'Section A',
+    totalLayers: 3,
+    occupiedLayers: 0,
+    availableLayers: [1, 2, 3],
+    burialCount: 0
+  }
+})
+```
+
+### Check Permit Status Programmatically
+
+From external system:
+```typescript
+const response = await fetch(
+  `${process.env.PAFM_API_BASE_URL}/api/external/permits?permit_id=TEST-2026-001`,
+  {
+    headers: {
+      'Authorization': `Bearer ${process.env.PAFM_API_KEY}`
+    }
+  }
+)
+const data = await response.json()
+console.log(data.permit.status) // "pending", "assigned", or "rejected"
+```
+
+---
+
+## 📊 Database Schema Overview
+
+```
+Cemetery (1) ─┬─> Plot (many)
+              │
+Plot (1) ─────┴─> Burial (many)
+              
+PendingPermit ──> Burial (optional link after assignment)
+
+ApiKey (standalone, for authentication)
+```
+
+---
+
+## ❓ Troubleshooting
+
+### "Invalid API key" Error
+- Check that key starts with `pk_`
+- Verify key is active: `SELECT * FROM "ApiKey" WHERE key = 'pk_...'`
+- Ensure Authorization header format: `Bearer pk_...`
+
+### "Validation failed" Error
+- Check all required fields are present
+- Verify date formats (ISO 8601: `YYYY-MM-DD` or `YYYY-MM-DDTHH:mm:ssZ`)
+- Review request body against schema in `PERMIT_SYSTEM_INTEGRATION.md`
+
+### Permits Not Showing in Dashboard
+- Verify you're logged in as ADMIN
+- Check database: `SELECT * FROM "PendingPermit"`
+- Refresh the page
+
+### Can't Access `/services/cemetery/pending-permits`
+- Ensure you have ADMIN role
+- Check that route file exists at correct path
+- Review server logs for errors
+
+---
+
+## 🔄 Migration from Old System
+
+If you have existing permit data:
+
+1. Map old permit records to  `PendingPermit` schema
+2. Use bulk insert:
+```typescript
+await prisma.pendingPermit.createMany({
+  data: oldPermits.map(p => ({
+    permitId: p.id,
+    permitType: 'BURIAL',
+    status: 'PENDING',
+    // ... map other fields
+  }))
+})
+```
+
+---
+
+## 📞 Support
+
+- **Integration Docs**: [PERMIT_SYSTEM_INTEGRATION.md](./PERMIT_SYSTEM_INTEGRATION.md)
+- **Setup Docs**: [PERMITS_SETUP.md](./PERMITS_SETUP.md) (legacy, replaced by this file)
+- **Admin Dashboard**: `/services/cemetery/pending-permits`
+
+---
+
+## ✅ Setup Checklist
+
+- [ ] Dependencies installed (`npm install zod`)
+- [ ] Database migrated (`npx prisma migrate dev`)
+- [ ] API key generated (`npm run seed:permits`)
+- [ ] API key saved securely
+- [ ] Sample cemetery and plots created
+- [ ] API tested with curl/Postman
+- [ ] Dashboard accessible by admin
+- [ ] Integration docs shared with external team
+- [ ] Production API key generated separately
+- [ ] Production environment variables configured
+
+---
+
+**Setup Complete!** 🎉
+
+Your PAFM-C system is now ready to receive permits from external permit management systems.
