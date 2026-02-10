@@ -98,6 +98,9 @@ export async function submitBurialPermitToCemetery(permit: {
   metadata?: Record<string, any>;
 }): Promise<CemeteryApiResponse<any>> {
   try {
+    console.log(`[Cemetery API] Submitting permit to: ${CEMETERY_API_BASE_URL}/api/external/permits`);
+    console.log(`[Cemetery API] Permit ID: ${permit.permit_id}`);
+
     const response = await fetch(`${CEMETERY_API_BASE_URL}/api/external/permits`, {
       method: 'POST',
       headers: {
@@ -107,12 +110,27 @@ export async function submitBurialPermitToCemetery(permit: {
       body: JSON.stringify(permit),
     });
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || `Failed to submit permit: ${response.status}`);
+    // Read response text first
+    const responseText = await response.text();
+    console.log(`[Cemetery API] Response status: ${response.status}`);
+    console.log(`[Cemetery API] Response text: ${responseText.substring(0, 200)}`);
+
+    // Try to parse as JSON
+    let data;
+    if (responseText) {
+      try {
+        data = JSON.parse(responseText);
+      } catch (e) {
+        console.warn(`[Cemetery API] Failed to parse response as JSON: ${e}`);
+        data = { raw: responseText };
+      }
     }
 
-    const data = await response.json();
+    if (!response.ok) {
+      const errorMsg = data?.error || `Failed to submit permit: ${response.status}`;
+      throw new Error(errorMsg);
+    }
+
     return { success: true, data };
   } catch (error: any) {
     console.error('Error submitting permit to cemetery:', error);
