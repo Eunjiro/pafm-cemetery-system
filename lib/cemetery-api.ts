@@ -127,7 +127,17 @@ export async function submitBurialPermitToCemetery(permit: {
     }
 
     if (!response.ok) {
-      const errorMsg = data?.error || `Failed to submit permit: ${response.status}`;
+      let errorMsg = data?.error || `Failed to submit permit: ${response.status}`;
+      
+      // Include validation details if available
+      if (data?.details && Array.isArray(data.details)) {
+        const validationErrors = data.details.map((d: any) => 
+          `${d.path?.join('.') || 'field'}: ${d.message}`
+        ).join(', ');
+        errorMsg += ` - ${validationErrors}`;
+      }
+      
+      console.error('[Cemetery API] Error details:', data);
       throw new Error(errorMsg);
     }
 
