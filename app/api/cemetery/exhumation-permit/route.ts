@@ -24,9 +24,17 @@ export async function POST(request: NextRequest) {
     const formData = await request.formData()
     
     // Extract text fields
+    const deceasedDateOfBirthStr = formData.get("deceasedDateOfBirth") as string
+    const deceasedGenderStr = formData.get("deceasedGender") as string
+    
     const data = {
-      deceasedName: formData.get("deceasedName") as string,
+      deceasedFirstName: formData.get("deceasedFirstName") as string,
+      deceasedMiddleName: (formData.get("deceasedMiddleName") as string) || "",
+      deceasedLastName: formData.get("deceasedLastName") as string,
+      deceasedSuffix: (formData.get("deceasedSuffix") as string) || "",
+      deceasedDateOfBirth: (deceasedDateOfBirthStr && deceasedDateOfBirthStr.trim()) ? new Date(deceasedDateOfBirthStr) : null,
       deceasedDateOfDeath: new Date(formData.get("deceasedDateOfDeath") as string),
+      deceasedGender: (deceasedGenderStr && deceasedGenderStr.trim()) ? deceasedGenderStr : "",
       deceasedDateOfBurial: new Date(formData.get("deceasedDateOfBurial") as string),
       deceasedPlaceOfBurial: formData.get("deceasedPlaceOfBurial") as string,
       requesterName: formData.get("requesterName") as string,
@@ -38,7 +46,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate required fields
-    if (!data.deceasedName || !data.requesterName) {
+    if (!data.deceasedFirstName || !data.deceasedLastName || !data.requesterName) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
     }
 
@@ -80,10 +88,20 @@ export async function POST(request: NextRequest) {
     )
 
     // Create exhumation permit record
+    // Note: Using old schema fields until migration is applied
     const permit = await prisma.exhumationPermit.create({
       data: {
         userId: user.id,
-        ...data,
+        deceasedName: `${data.deceasedFirstName} ${data.deceasedMiddleName} ${data.deceasedLastName}`.trim(),
+        deceasedDateOfDeath: data.deceasedDateOfDeath,
+        deceasedDateOfBurial: data.deceasedDateOfBurial,
+        deceasedPlaceOfBurial: data.deceasedPlaceOfBurial,
+        requesterName: data.requesterName,
+        requesterRelation: data.requesterRelation,
+        requesterContactNumber: data.requesterContactNumber,
+        requesterAddress: data.requesterAddress,
+        reasonForExhumation: data.reasonForExhumation,
+        permitFee: data.permitFee,
         exhumationLetter: filePaths.exhumationLetter,
         deathCertificate: filePaths.deathCertificate,
         validId: filePaths.validId,
@@ -98,7 +116,8 @@ export async function POST(request: NextRequest) {
       entityType: "ExhumationPermit",
       entityId: permit.id,
       details: {
-        deceasedName: data.deceasedName,
+        deceasedFirstName: data.deceasedFirstName,
+        deceasedLastName: data.deceasedLastName,
         requesterName: data.requesterName,
         permitFee: data.permitFee
       }

@@ -52,9 +52,17 @@ export async function POST(request: NextRequest) {
     const formData = await request.formData()
     
     // Extract text fields
+    const deceasedDateOfBirthStr = formData.get("deceasedDateOfBirth") as string
+    const deceasedGenderStr = formData.get("deceasedGender") as string
+    
     const data = {
-      deceasedName: formData.get("deceasedName") as string,
+      deceasedFirstName: formData.get("deceasedFirstName") as string,
+      deceasedMiddleName: (formData.get("deceasedMiddleName") as string) || "",
+      deceasedLastName: formData.get("deceasedLastName") as string,
+      deceasedSuffix: (formData.get("deceasedSuffix") as string) || "",
+      deceasedDateOfBirth: (deceasedDateOfBirthStr && deceasedDateOfBirthStr.trim()) ? new Date(deceasedDateOfBirthStr) : null,
       deceasedDateOfDeath: new Date(formData.get("deceasedDateOfDeath") as string),
+      deceasedGender: (deceasedGenderStr && deceasedGenderStr.trim()) ? deceasedGenderStr : "",
       requesterName: formData.get("requesterName") as string,
       requesterRelation: formData.get("requesterRelation") as string,
       requesterContactNumber: formData.get("requesterContactNumber") as string,
@@ -64,7 +72,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate required fields
-    if (!data.deceasedName || !data.requesterName) {
+    if (!data.deceasedFirstName || !data.deceasedLastName || !data.requesterName) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
     }
 
@@ -116,11 +124,22 @@ export async function POST(request: NextRequest) {
     )
 
     // Create cremation permit
+    // Note: Using old schema fields until migration is applied
     const permit = await prisma.cremationPermit.create({
       data: {
         userId: user.id,
-        ...data,
-        ...filePaths,
+        deceasedName: `${data.deceasedFirstName} ${data.deceasedMiddleName} ${data.deceasedLastName}`.trim(),
+        deceasedDateOfDeath: data.deceasedDateOfDeath,
+        requesterName: data.requesterName,
+        requesterRelation: data.requesterRelation,
+        requesterContactNumber: data.requesterContactNumber,
+        requesterAddress: data.requesterAddress,
+        funeralHomeName: data.funeralHomeName,
+        funeralHomeContact: data.funeralHomeContact,
+        deathCertificate: filePaths.deathCertificate,
+        cremationForm: filePaths.cremationForm,
+        transferPermit: filePaths.transferPermit || null,
+        validId: filePaths.validId,
         status: "PENDING_VERIFICATION",
         permitFee: 100.00,
       }
@@ -133,7 +152,8 @@ export async function POST(request: NextRequest) {
       entityType: "CremationPermit",
       entityId: permit.id,
       details: {
-        deceasedName: data.deceasedName,
+        deceasedFirstName: data.deceasedFirstName,
+        deceasedLastName: data.deceasedLastName,
         requesterName: data.requesterName,
       }
     })

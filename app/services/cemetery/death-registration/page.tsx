@@ -50,7 +50,8 @@ export default function DeathRegistrationForm() {
 
   const sanitizeName = (name: string) => {
     // Only allow letters, spaces, hyphens, and common name characters
-    return name.replace(/[^a-zA-Z\s\-\.ñÑ]/g, '').trim()
+    // Don't trim so users can type spaces naturally
+    return name.replace(/[^a-zA-Z\s\-\.ñÑ]/g, '')
   }
 
   const validatePhoneNumber = (phone: string) => {
@@ -120,12 +121,17 @@ export default function DeathRegistrationForm() {
 
     // Validate names (no special characters except ñ, -, .)
     const nameFields = [
-      { value: formData.deceasedFirstName, label: "First Name" },
-      { value: formData.deceasedLastName, label: "Last Name" },
-      { value: formData.informantName, label: "Informant Name" }
+      { value: formData.deceasedFirstName.trim(), label: "First Name" },
+      { value: formData.deceasedLastName.trim(), label: "Last Name" },
+      { value: formData.informantName.trim(), label: "Informant Name" }
     ]
     
     for (const field of nameFields) {
+      if (!field.value) {
+        setError(`${field.label} cannot be empty`)
+        setLoading(false)
+        return
+      }
       if (field.value && !/^[a-zA-Z\s\-\.ñÑ]+$/.test(field.value)) {
         setError(`${field.label} contains invalid characters`)
         setLoading(false)
@@ -147,7 +153,11 @@ export default function DeathRegistrationForm() {
         const fileKeys = ['municipalForm103', 'informantValidId', 'swabTestResult', 
                          'affidavitOfDelayed', 'burialCertificate', 'funeralCertificate', 'psaNoRecord']
         if (!fileKeys.includes(key)) {
-          submitData.append(key, formData[key as keyof typeof formData] as string)
+          const value = formData[key as keyof typeof formData] as string
+          // Trim name fields to remove leading/trailing spaces
+          const nameKeys = ['deceasedFirstName', 'deceasedMiddleName', 'deceasedLastName', 'informantName']
+          const finalValue = nameKeys.includes(key) && typeof value === 'string' ? value.trim() : value
+          submitData.append(key, finalValue)
         }
       })
       
@@ -279,7 +289,6 @@ export default function DeathRegistrationForm() {
                   required
                   value={formData.deceasedFirstName}
                   onChange={(e) => handleNameChange('deceasedFirstName', e.target.value)}
-                  pattern="[a-zA-Z\s\-\.ñÑ]+"
                   title="Only letters, spaces, hyphens, and periods are allowed"
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900 placeholder:text-gray-400"
                 />
@@ -293,7 +302,6 @@ export default function DeathRegistrationForm() {
                   type="text"
                   value={formData.deceasedMiddleName}
                   onChange={(e) => handleNameChange('deceasedMiddleName', e.target.value)}
-                  pattern="[a-zA-Z\s\-\.ñÑ]*"
                   title="Only letters, spaces, hyphens, and periods are allowed"
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900 placeholder:text-gray-400"
                 />
@@ -308,7 +316,6 @@ export default function DeathRegistrationForm() {
                   required
                   value={formData.deceasedLastName}
                   onChange={(e) => handleNameChange('deceasedLastName', e.target.value)}
-                  pattern="[a-zA-Z\s\-\.ñÑ]+"
                   title="Only letters, spaces, hyphens, and periods are allowed"
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900 placeholder:text-gray-400"
                 />
@@ -405,7 +412,7 @@ export default function DeathRegistrationForm() {
                   required
                   value={formData.informantName}
                   onChange={(e) => handleNameChange('informantName', e.target.value)}
-                  pattern="[a-zA-Z\s\-\.ñÑ]+"
+
                   title="Only letters, spaces, hyphens, and periods are allowed"
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900 placeholder:text-gray-400"
                 />

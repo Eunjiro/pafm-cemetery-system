@@ -77,10 +77,51 @@ export default async function ExhumationPermitReview({ params }: { params: Promi
                 </span>
               </div>
               <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm text-gray-600">Full Name</p>
-                  <p className="font-semibold text-gray-900">{permit.deceasedName}</p>
-                </div>
+                {permit.deceasedFirstName || permit.deceasedLastName ? (
+                  <>
+                    <div>
+                      <p className="text-sm text-gray-600">First Name</p>
+                      <p className="font-semibold text-gray-900">{permit.deceasedFirstName || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Middle Name</p>
+                      <p className="font-semibold text-gray-900">{permit.deceasedMiddleName || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Last Name</p>
+                      <p className="font-semibold text-gray-900">{permit.deceasedLastName || 'N/A'}</p>
+                    </div>
+                    {permit.deceasedSuffix && (
+                      <div>
+                        <p className="text-sm text-gray-600">Suffix</p>
+                        <p className="font-semibold text-gray-900">{permit.deceasedSuffix}</p>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div className="col-span-2">
+                    <p className="text-sm text-gray-600">Full Name</p>
+                    <p className="font-semibold text-gray-900">{permit.deceasedName}</p>
+                  </div>
+                )}
+                {permit.deceasedDateOfBirth && (
+                  <div>
+                    <p className="text-sm text-gray-600">Date of Birth</p>
+                    <p className="font-semibold text-gray-900">
+                      {new Date(permit.deceasedDateOfBirth).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                      })}
+                    </p>
+                  </div>
+                )}
+                {permit.deceasedGender && (
+                  <div>
+                    <p className="text-sm text-gray-600">Gender</p>
+                    <p className="font-semibold text-gray-900">{permit.deceasedGender}</p>
+                  </div>
+                )}
                 <div>
                   <p className="text-sm text-gray-600">Place of Burial</p>
                   <p className="font-semibold text-gray-900">{permit.deceasedPlaceOfBurial}</p>

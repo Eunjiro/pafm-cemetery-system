@@ -7,7 +7,7 @@ async function main() {
   console.log('Starting seed...')
 
   // Hash password for all accounts
-  const hashedPassword = await bcrypt.hash('password123', 10)
+  const hashedPassword = await bcrypt.hash('Password123!', 10)
 
   // Create Admin account
   const admin = await prisma.user.upsert({
@@ -50,15 +50,15 @@ async function main() {
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
   console.log('Admin Account:')
   console.log(`  Email: ${admin.email}`)
-  console.log(`  Password: password123`)
+  console.log(`  Password: Password123!`)
   console.log(`  Role: ${admin.role}`)
   console.log('\nEmployee Account:')
   console.log(`  Email: ${employee.email}`)
-  console.log(`  Password: password123`)
+  console.log(`  Password: Password123!`)
   console.log(`  Role: ${employee.role}`)
   console.log('\nUser Account:')
   console.log(`  Email: ${user.email}`)
-  console.log(`  Password: password123`)
+  console.log(`  Password: Password123!`)
   console.log(`  Role: ${user.role}`)
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
 }

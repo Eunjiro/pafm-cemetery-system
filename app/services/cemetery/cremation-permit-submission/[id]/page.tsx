@@ -8,7 +8,13 @@ import OnlinePaymentButton from "@/app/components/OnlinePaymentButton"
 
 interface CremationPermit {
   id: string
-  deceasedName: string
+  deceasedName: string | null
+  deceasedFirstName?: string | null
+  deceasedMiddleName?: string | null
+  deceasedLastName?: string | null
+  deceasedSuffix?: string | null
+  deceasedDateOfBirth?: string | null
+  deceasedGender?: string | null
   deceasedDateOfDeath: string
   requesterName: string
   requesterRelation: string
@@ -293,16 +299,53 @@ export default function CremationPermitSubmission() {
             <div className="border-b md:border-b-0 md:border-r border-gray-200 pb-6 md:pb-0 md:pr-6">
               <h3 className="font-medium text-gray-900 mb-3">Deceased Information</h3>
               <dl className="space-y-2">
-                <div>
-                  <dt className="text-sm text-gray-600">Name</dt>
-                  <dd className="text-sm font-medium text-gray-900">{permit.deceasedName}</dd>
-                </div>
+                {permit.deceasedFirstName || permit.deceasedLastName ? (
+                  <>
+                    <div>
+                      <dt className="text-sm text-gray-600">First Name</dt>
+                      <dd className="text-sm font-medium text-gray-900">{permit.deceasedFirstName || 'N/A'}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-sm text-gray-600">Middle Name</dt>
+                      <dd className="text-sm font-medium text-gray-900">{permit.deceasedMiddleName || 'N/A'}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-sm text-gray-600">Last Name</dt>
+                      <dd className="text-sm font-medium text-gray-900">{permit.deceasedLastName || 'N/A'}</dd>
+                    </div>
+                    {permit.deceasedSuffix && (
+                      <div>
+                        <dt className="text-sm text-gray-600">Suffix</dt>
+                        <dd className="text-sm font-medium text-gray-900">{permit.deceasedSuffix}</dd>
+                      </div>
+                    )}
+                    {permit.deceasedDateOfBirth && (
+                      <div>
+                        <dt className="text-sm text-gray-600">Date of Birth</dt>
+                        <dd className="text-sm font-medium text-gray-900">
+                          {new Date(permit.deceasedDateOfBirth).toLocaleDateString()}
+                        </dd>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div>
+                    <dt className="text-sm text-gray-600">Name</dt>
+                    <dd className="text-sm font-medium text-gray-900">{permit.deceasedName}</dd>
+                  </div>
+                )}
                 <div>
                   <dt className="text-sm text-gray-600">Date of Death</dt>
                   <dd className="text-sm font-medium text-gray-900">
                     {new Date(permit.deceasedDateOfDeath).toLocaleDateString()}
                   </dd>
                 </div>
+                {permit.deceasedGender && (
+                  <div>
+                    <dt className="text-sm text-gray-600">Gender</dt>
+                    <dd className="text-sm font-medium text-gray-900">{permit.deceasedGender}</dd>
+                  </div>
+                )}
               </dl>
             </div>
 
@@ -377,7 +420,7 @@ export default function CremationPermitSubmission() {
               entityType="CremationPermit"
               entityId={permit.id}
               amount={permit.permitFee}
-              deceasedName={permit.deceasedName}
+              deceasedName={permit.deceasedName || undefined}
               onPaymentInitiated={(transactionId) => {
                 console.log('Payment initiated:', transactionId);
               }}

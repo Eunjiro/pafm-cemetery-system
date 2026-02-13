@@ -34,7 +34,8 @@ export default function DeathCertificateRequestPage() {
   }
 
   const sanitizeName = (name: string) => {
-    return name.replace(/[^a-zA-Z\s\-\.ñÑ]/g, '').trim()
+    // Don't trim so users can type spaces naturally
+    return name.replace(/[^a-zA-Z\s\-\.ñÑ]/g, '')
   }
 
   const validatePhoneNumber = (phone: string) => {
@@ -84,8 +85,14 @@ export default function DeathCertificateRequestPage() {
       const nameFields = ['deceasedFullName', 'requesterName']
       for (const field of nameFields) {
         const value = formData[field as keyof typeof formData] as string
-        if (!/^[a-zA-Z\s\-\.ñÑ]+$/.test(value)) {
-          setError(`${field.replace('Name', ' Name').replace('Full', '')} contains invalid characters`)
+        const trimmedValue = value.trim()
+        if (!trimmedValue) {
+          setError(`${field.replace('Name', ' Name').replace('Full', '').replace('deceased', 'Deceased').replace('requester', 'Requester')} cannot be empty`)
+          setIsLoading(false)
+          return
+        }
+        if (!/^[a-zA-Z\s\-\.\u00f1\u00d1]+$/.test(trimmedValue)) {
+          setError(`${field.replace('Name', ' Name').replace('Full', '').replace('deceased', 'Deceased').replace('requester', 'Requester')} contains invalid characters`)
           setIsLoading(false)
           return
         }
@@ -159,9 +166,9 @@ export default function DeathCertificateRequestPage() {
                 <input
                   type="text"
                   required
+                  name="deceasedFullName"
                   value={formData.deceasedFullName}
                   onChange={handleNameChange}
-                  pattern="[a-zA-Z\s\-\.\u00f1\u00d1]+"
                   title="Only letters, spaces, hyphens, periods, and ñ allowed"
                   maxLength={100}
                   className="w-full border border-gray-300 rounded-lg px-4 py-2 text-gray-900"
@@ -211,9 +218,9 @@ export default function DeathCertificateRequestPage() {
                   <input
                     type="text"
                     required
+                    name="requesterName"
                     value={formData.requesterName}
                     onChange={handleNameChange}
-                    pattern="[a-zA-Z\s\-\.\u00f1\u00d1]+"
                     title="Only letters, spaces, hyphens, periods, and ñ allowed"
                     maxLength={100}
                     className="w-full border border-gray-300 rounded-lg px-4 py-2 text-gray-900"

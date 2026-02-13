@@ -81,28 +81,24 @@ export async function POST(req: NextRequest) {
       })
     }
 
-    // Ensure a CemeteryPermitSubmission exists so staff can send to PAFM-C
+    // Create CemeteryPermitSubmission so staff can send to PAFM-C after payment is confirmed
     try {
       const existing = await prisma.cemeteryPermitSubmission.findUnique({
         where: { permitId: permitId }
       })
 
       if (!existing) {
-        const nameParts = (updatedPermit.deceasedName || "").trim().split(/\s+/)
-        const deceasedFirstName = nameParts[0] || ""
-        const deceasedLastName = nameParts.length > 1 ? nameParts[nameParts.length - 1] : ""
-        const deceasedMiddleName = nameParts.length > 2 ? nameParts.slice(1, -1).join(" ") : null
-
         await prisma.cemeteryPermitSubmission.create({
           data: {
             permitId: updatedPermit.id,
             permitType: 'BURIAL',
-            deceasedFirstName,
-            deceasedMiddleName,
-            deceasedLastName,
-            deceasedSuffix: null,
+            deceasedFirstName: (updatedPermit as any).deceasedFirstName || '',
+            deceasedMiddleName: (updatedPermit as any).deceasedMiddleName || null,
+            deceasedLastName: (updatedPermit as any).deceasedLastName || '',
+            deceasedSuffix: (updatedPermit as any).deceasedSuffix || null,
+            dateOfBirth: (updatedPermit as any).deceasedDateOfBirth || null,
             dateOfDeath: updatedPermit.deceasedDateOfDeath,
-            gender: null,
+            gender: (updatedPermit as any).deceasedGender || null,
             applicantName: updatedPermit.requesterName || `${updatedPermit.userId}`,
             applicantEmail: null,
             applicantPhone: updatedPermit.requesterContactNumber || null,
@@ -111,10 +107,15 @@ export async function POST(req: NextRequest) {
             permitApprovedAt: updatedPermit.processedAt || new Date(),
             permitDocumentUrl: updatedPermit.burialForm || updatedPermit.deathCertificate || null,
             metadata: {
-              createdFrom: 'confirm-payment'
+              createdFrom: 'confirm-payment',
+              burialType: (updatedPermit as any).burialType || null,
+              nicheType: (updatedPermit as any).nicheType || null
             }
           }
         })
+        console.log('Created CemeteryPermitSubmission for paid burial permit:', permitId)
+      } else {
+        console.log('CemeteryPermitSubmission already exists for burial permit:', permitId)
       }
     } catch (err) {
       console.error('Failed to create CemeteryPermitSubmission on payment confirmation:', err)

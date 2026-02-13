@@ -31,6 +31,29 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Submission is not pending" }, { status: 400 })
     }
 
+    // Check if the related permit has been paid (status should be REGISTERED_FOR_PICKUP)
+    let permitStatus: string | null = null
+    
+    if (submission.permitType === 'BURIAL') {
+      const burialPermit = await prisma.burialPermit.findUnique({
+        where: { id: submission.permitId },
+        select: { status: true }
+      })
+      permitStatus = burialPermit?.status || null
+    } else if (submission.permitType === 'EXHUMATION') {
+      const exhumationPermit = await prisma.exhumationPermit.findUnique({
+        where: { id: submission.permitId },
+        select: { status: true }
+      })
+      permitStatus = exhumationPermit?.status || null
+    }
+
+    if (permitStatus !== 'REGISTERED_FOR_PICKUP') {
+      return NextResponse.json({ 
+        error: "Permit must be paid and ready for pickup before it can be sent to the cemetery. Current status: " + (permitStatus || 'unknown')
+      }, { status: 400 })
+    }
+
     // Map permit type to cemetery system format
     const permitTypeMap: Record<string, string> = {
       'BURIAL': 'burial',
@@ -58,25 +81,25 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Build payload for PAFM-C - strict format per cemetery system requirements
+    // Build payload for PAFM-C - flat structure with deceased_ prefix
     const payload: any = {
       permit_id: submission.permitId,
       permit_type: mappedPermitType,
-      deceased_first_name: submission.deceasedFirstName,
+      deceased_first_name: submission.deceasedFirstName || 'Unknown',
       deceased_last_name: submission.deceasedLastName || 'Unknown',
       date_of_death: submission.dateOfDeath.toISOString().split('T')[0],
       applicant_name: submission.applicantName,
       permit_approved_at: submission.permitApprovedAt.toISOString(),
     }
 
-    // Only include optional fields if they have values AND are valid
+    // Add optional deceased fields with deceased_ prefix
     if (hasValue(submission.deceasedMiddleName)) payload.deceased_middle_name = submission.deceasedMiddleName
     if (hasValue(submission.deceasedSuffix)) payload.deceased_suffix = submission.deceasedSuffix
     if (submission.dateOfBirth) payload.date_of_birth = submission.dateOfBirth.toISOString().split('T')[0]
     if (hasValue(submission.gender)) payload.gender = submission.gender
-    
-    // Validate email before including
-    if (hasValue(submission.applicantEmail) && isValidEmail(submission.applicantEmail)) {
+
+    // Only include optional applicant/permit fields if they have values AND are valid
+    if (hasValue(submission.applicantEmail) && isValidEmail(submission.applicantEmail as string)) {
       payload.applicant_email = submission.applicantEmail
     }
     
@@ -85,11 +108,11 @@ export async function POST(req: NextRequest) {
     
     // Only include IDs if they are valid numbers
     if (hasValue(submission.preferredCemeteryId)) {
-      const cemeteryId = parseInt(submission.preferredCemeteryId)
+      const cemeteryId = parseInt(submission.preferredCemeteryId as string)
       if (!isNaN(cemeteryId)) payload.preferred_cemetery_id = cemeteryId
     }
     if (hasValue(submission.preferredPlotId)) {
-      const plotId = parseInt(submission.preferredPlotId)
+      const plotId = parseInt(submission.preferredPlotId as string)
       if (!isNaN(plotId)) payload.preferred_plot_id = plotId
     }
     
@@ -98,7 +121,7 @@ export async function POST(req: NextRequest) {
     if (submission.permitExpiryDate) payload.permit_expiry_date = submission.permitExpiryDate.toISOString().split('T')[0]
     
     // Validate URL before including
-    if (hasValue(submission.permitDocumentUrl) && isValidUrl(submission.permitDocumentUrl)) {
+    if (hasValue(submission.permitDocumentUrl) && isValidUrl(submission.permitDocumentUrl as string)) {
       payload.permit_document_url = submission.permitDocumentUrl
     }
     

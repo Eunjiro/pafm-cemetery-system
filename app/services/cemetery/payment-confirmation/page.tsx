@@ -42,7 +42,13 @@ interface BurialPermitSubmission extends BaseSubmission {
 
 interface ExhumationPermitSubmission extends BaseSubmission {
   type: 'exhumation_permit'
-  deceasedName: string
+  deceasedName: string | null
+  deceasedFirstName?: string | null
+  deceasedMiddleName?: string | null
+  deceasedLastName?: string | null
+  deceasedSuffix?: string | null
+  deceasedDateOfBirth?: string | null
+  deceasedGender?: string | null
   requesterName: string
   requesterContactNumber: string
   permitFee: number
@@ -51,7 +57,13 @@ interface ExhumationPermitSubmission extends BaseSubmission {
 
 interface CremationPermitSubmission extends BaseSubmission {
   type: 'cremation_permit'
-  deceasedName: string
+  deceasedName: string | null
+  deceasedFirstName?: string | null
+  deceasedMiddleName?: string | null
+  deceasedLastName?: string | null
+  deceasedSuffix?: string | null
+  deceasedDateOfBirth?: string | null
+  deceasedGender?: string | null
   requesterName: string
   requesterContactNumber: string
   permitFee: number
@@ -349,7 +361,9 @@ export default function PaymentConfirmation() {
                           <span className="px-2 py-1 bg-purple-100 text-purple-700 text-xs font-medium rounded">Burial Permit</span>
                           <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs font-medium rounded">{burialSub.burialType}</span>
                         </div>
-                        <h3 className="text-xl font-bold text-gray-900">{burialSub.deceasedName}</h3>
+                        <h3 className="text-xl font-bold text-gray-900">
+                          {burialSub.deceasedName}
+                        </h3>
                         <p className="text-sm text-gray-600 mt-1">Submitted by: {submission.user.name}</p>
                         <p className="text-sm text-gray-600">Contact: {burialSub.requesterContactNumber}</p>
                         <p className="text-sm text-gray-600">📍 {burialSub.cemeteryLocation}</p>
@@ -421,7 +435,12 @@ export default function PaymentConfirmation() {
                         <div className="flex items-center gap-2 mb-2">
                           <span className="px-2 py-1 bg-orange-100 text-orange-700 text-xs font-medium rounded">Exhumation Permit</span>
                         </div>
-                        <h3 className="text-xl font-bold text-gray-900">{exhumationSub.deceasedName}</h3>
+                        <h3 className="text-xl font-bold text-gray-900">
+                          {exhumationSub.deceasedFirstName || exhumationSub.deceasedLastName 
+                            ? `${exhumationSub.deceasedFirstName || ''} ${exhumationSub.deceasedMiddleName || ''} ${exhumationSub.deceasedLastName || ''}`.trim()
+                            : exhumationSub.deceasedName
+                          }
+                        </h3>
                         <p className="text-sm text-gray-600 mt-1">Submitted by: {submission.user.name}</p>
                         <p className="text-sm text-gray-600">Contact: {exhumationSub.requesterContactNumber}</p>
                         <p className="text-sm text-gray-600">📍 {exhumationSub.deceasedPlaceOfBurial}</p>
@@ -493,7 +512,12 @@ export default function PaymentConfirmation() {
                         <div className="flex items-center gap-2 mb-2">
                           <span className="px-2 py-1 bg-red-100 text-red-700 text-xs font-medium rounded">Cremation Permit</span>
                         </div>
-                        <h3 className="text-xl font-bold text-gray-900">{cremationSub.deceasedName}</h3>
+                        <h3 className="text-xl font-bold text-gray-900">
+                          {cremationSub.deceasedFirstName || cremationSub.deceasedLastName 
+                            ? `${cremationSub.deceasedFirstName || ''} ${cremationSub.deceasedMiddleName || ''} ${cremationSub.deceasedLastName || ''}`.trim()
+                            : cremationSub.deceasedName
+                          }
+                        </h3>
                         <p className="text-sm text-gray-600 mt-1">Submitted by: {cremationSub.requesterName}</p>
                         <p className="text-sm text-gray-600">Contact: {cremationSub.requesterContactNumber}</p>
                         {cremationSub.funeralHomeName && (

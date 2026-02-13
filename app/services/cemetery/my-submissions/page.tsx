@@ -31,7 +31,13 @@ interface BurialPermit {
 
 interface ExhumationPermit {
   id: string
-  deceasedName: string
+  deceasedName: string | null
+  deceasedFirstName?: string | null
+  deceasedMiddleName?: string | null
+  deceasedLastName?: string | null
+  deceasedSuffix?: string | null
+  deceasedDateOfBirth?: string | null
+  deceasedGender?: string | null
   deceasedPlaceOfBurial: string
   status: string
   createdAt: string
@@ -42,7 +48,13 @@ interface ExhumationPermit {
 
 interface CremationPermit {
   id: string
-  deceasedName: string
+  deceasedName: string | null
+  deceasedFirstName?: string | null
+  deceasedMiddleName?: string | null
+  deceasedLastName?: string | null
+  deceasedSuffix?: string | null
+  deceasedDateOfBirth?: string | null
+  deceasedGender?: string | null
   requesterName: string
   status: string
   createdAt: string
@@ -459,7 +471,12 @@ function MySubmissionsContent() {
                             {statusInfo.label}
                           </span>
                         </div>
-                        <h3 className="text-lg font-bold text-gray-900 mb-2">{permit.deceasedName}</h3>
+                        <h3 className="text-lg font-bold text-gray-900 mb-2">
+                          {permit.deceasedFirstName || permit.deceasedLastName 
+                            ? `${permit.deceasedFirstName || ''} ${permit.deceasedMiddleName || ''} ${permit.deceasedLastName || ''}`.trim()
+                            : permit.deceasedName
+                          }
+                        </h3>
                         <p className="text-sm text-gray-600 mb-1">📍 Burial Site: {permit.deceasedPlaceOfBurial}</p>
                         <p className="text-sm text-gray-600 mb-1">
                           Permit ID: <span className="font-mono">{permit.id}</span>
@@ -506,7 +523,12 @@ function MySubmissionsContent() {
                             {statusInfo.label}
                           </span>
                         </div>
-                        <h3 className="text-lg font-bold text-gray-900 mb-2">{permit.deceasedName}</h3>
+                        <h3 className="text-lg font-bold text-gray-900 mb-2">
+                          {permit.deceasedFirstName || permit.deceasedLastName 
+                            ? `${permit.deceasedFirstName || ''} ${permit.deceasedMiddleName || ''} ${permit.deceasedLastName || ''}`.trim()
+                            : permit.deceasedName
+                          }
+                        </h3>
                         <p className="text-sm text-gray-600 mb-1">👤 Requester: {permit.requesterName}</p>
                         <p className="text-sm text-gray-600 mb-1">
                           Permit ID: <span className="font-mono">{permit.id}</span>

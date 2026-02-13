@@ -8,7 +8,13 @@ import OnlinePaymentButton from "@/app/components/OnlinePaymentButton"
 
 interface ExhumationPermit {
   id: string
-  deceasedName: string
+  deceasedName: string | null
+  deceasedFirstName?: string | null
+  deceasedMiddleName?: string | null
+  deceasedLastName?: string | null
+  deceasedSuffix?: string | null
+  deceasedDateOfBirth?: string | null
+  deceasedGender?: string | null
   deceasedDateOfDeath: string
   deceasedDateOfBurial: string
   deceasedPlaceOfBurial: string
@@ -300,7 +306,11 @@ export default function ExhumationPermitSubmission() {
               entityType="ExhumationPermit"
               entityId={permit.id}
               amount={permit.permitFee}
-              deceasedName={permit.deceasedName}
+              deceasedName={
+                (permit.deceasedFirstName || permit.deceasedLastName 
+                  ? `${permit.deceasedFirstName || ''} ${permit.deceasedMiddleName || ''} ${permit.deceasedLastName || ''}`.trim()
+                  : permit.deceasedName) || undefined
+              }
               onPaymentInitiated={(transactionId) => {
                 console.log('Payment initiated:', transactionId);
               }}
@@ -422,14 +432,49 @@ export default function ExhumationPermitSubmission() {
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
           <h3 className="text-lg font-bold text-gray-900 mb-4 border-b pb-2">Deceased Information</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <p className="text-sm text-gray-600">Full Name</p>
-              <p className="font-medium text-gray-900">{permit.deceasedName}</p>
-            </div>
+            {permit.deceasedFirstName || permit.deceasedLastName ? (
+              <>
+                <div>
+                  <p className="text-sm text-gray-600">First Name</p>
+                  <p className="font-medium text-gray-900">{permit.deceasedFirstName || 'N/A'}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Middle Name</p>
+                  <p className="font-medium text-gray-900">{permit.deceasedMiddleName || 'N/A'}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Last Name</p>
+                  <p className="font-medium text-gray-900">{permit.deceasedLastName || 'N/A'}</p>
+                </div>
+                {permit.deceasedSuffix && (
+                  <div>
+                    <p className="text-sm text-gray-600">Suffix</p>
+                    <p className="font-medium text-gray-900">{permit.deceasedSuffix}</p>
+                  </div>
+                )}
+                {permit.deceasedDateOfBirth && (
+                  <div>
+                    <p className="text-sm text-gray-600">Date of Birth</p>
+                    <p className="font-medium text-gray-900">{new Date(permit.deceasedDateOfBirth).toLocaleDateString()}</p>
+                  </div>
+                )}
+              </>
+            ) : (
+              <div>
+                <p className="text-sm text-gray-600">Full Name</p>
+                <p className="font-medium text-gray-900">{permit.deceasedName}</p>
+              </div>
+            )}
             <div>
               <p className="text-sm text-gray-600">Date of Death</p>
               <p className="font-medium text-gray-900">{new Date(permit.deceasedDateOfDeath).toLocaleDateString()}</p>
             </div>
+            {permit.deceasedGender && (
+              <div>
+                <p className="text-sm text-gray-600">Gender</p>
+                <p className="font-medium text-gray-900">{permit.deceasedGender}</p>
+              </div>
+            )}
             <div>
               <p className="text-sm text-gray-600">Date of Burial</p>
               <p className="font-medium text-gray-900">{new Date(permit.deceasedDateOfBurial).toLocaleDateString()}</p>

@@ -81,6 +81,58 @@ export async function POST(req: NextRequest) {
       })
     }
 
+    // Create CemeteryPermitSubmission so staff can send to PAFM-C after payment is confirmed
+    try {
+      const updatedPermit = await prisma.exhumationPermit.findUnique({
+        where: { id: permitId },
+        include: { user: true }
+      })
+
+      if (updatedPermit) {
+        const existing = await prisma.cemeteryPermitSubmission.findUnique({
+          where: { permitId: permitId }
+        })
+
+        if (!existing) {
+          await prisma.cemeteryPermitSubmission.create({
+            data: {
+              permitId: updatedPermit.id,
+              permitType: 'EXHUMATION',
+              deceasedFirstName: updatedPermit.deceasedFirstName || '',
+              deceasedMiddleName: updatedPermit.deceasedMiddleName || null,
+              deceasedLastName: updatedPermit.deceasedLastName || '',
+              deceasedSuffix: updatedPermit.deceasedSuffix || null,
+              dateOfBirth: updatedPermit.deceasedDateOfBirth || null,
+              dateOfDeath: updatedPermit.deceasedDateOfDeath,
+              gender: updatedPermit.deceasedGender || null,
+              applicantName: updatedPermit.requesterName,
+              applicantEmail: updatedPermit.user?.email || null,
+              applicantPhone: updatedPermit.requesterContactNumber || null,
+              relationshipToDeceased: updatedPermit.requesterRelation || null,
+              preferredCemeteryId: null,
+              preferredPlotId: null,
+              preferredSection: null,
+              preferredLayer: null,
+              permitApprovedAt: updatedPermit.processedAt || new Date(),
+              permitExpiryDate: null,
+              permitDocumentUrl: updatedPermit.deathCertificate || updatedPermit.exhumationLetter || null,
+              metadata: {
+                createdFrom: 'confirm-payment',
+                reasonForExhumation: updatedPermit.reasonForExhumation,
+                placeOfBurial: updatedPermit.deceasedPlaceOfBurial,
+                dateOfBurial: updatedPermit.deceasedDateOfBurial.toISOString()
+              }
+            }
+          })
+          console.log('Created CemeteryPermitSubmission for paid exhumation permit:', permitId)
+        } else {
+          console.log('CemeteryPermitSubmission already exists for exhumation permit:', permitId)
+        }
+      }
+    } catch (err) {
+      console.error('Failed to create CemeteryPermitSubmission on exhumation payment confirmation:', err)
+    }
+
     return NextResponse.json({ 
       success: true,
       message: "Payment confirmed successfully. Exhumation permit is ready for pickup." 

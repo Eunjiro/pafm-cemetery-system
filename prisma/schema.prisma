@@ -182,8 +182,14 @@ model BurialPermit {
   user                  User                  @relation(fields: [userId], references: [id])
   
   // Deceased Information
-  deceasedName          String
+  deceasedName          String? // Deprecated: use separate name fields
+  deceasedFirstName     String?
+  deceasedMiddleName    String?
+  deceasedLastName      String?
+  deceasedSuffix        String?
+  deceasedDateOfBirth   DateTime?
   deceasedDateOfDeath   DateTime
+  deceasedGender        String?
   
   // Requester Information
   requesterName         String
@@ -323,9 +329,15 @@ model ExhumationPermit {
   userId                String
   user                  User                      @relation(fields: [userId], references: [id])
   
-  // Deceased Information
-  deceasedName          String
+  // Deceased Information (use separate name fields)
+  deceasedName          String?                   // Deprecated: use separate name fields
+  deceasedFirstName     String?
+  deceasedMiddleName    String?
+  deceasedLastName      String?
+  deceasedSuffix        String?
+  deceasedDateOfBirth   DateTime?
   deceasedDateOfDeath   DateTime
+  deceasedGender        String?
   deceasedDateOfBurial  DateTime
   deceasedPlaceOfBurial String
   
@@ -376,9 +388,15 @@ model CremationPermit {
   userId                String
   user                  User                      @relation(fields: [userId], references: [id])
   
-  // Deceased Information
-  deceasedName          String
+  // Deceased Information (use separate name fields)
+  deceasedName          String?                   // Deprecated: use separate name fields
+  deceasedFirstName     String?
+  deceasedMiddleName    String?
+  deceasedLastName      String?
+  deceasedSuffix        String?
+  deceasedDateOfBirth   DateTime?
   deceasedDateOfDeath   DateTime
+  deceasedGender        String?
   
   // Requester Information
   requesterName         String

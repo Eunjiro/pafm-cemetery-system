@@ -39,9 +39,17 @@ export async function POST(request: NextRequest) {
     }
     
     // Extract text fields
+    const deceasedDateOfBirthStr = formData.get("deceasedDateOfBirth") as string
+    const deceasedGenderStr = formData.get("deceasedGender") as string
+    
     const data = {
-      deceasedName: formData.get("deceasedName") as string,
+      deceasedFirstName: formData.get("deceasedFirstName") as string,
+      deceasedMiddleName: (formData.get("deceasedMiddleName") as string) || "",
+      deceasedLastName: formData.get("deceasedLastName") as string,
+      deceasedSuffix: (formData.get("deceasedSuffix") as string) || "",
+      deceasedDateOfBirth: (deceasedDateOfBirthStr && deceasedDateOfBirthStr.trim()) ? new Date(deceasedDateOfBirthStr) : null,
       deceasedDateOfDeath: new Date(formData.get("deceasedDateOfDeath") as string),
+      deceasedGender: (deceasedGenderStr && deceasedGenderStr.trim()) ? deceasedGenderStr : "",
       requesterName: formData.get("requesterName") as string,
       requesterRelation: formData.get("requesterRelation") as string,
       requesterContactNumber: formData.get("requesterContactNumber") as string,
@@ -56,7 +64,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate required fields
-    if (!data.deceasedName || !data.requesterName) {
+    if (!data.deceasedFirstName || !data.deceasedLastName || !data.requesterName) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
     }
 
@@ -118,10 +126,23 @@ export async function POST(request: NextRequest) {
     }
 
     // Create burial permit record
+    // Note: Using old schema fields until migration is applied
     const permit = await prisma.burialPermit.create({
       data: {
         userId: user.id,
-        ...data,
+        deceasedName: `${data.deceasedFirstName} ${data.deceasedMiddleName} ${data.deceasedLastName}`.trim(),
+        deceasedDateOfDeath: data.deceasedDateOfDeath,
+        requesterName: data.requesterName,
+        requesterRelation: data.requesterRelation,
+        requesterContactNumber: data.requesterContactNumber,
+        requesterAddress: data.requesterAddress,
+        burialType: data.burialType,
+        nicheType: data.nicheType,
+        cemeteryLocation: data.cemeteryLocation,
+        isFromAnotherLGU: data.isFromAnotherLGU,
+        permitFee: data.permitFee,
+        nicheFee: data.nicheFee,
+        totalFee: data.totalFee,
         deathCertificate: filePaths.deathCertificate,
         burialForm: filePaths.burialForm,
         validId: filePaths.validId,
@@ -140,7 +161,8 @@ export async function POST(request: NextRequest) {
       details: {
         burialType: data.burialType,
         totalFee: data.totalFee,
-        deceasedName: data.deceasedName,
+        deceasedFirstName: data.deceasedFirstName,
+        deceasedLastName: data.deceasedLastName,
         requesterName: data.requesterName
       }
     })

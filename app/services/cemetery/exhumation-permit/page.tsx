@@ -13,10 +13,15 @@ export default function ExhumationPermitRequest() {
   const [showGuide, setShowGuide] = useState(false)
 
   const [formData, setFormData] = useState({
-    deceasedName: "",
+    deceasedFirstName: "",
+    deceasedMiddleName: "",
+    deceasedLastName: "",
+    deceasedSuffix: "",
+    deceasedDateOfBirth: "",
     deceasedDateOfDeath: "",
     deceasedDateOfBurial: "",
     deceasedPlaceOfBurial: "",
+    deceasedGender: "",
     requesterName: "",
     requesterRelation: "",
     requesterContactNumber: "",
@@ -33,7 +38,8 @@ export default function ExhumationPermitRequest() {
   }
 
   const sanitizeName = (name: string) => {
-    return name.replace(/[^a-zA-Z\s\-\.ñÑ]/g, '').trim()
+    // Don't trim so users can type spaces naturally
+    return name.replace(/[^a-zA-Z\s\-\.ñÑ]/g, '')
   }
 
   const validatePhoneNumber = (phone: string) => {
@@ -60,7 +66,7 @@ export default function ExhumationPermitRequest() {
     setFormData({ ...formData, [e.target.name]: sanitized })
   }
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
   }
 
@@ -88,11 +94,17 @@ export default function ExhumationPermitRequest() {
       }
 
       // Validate name fields
-      const nameFields = ['deceasedName', 'requesterName']
-      for (const field of nameFields) {
+      const requiredNames = ['deceasedFirstName', 'deceasedLastName', 'requesterName']
+      for (const field of requiredNames) {
         const value = formData[field as keyof typeof formData] as string
-        if (!/^[a-zA-Z\s\-\.ñÑ]+$/.test(value)) {
-          setError(`${field.replace('Name', ' Name')} contains invalid characters`)
+        const trimmedValue = value.trim()
+        if (!trimmedValue) {
+          setError(`${field.replace('Name', ' Name').replace('deceased', 'Deceased ').replace('requester', 'Requester').replace('First', 'First').replace('Last', 'Last')} is required`)
+          setLoading(false)
+          return
+        }
+        if (!/^[a-zA-Z\s\-\.\u00f1\u00d1]+$/.test(trimmedValue)) {
+          setError(`${field.replace('Name', ' Name').replace('deceased', 'Deceased ').replace('requester', 'Requester')} contains invalid characters`)
           setLoading(false)
           return
         }
@@ -107,12 +119,17 @@ export default function ExhumationPermitRequest() {
 
       const data = new FormData()
       
-      // Text fields
-      data.append("deceasedName", formData.deceasedName)
+      // Send individual name fields
+      data.append("deceasedFirstName", formData.deceasedFirstName.trim())
+      data.append("deceasedMiddleName", formData.deceasedMiddleName.trim())
+      data.append("deceasedLastName", formData.deceasedLastName.trim())
+      data.append("deceasedSuffix", formData.deceasedSuffix.trim())
+      data.append("deceasedDateOfBirth", formData.deceasedDateOfBirth)
       data.append("deceasedDateOfDeath", formData.deceasedDateOfDeath)
       data.append("deceasedDateOfBurial", formData.deceasedDateOfBurial)
       data.append("deceasedPlaceOfBurial", formData.deceasedPlaceOfBurial)
-      data.append("requesterName", formData.requesterName)
+      data.append("deceasedGender", formData.deceasedGender)
+      data.append("requesterName", formData.requesterName.trim())
       data.append("requesterRelation", formData.requesterRelation)
       data.append("requesterContactNumber", formData.requesterContactNumber)
       data.append("requesterAddress", formData.requesterAddress)
@@ -199,20 +216,104 @@ export default function ExhumationPermitRequest() {
             <h2 className="text-xl font-bold text-gray-900 mb-4">Deceased Information</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Full Name of Deceased <span className="text-red-600">*</span>
-                </label>
-                <input
-                  type="text"
-                  name="deceasedName"
-                  value={formData.deceasedName}
-                  onChange={handleNameChange}
-                  pattern="[a-zA-Z\s\-\.\u00f1\u00d1]+"
-                  title="Only letters, spaces, hyphens, periods, and ñ allowed"
-                  maxLength={100}
-                  required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent placeholder:text-gray-400"
-                />
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      First Name <span className="text-red-600">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="deceasedFirstName"
+                      value={formData.deceasedFirstName}
+                      onChange={handleNameChange}
+                      title="Only letters, spaces, hyphens, periods, and ñ allowed"
+                      maxLength={50}
+                      required
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent placeholder:text-gray-400"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Middle Name
+                    </label>
+                    <input
+                      type="text"
+                      name="deceasedMiddleName"
+                      value={formData.deceasedMiddleName}
+                      onChange={handleNameChange}
+                      title="Only letters, spaces, hyphens, periods, and ñ allowed"
+                      maxLength={50}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent placeholder:text-gray-400"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Last Name <span className="text-red-600">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="deceasedLastName"
+                      value={formData.deceasedLastName}
+                      onChange={handleNameChange}
+                      title="Only letters, spaces, hyphens, periods, and ñ allowed"
+                      maxLength={50}
+                      required
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent placeholder:text-gray-400"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="md:col-span-2">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Suffix
+                    </label>
+                    <input
+                      type="text"
+                      name="deceasedSuffix"
+                      value={formData.deceasedSuffix}
+                      onChange={handleNameChange}
+                      placeholder="Jr., Sr., III"
+                      title="Only letters, spaces, hyphens, periods, and ñ allowed"
+                      maxLength={20}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent placeholder:text-gray-400"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Date of Birth
+                    </label>
+                    <input
+                      type="date"
+                      name="deceasedDateOfBirth"
+                      value={formData.deceasedDateOfBirth}
+                      onChange={handleChange}
+                      max={new Date().toISOString().split('T')[0]}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent placeholder:text-gray-400"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Gender
+                    </label>
+                    <select
+                      name="deceasedGender"
+                      value={formData.deceasedGender}
+                      onChange={handleChange}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent placeholder:text-gray-400"
+                    >
+                      <option value="">Select...</option>
+                      <option value="male">Male</option>
+                      <option value="female">Female</option>
+                    </select>
+                  </div>
+                </div>
               </div>
 
               <div>
@@ -276,7 +377,6 @@ export default function ExhumationPermitRequest() {
                   name="requesterName"
                   value={formData.requesterName}
                   onChange={handleNameChange}
-                  pattern="[a-zA-Z\s\-\.\u00f1\u00d1]+"
                   title="Only letters, spaces, hyphens, periods, and ñ allowed"
                   maxLength={100}
                   required

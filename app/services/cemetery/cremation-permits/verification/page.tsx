@@ -127,7 +127,12 @@ export default async function CremationPermitVerificationDashboard() {
                         {new Date(permit.createdAt).toLocaleDateString()}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">{permit.deceasedName}</div>
+                        <div className="text-sm font-medium text-gray-900">
+                          {permit.deceasedFirstName || permit.deceasedLastName 
+                            ? `${permit.deceasedFirstName || ''} ${permit.deceasedMiddleName || ''} ${permit.deceasedLastName || ''}`.trim()
+                            : permit.deceasedName
+                          }
+                        </div>
                         <div className="text-sm text-gray-500">
                           Died: {new Date(permit.deceasedDateOfDeath).toLocaleDateString()}
                         </div>

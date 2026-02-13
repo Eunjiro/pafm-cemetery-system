@@ -144,7 +144,12 @@ export default async function ExhumationPermitVerification() {
                         </span>
                       </div>
                       
-                      <h3 className="text-xl font-bold text-gray-900 mb-2">{permit.deceasedName}</h3>
+                      <h3 className="text-xl font-bold text-gray-900 mb-2">
+                        {permit.deceasedFirstName || permit.deceasedLastName 
+                          ? `${permit.deceasedFirstName || ''} ${permit.deceasedMiddleName || ''} ${permit.deceasedLastName || ''}`.trim()
+                          : permit.deceasedName
+                        }
+                      </h3>
                       
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
                         <div>
@@ -220,7 +225,12 @@ export default async function ExhumationPermitVerification() {
                         </span>
                       </div>
                       
-                      <h3 className="text-xl font-bold text-gray-900 mb-2">{permit.deceasedName}</h3>
+                      <h3 className="text-xl font-bold text-gray-900 mb-2">
+                        {permit.deceasedFirstName || permit.deceasedLastName 
+                          ? `${permit.deceasedFirstName || ''} ${permit.deceasedMiddleName || ''} ${permit.deceasedLastName || ''}`.trim()
+                          : permit.deceasedName
+                        }
+                      </h3>
                       
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
                         <div>
