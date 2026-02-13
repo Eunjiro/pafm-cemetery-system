@@ -2,6 +2,19 @@ import { NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 
+// Actual enum values from Prisma schema
+const AMENITY_COMPLETED = ["APPROVED", "COMPLETED", "CHECKED_IN"]
+const AMENITY_PENDING = ["PENDING_REVIEW", "AWAITING_PAYMENT", "PAYMENT_VERIFIED"]
+const AMENITY_REJECTED = ["REJECTED", "CANCELLED", "NO_SHOW"]
+
+const VENUE_COMPLETED = ["APPROVED", "COMPLETED", "IN_USE"]
+const VENUE_PENDING = ["PENDING_REVIEW", "AWAITING_REQUIREMENTS", "AWAITING_PAYMENT", "PAYMENT_VERIFIED"]
+const VENUE_REJECTED = ["REJECTED", "CANCELLED", "NO_SHOW"]
+
+const MAINT_COMPLETED = ["COMPLETED", "CLOSED"]
+const MAINT_PENDING = ["LOGGED", "PENDING_INSPECTION", "UNDER_INSPECTION", "APPROVED_FOR_REPAIR", "PENDING_MATERIALS", "PENDING_CONTRACTOR", "IN_PROGRESS"]
+const MAINT_REJECTED = ["REJECTED"]
+
 export async function GET() {
   const session = await auth()
   if (!session || !["ADMIN", "EMPLOYEE"].includes(session.user.role)) {
@@ -15,18 +28,18 @@ export async function GET() {
   ])
 
   const allRecords = [
-    ...amenityReservations.map((r) => ({ ...r, type: "Amenity Reservation", location: "" })),
-    ...venueBookings.map((r) => ({ ...r, type: "Venue Booking", location: "" })),
-    ...maintenanceRequests.map((r) => ({ ...r, type: "Maintenance Request", location: r.parkLocation || "" })),
+    ...amenityReservations.map((r) => ({ ...r, type: "Amenity Reservation", location: "", _completed: AMENITY_COMPLETED, _pending: AMENITY_PENDING, _rejected: AMENITY_REJECTED })),
+    ...venueBookings.map((r) => ({ ...r, type: "Venue Booking", location: "", _completed: VENUE_COMPLETED, _pending: VENUE_PENDING, _rejected: VENUE_REJECTED })),
+    ...maintenanceRequests.map((r) => ({ ...r, type: "Maintenance Request", location: r.parkLocation || "", _completed: MAINT_COMPLETED, _pending: MAINT_PENDING, _rejected: MAINT_REJECTED })),
   ]
 
   const total = allRecords.length
-  const completed = allRecords.filter((r) => ["APPROVED", "COMPLETED", "CONFIRMED"].includes(r.status)).length
-  const pending = allRecords.filter((r) => ["PENDING", "UNDER_REVIEW", "PROCESSING"].includes(r.status)).length
-  const rejected = allRecords.filter((r) => ["REJECTED", "DENIED", "CANCELLED"].includes(r.status)).length
+  const completed = allRecords.filter((r) => r._completed.includes(r.status)).length
+  const pending = allRecords.filter((r) => r._pending.includes(r.status)).length
+  const rejected = allRecords.filter((r) => r._rejected.includes(r.status)).length
 
   // Avg processing days
-  const completedRecords = allRecords.filter((r) => ["APPROVED", "COMPLETED", "CONFIRMED"].includes(r.status))
+  const completedRecords = allRecords.filter((r) => r._completed.includes(r.status))
   let avgProcessingDays = 0
   if (completedRecords.length > 0) {
     const totalDays = completedRecords.reduce((sum, r) => {
@@ -79,9 +92,7 @@ export async function GET() {
     .slice(0, 10)
 
   // Bottlenecks
-  const pendingRecords = allRecords.filter((r) =>
-    ["PENDING", "UNDER_REVIEW", "PROCESSING", "PAYMENT_PENDING"].includes(r.status)
-  )
+  const pendingRecords = allRecords.filter((r) => r._pending.includes(r.status))
   const bottleneckMap: Record<string, { count: number; totalDays: number }> = {}
   pendingRecords.forEach((r) => {
     const label = r.status.replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase())

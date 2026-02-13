@@ -2,6 +2,11 @@ import { NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 
+// Actual enum values from Prisma schema
+const FACILITY_COMPLETED = ["APPROVED", "COMPLETED", "COMPLETED_WITH_DAMAGES", "IN_USE"]
+const FACILITY_PENDING = ["PENDING_REVIEW", "AWAITING_REQUIREMENTS", "AWAITING_PAYMENT", "PAYMENT_VERIFIED"]
+const FACILITY_REJECTED = ["REJECTED", "CANCELLED", "NO_SHOW"]
+
 export async function GET() {
   const session = await auth()
   if (!session || !["ADMIN", "EMPLOYEE"].includes(session.user.role)) {
@@ -16,12 +21,12 @@ export async function GET() {
   })
 
   const total = reservations.length
-  const completed = reservations.filter((r) => ["APPROVED", "COMPLETED", "CONFIRMED"].includes(r.status)).length
-  const pending = reservations.filter((r) => ["PENDING", "UNDER_REVIEW", "PROCESSING"].includes(r.status)).length
-  const rejected = reservations.filter((r) => ["REJECTED", "DENIED", "CANCELLED"].includes(r.status)).length
+  const completed = reservations.filter((r) => FACILITY_COMPLETED.includes(r.status)).length
+  const pending = reservations.filter((r) => FACILITY_PENDING.includes(r.status)).length
+  const rejected = reservations.filter((r) => FACILITY_REJECTED.includes(r.status)).length
 
   // Avg processing days
-  const completedRecords = reservations.filter((r) => ["APPROVED", "COMPLETED", "CONFIRMED"].includes(r.status))
+  const completedRecords = reservations.filter((r) => FACILITY_COMPLETED.includes(r.status))
   let avgProcessingDays = 0
   if (completedRecords.length > 0) {
     const totalDays = completedRecords.reduce((sum, r) => {
@@ -66,9 +71,7 @@ export async function GET() {
   }
 
   // Bottlenecks
-  const pendingRecords = reservations.filter((r) =>
-    ["PENDING", "UNDER_REVIEW", "PROCESSING", "PAYMENT_PENDING"].includes(r.status)
-  )
+  const pendingRecords = reservations.filter((r) => FACILITY_PENDING.includes(r.status))
   const bottleneckMap: Record<string, { count: number; totalDays: number }> = {}
   pendingRecords.forEach((r) => {
     const label = r.status.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())

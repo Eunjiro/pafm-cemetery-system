@@ -2,6 +2,11 @@ import { NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 
+// Actual enum values from Prisma schema
+const CEMETERY_COMPLETED = ["COMPLETED", "REGISTERED_FOR_PICKUP"]
+const CEMETERY_PENDING = ["PENDING_VERIFICATION", "RETURNED_FOR_CORRECTION", "APPROVED_FOR_PAYMENT", "PAYMENT_SUBMITTED", "PAYMENT_CONFIRMED"]
+const CEMETERY_REJECTED = ["REJECTED"]
+
 export async function GET() {
   const session = await auth()
   if (!session || !["ADMIN", "EMPLOYEE"].includes(session.user.role)) {
@@ -26,12 +31,12 @@ export async function GET() {
   ]
 
   const total = allRecords.length
-  const completed = allRecords.filter((r) => ["APPROVED", "COMPLETED", "RELEASED"].includes(r.status)).length
-  const pending = allRecords.filter((r) => ["PENDING", "UNDER_REVIEW", "PROCESSING"].includes(r.status)).length
-  const rejected = allRecords.filter((r) => ["REJECTED", "DENIED"].includes(r.status)).length
+  const completed = allRecords.filter((r) => CEMETERY_COMPLETED.includes(r.status)).length
+  const pending = allRecords.filter((r) => CEMETERY_PENDING.includes(r.status)).length
+  const rejected = allRecords.filter((r) => CEMETERY_REJECTED.includes(r.status)).length
 
   // Avg processing days (only completed records)
-  const completedRecords = allRecords.filter((r) => ["APPROVED", "COMPLETED", "RELEASED"].includes(r.status))
+  const completedRecords = allRecords.filter((r) => CEMETERY_COMPLETED.includes(r.status))
   let avgProcessingDays = 0
   if (completedRecords.length > 0) {
     const totalDays = completedRecords.reduce((sum, r) => {
@@ -75,9 +80,7 @@ export async function GET() {
   }
 
   // Bottlenecks - pending items with long wait times
-  const pendingRecords = allRecords.filter((r) =>
-    ["PENDING", "UNDER_REVIEW", "PROCESSING", "PAYMENT_PENDING"].includes(r.status)
-  )
+  const pendingRecords = allRecords.filter((r) => CEMETERY_PENDING.includes(r.status))
   const bottleneckMap: Record<string, { count: number; totalDays: number }> = {}
   pendingRecords.forEach((r) => {
     const label = r.status.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())

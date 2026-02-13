@@ -2,6 +2,19 @@ import { NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 
+// Actual enum values from Prisma schema
+const DRAINAGE_COMPLETED = ["COMPLETED"]
+const DRAINAGE_PENDING = ["PENDING_REVIEW", "INSPECTION_SCHEDULED", "INSPECTION_COMPLETED", "FOR_APPROVAL", "APPROVED_WITH_MATERIALS", "PENDING_NO_MATERIALS", "FOR_IMPLEMENTATION", "IN_PROGRESS"]
+const DRAINAGE_REJECTED = ["REJECTED"]
+
+const CONNECTION_COMPLETED = ["ACTIVE_CONNECTION"]
+const CONNECTION_PENDING = ["PENDING_EVALUATION", "RETURNED_INCOMPLETE", "FOR_INSPECTION", "FOR_BILLING", "AWAITING_PAYMENT", "PAYMENT_CONFIRMED", "INSTALLATION_SCHEDULED", "INSTALLATION_ONGOING"]
+const CONNECTION_REJECTED = ["REJECTED"]
+
+const ISSUE_COMPLETED = ["RESOLVED", "CLOSED"]
+const ISSUE_PENDING = ["PENDING_INSPECTION", "FOR_SITE_INSPECTION", "FOR_REPAIR", "FOR_SCHEDULING", "AWAITING_PARTS", "REPAIR_IN_PROGRESS"]
+const ISSUE_REJECTED = ["CANNOT_REPAIR", "RESOLVED_DUPLICATE"]
+
 export async function GET() {
   const session = await auth()
   if (!session || !["ADMIN", "EMPLOYEE"].includes(session.user.role)) {
@@ -15,18 +28,18 @@ export async function GET() {
   ])
 
   const allRecords = [
-    ...drainageRequests.map((r) => ({ ...r, type: "Drainage Request" })),
-    ...waterConnections.map((r) => ({ ...r, type: "Water Connection" })),
-    ...waterIssues.map((r) => ({ ...r, barangay: r.address || "Unknown", type: "Water Issue" })),
+    ...drainageRequests.map((r) => ({ ...r, type: "Drainage Request", _completed: DRAINAGE_COMPLETED, _pending: DRAINAGE_PENDING, _rejected: DRAINAGE_REJECTED })),
+    ...waterConnections.map((r) => ({ ...r, type: "Water Connection", _completed: CONNECTION_COMPLETED, _pending: CONNECTION_PENDING, _rejected: CONNECTION_REJECTED })),
+    ...waterIssues.map((r) => ({ ...r, barangay: r.address || "Unknown", type: "Water Issue", _completed: ISSUE_COMPLETED, _pending: ISSUE_PENDING, _rejected: ISSUE_REJECTED })),
   ]
 
   const total = allRecords.length
-  const completed = allRecords.filter((r) => ["APPROVED", "COMPLETED", "RESOLVED"].includes(r.status)).length
-  const pending = allRecords.filter((r) => ["PENDING", "UNDER_REVIEW", "PROCESSING", "IN_PROGRESS"].includes(r.status)).length
-  const rejected = allRecords.filter((r) => ["REJECTED", "DENIED"].includes(r.status)).length
+  const completed = allRecords.filter((r) => r._completed.includes(r.status)).length
+  const pending = allRecords.filter((r) => r._pending.includes(r.status)).length
+  const rejected = allRecords.filter((r) => r._rejected.includes(r.status)).length
 
   // Avg processing days
-  const completedRecords = allRecords.filter((r) => ["APPROVED", "COMPLETED", "RESOLVED"].includes(r.status))
+  const completedRecords = allRecords.filter((r) => r._completed.includes(r.status))
   let avgProcessingDays = 0
   if (completedRecords.length > 0) {
     const totalDays = completedRecords.reduce((sum, r) => {
@@ -79,9 +92,7 @@ export async function GET() {
     .slice(0, 10)
 
   // Bottlenecks
-  const pendingRecords = allRecords.filter((r) =>
-    ["PENDING", "UNDER_REVIEW", "PROCESSING", "IN_PROGRESS", "SCHEDULED"].includes(r.status)
-  )
+  const pendingRecords = allRecords.filter((r) => r._pending.includes(r.status))
   const bottleneckMap: Record<string, { count: number; totalDays: number }> = {}
   pendingRecords.forEach((r) => {
     const label = r.status.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())

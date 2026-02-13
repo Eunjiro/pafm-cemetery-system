@@ -241,6 +241,18 @@ export default function InventoryLayout({ children }: { children: React.ReactNod
                         <p className="font-medium text-sm">View Reports</p>
                       </div>
                     </Link>
+                    <Link href="/admin/inventory/analytics" className="block">
+                      <div className={`flex items-center px-3 py-3 rounded-lg transition-all ${
+                        isSection("/admin/inventory/analytics")
+                          ? "bg-purple-50 border-l-4 border-purple-500 text-purple-700"
+                          : "text-gray-700 hover:bg-gray-50 border-l-4 border-transparent"
+                      }`}>
+                        <svg className="w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        <p className="font-medium text-sm">Analytics</p>
+                      </div>
+                    </Link>
                   </nav>
                 </div>
               </div>
