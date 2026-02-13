@@ -3,6 +3,7 @@ import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { createAuditLog, AUDIT_ACTIONS } from "@/lib/auditLog"
 import { saveFile } from "@/lib/upload"
+import { notifyBurialPermitUpdate } from "@/lib/notifications"
 
 export const dynamic = 'force-dynamic'
 
@@ -171,6 +172,14 @@ export async function POST(request: NextRequest) {
         requesterName: data.requesterName
       }
     })
+
+    // Notify user
+    await notifyBurialPermitUpdate(
+      user.id,
+      `${data.deceasedFirstName} ${data.deceasedLastName}`,
+      "PENDING_VERIFICATION",
+      permit.id
+    )
 
     return NextResponse.json({
       message: "Burial permit request submitted successfully",

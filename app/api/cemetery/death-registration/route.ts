@@ -4,6 +4,7 @@ import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { createAuditLog, AUDIT_ACTIONS } from "@/lib/auditLog"
 import { saveFile } from "@/lib/upload"
+import { notifyDeathRegistrationUpdate } from "@/lib/notifications"
 
 export async function POST(request: NextRequest) {
   try {
@@ -166,6 +167,14 @@ export async function POST(request: NextRequest) {
         informantName: data.informantName
       }
     })
+
+    // Notify user
+    await notifyDeathRegistrationUpdate(
+      user.id,
+      `${data.deceasedFirstName} ${data.deceasedLastName}`,
+      "PENDING_VERIFICATION",
+      registration.id
+    )
 
     return NextResponse.json({
       message: "Death registration submitted successfully",

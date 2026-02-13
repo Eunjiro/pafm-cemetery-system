@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma"
 import { NextResponse } from "next/server"
 import { saveFile } from "@/lib/upload"
 import { createAuditLog, AUDIT_ACTIONS } from "@/lib/auditLog"
+import { notifyDeathCertificateUpdate } from "@/lib/notifications"
 
 export async function POST(request: Request) {
   try {
@@ -99,6 +100,14 @@ export async function POST(request: Request) {
         requesterRelation
       }
     })
+
+    // Notify user
+    await notifyDeathCertificateUpdate(
+      session.user.id!,
+      deceasedFullName,
+      "PENDING_VERIFICATION",
+      certificateRequest.id
+    )
 
     return NextResponse.json({
       success: true,

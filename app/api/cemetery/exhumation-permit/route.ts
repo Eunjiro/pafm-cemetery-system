@@ -4,6 +4,7 @@ import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { createAuditLog, AUDIT_ACTIONS } from "@/lib/auditLog"
 import { saveFile } from "@/lib/upload"
+import { notifyExhumationPermitUpdate } from "@/lib/notifications"
 
 export async function POST(request: NextRequest) {
   try {
@@ -127,6 +128,14 @@ export async function POST(request: NextRequest) {
         permitFee: data.permitFee
       }
     })
+
+    // Notify user
+    await notifyExhumationPermitUpdate(
+      user.id,
+      `${data.deceasedFirstName} ${data.deceasedLastName}`,
+      "PENDING_VERIFICATION",
+      permit.id
+    )
 
     return NextResponse.json({
       message: "Exhumation permit request submitted successfully",

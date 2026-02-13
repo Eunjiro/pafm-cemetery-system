@@ -277,7 +277,7 @@ export default function MaintenanceVerificationDetailPage() {
                 </div>
                 <div className="col-span-2">
                   <p className="text-xs text-gray-500">Submitted By</p>
-                  <p className="font-semibold">{request.user.name} ({request.user.email})</p>
+                  <p className="font-semibold">{request.reporterName ? `${request.user.name} (${request.user.email})` : "Anonymous Reporter"}</p>
                 </div>
                 <div>
                   <p className="text-xs text-gray-500">Date Submitted</p>

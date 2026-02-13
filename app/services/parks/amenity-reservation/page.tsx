@@ -4,6 +4,7 @@ import { useSession } from "next-auth/react"
 import { redirect, useRouter } from "next/navigation"
 import Link from "next/link"
 import { useState } from "react"
+import { useDialog } from "@/app/components/DialogProvider"
 
 const AMENITY_TYPES = [
   { value: "SWIMMING_ENTRANCE", label: "Swimming Pool Entrance" },
@@ -27,7 +28,7 @@ export default function AmenityReservationPage() {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState("")
-  const [success, setSuccess] = useState(false)
+  const dialog = useDialog()
 
   if (status === "loading") {
     return <div className="min-h-screen flex items-center justify-center"><div className="text-xl">Loading...</div></div>
@@ -52,29 +53,13 @@ export default function AmenityReservationPage() {
         throw new Error(data.error || "Failed to submit reservation")
       }
 
-      setSuccess(true)
-      setTimeout(() => router.push("/services/parks/my-submissions"), 2000)
+      await dialog.success("Your amenity reservation has been submitted successfully and is pending review.", "Reservation Submitted!")
+      router.push("/services/parks/my-submissions")
     } catch (err: any) {
       setError(err.message)
     } finally {
       setIsSubmitting(false)
     }
-  }
-
-  if (success) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="bg-white rounded-xl shadow-lg p-8 max-w-md text-center">
-          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-            </svg>
-          </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Reservation Submitted!</h2>
-          <p className="text-gray-600">Your amenity reservation has been submitted and is pending review. Redirecting...</p>
-        </div>
-      </div>
-    )
   }
 
   return (
