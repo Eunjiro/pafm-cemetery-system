@@ -16,72 +16,63 @@ export default async function ParksAdminDashboard() {
     redirect("/services/parks")
   }
 
-  // Amenity reservation stats
-  const amenityStats = await prisma.amenityReservation.groupBy({ by: ['status'], _count: true })
+  // Fetch all statistics in parallel
+  const [amenityStats, venueStats, maintenanceStats, amenityByType, venueByType, maintenanceByCategory, maintenanceByLocation, recentLogs] = await Promise.all([
+    prisma.amenityReservation.groupBy({ by: ['status'], _count: true }),
+    prisma.venueBooking.groupBy({ by: ['status'], _count: true }),
+    prisma.parkMaintenanceRequest.groupBy({ by: ['status'], _count: true }),
+    prisma.amenityReservation.groupBy({
+      by: ['amenityType'],
+      _count: true,
+      orderBy: { _count: { amenityType: 'desc' } }
+    }),
+    prisma.venueBooking.groupBy({
+      by: ['venueType'],
+      _count: true,
+      orderBy: { _count: { venueType: 'desc' } }
+    }),
+    prisma.parkMaintenanceRequest.groupBy({
+      by: ['issueCategory'],
+      _count: true,
+      orderBy: { _count: { issueCategory: 'desc' } }
+    }),
+    prisma.parkMaintenanceRequest.groupBy({
+      by: ['parkLocation'],
+      _count: true,
+      orderBy: { _count: { parkLocation: 'desc' } },
+      take: 10
+    }),
+    prisma.auditLog.findMany({
+      where: {
+        OR: [
+          { entityType: { in: ['AmenityReservation', 'VenueBooking', 'ParkMaintenanceRequest'] } },
+          { action: { startsWith: 'AMENITY_RESERVATION' } },
+          { action: { startsWith: 'VENUE_BOOKING' } },
+          { action: { startsWith: 'PARK_MAINTENANCE' } },
+        ]
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 15,
+      include: { user: { select: { name: true } } }
+    }),
+  ])
+
   const amenityPending = amenityStats.find(s => s.status === 'PENDING_REVIEW')?._count || 0
   const amenityAwaitingPayment = amenityStats.find(s => s.status === 'AWAITING_PAYMENT')?._count || 0
   const amenityApproved = amenityStats.find(s => s.status === 'APPROVED')?._count || 0
   const amenityCompleted = amenityStats.filter(s => ['COMPLETED', 'CHECKED_IN'].includes(s.status)).reduce((a, s) => a + s._count, 0)
   const amenityTotal = amenityStats.reduce((acc, s) => acc + s._count, 0)
 
-  // Venue booking stats
-  const venueStats = await prisma.venueBooking.groupBy({ by: ['status'], _count: true })
   const venuePending = venueStats.find(s => s.status === 'PENDING_REVIEW')?._count || 0
   const venueAwaitingPayment = venueStats.find(s => s.status === 'AWAITING_PAYMENT')?._count || 0
   const venueApproved = venueStats.find(s => s.status === 'APPROVED')?._count || 0
   const venueCompleted = venueStats.filter(s => ['COMPLETED', 'IN_USE'].includes(s.status)).reduce((a, s) => a + s._count, 0)
   const venueTotal = venueStats.reduce((acc, s) => acc + s._count, 0)
 
-  // Maintenance stats
-  const maintenanceStats = await prisma.parkMaintenanceRequest.groupBy({ by: ['status'], _count: true })
   const maintenanceLogged = maintenanceStats.find(s => s.status === 'LOGGED')?._count || 0
   const maintenanceInProgress = maintenanceStats.filter(s => ['UNDER_INSPECTION', 'APPROVED_FOR_REPAIR', 'IN_PROGRESS'].includes(s.status)).reduce((a, s) => a + s._count, 0)
   const maintenanceCompleted = maintenanceStats.filter(s => ['COMPLETED', 'CLOSED'].includes(s.status)).reduce((a, s) => a + s._count, 0)
   const maintenanceTotal = maintenanceStats.reduce((acc, s) => acc + s._count, 0)
-
-  // Amenity by type
-  const amenityByType = await prisma.amenityReservation.groupBy({
-    by: ['amenityType'],
-    _count: true,
-    orderBy: { _count: { amenityType: 'desc' } }
-  })
-
-  // Venue by type
-  const venueByType = await prisma.venueBooking.groupBy({
-    by: ['venueType'],
-    _count: true,
-    orderBy: { _count: { venueType: 'desc' } }
-  })
-
-  // Maintenance by category
-  const maintenanceByCategory = await prisma.parkMaintenanceRequest.groupBy({
-    by: ['issueCategory'],
-    _count: true,
-    orderBy: { _count: { issueCategory: 'desc' } }
-  })
-
-  // Maintenance by location
-  const maintenanceByLocation = await prisma.parkMaintenanceRequest.groupBy({
-    by: ['parkLocation'],
-    _count: true,
-    orderBy: { _count: { parkLocation: 'desc' } },
-    take: 10
-  })
-
-  // Recent audit logs
-  const recentLogs = await prisma.auditLog.findMany({
-    where: {
-      OR: [
-        { entityType: { in: ['AmenityReservation', 'VenueBooking', 'ParkMaintenanceRequest'] } },
-        { action: { startsWith: 'AMENITY_RESERVATION' } },
-        { action: { startsWith: 'VENUE_BOOKING' } },
-        { action: { startsWith: 'PARK_MAINTENANCE' } },
-      ]
-    },
-    orderBy: { createdAt: 'desc' },
-    take: 15,
-    include: { user: { select: { name: true } } }
-  })
 
   return (
     <div className="min-h-screen bg-gray-50">

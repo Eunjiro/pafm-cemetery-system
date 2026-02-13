@@ -79,12 +79,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       }
       return true
     },
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger }) {
       if (user) {
         token.id = user.id
         token.role = user.role
         token.rememberMe = (user as any).rememberMe || false
         token.loginAt = Math.floor(Date.now() / 1000)
+        token.lastDbSync = Math.floor(Date.now() / 1000)
       }
 
       // Expire non-remember-me sessions after 24 hours
@@ -95,15 +96,25 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         }
       }
 
-      if (!user && token.email) {
-        // Fetch user from database to get role and profile status
-        const dbUser = await prisma.user.findUnique({
-          where: { email: token.email }
-        })
-        if (dbUser) {
-          token.id = dbUser.id
-          token.role = dbUser.role
-          token.profileComplete = dbUser.profileComplete
+      // Only refresh from DB every 5 minutes (not on every request)
+      const lastSync = (token.lastDbSync as number) || 0
+      const timeSinceSync = Math.floor(Date.now() / 1000) - lastSync
+      const needsRefresh = !user && token.email && (trigger === "update" || timeSinceSync > 300)
+
+      if (needsRefresh) {
+        try {
+          const dbUser = await prisma.user.findUnique({
+            where: { email: token.email as string },
+            select: { id: true, role: true, profileComplete: true }
+          })
+          if (dbUser) {
+            token.id = dbUser.id
+            token.role = dbUser.role
+            token.profileComplete = dbUser.profileComplete
+            token.lastDbSync = Math.floor(Date.now() / 1000)
+          }
+        } catch {
+          // If DB fails, keep existing token values
         }
       }
       return token

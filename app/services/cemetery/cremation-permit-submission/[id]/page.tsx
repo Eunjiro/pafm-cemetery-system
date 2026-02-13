@@ -47,14 +47,14 @@ const statusConfig: Record<string, { label: string; color: string; bgColor: stri
   },
   APPROVED_FOR_PAYMENT: {
     label: "Approved - Awaiting Payment",
-    color: "text-blue-700",
+    color: "text-green-700",
     bgColor: "bg-blue-100",
     icon: "💳"
   },
   PAYMENT_SUBMITTED: {
     label: "Payment Submitted",
-    color: "text-orange-700",
-    bgColor: "bg-orange-100",
+    color: "text-green-700",
+    bgColor: "bg-green-100",
     icon: "📄"
   },
   REGISTERED_FOR_PICKUP: {
@@ -447,7 +447,7 @@ export default function CremationPermitSubmission() {
               <p className="text-sm text-blue-900 mt-2">
                 <strong>Amount:</strong> ₱{permit.permitFee.toFixed(2)}
               </p>
-              <p className="text-xs text-blue-700 mt-3">
+              <p className="text-xs text-green-700 mt-3">
                 Please proceed to the City Treasurer's Office to make the payment, or submit your payment proof below.
               </p>
             </div>
@@ -523,12 +523,12 @@ export default function CremationPermitSubmission() {
         {permit.status === "PAYMENT_SUBMITTED" && (
           <div className="bg-white rounded-lg shadow-md p-6 mb-6">
             <h2 className="text-xl font-semibold text-gray-900 mb-4">Payment Status</h2>
-            <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg">
-              <p className="text-sm text-orange-900">
+            <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+              <p className="text-sm text-green-900">
                 Your payment has been submitted and is currently being verified by our staff.
               </p>
               {permit.submittedOrderNumber && (
-                <p className="text-sm text-orange-900 mt-2">
+                <p className="text-sm text-green-900 mt-2">
                   <strong>Submitted OR Number:</strong> {permit.submittedOrderNumber}
                 </p>
               )}

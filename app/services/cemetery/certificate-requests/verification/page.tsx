@@ -51,7 +51,7 @@ export default async function CertificateRequestsVerificationPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
-          <Link href={dashboardUrl} className="text-orange-600 hover:underline mb-2 inline-block">
+          <Link href={dashboardUrl} className="text-green-600 hover:underline mb-2 inline-block">
             ← Back to Dashboard
           </Link>
           <h1 className="text-3xl font-bold text-gray-900">Death Certificate Request Verification</h1>
@@ -60,44 +60,44 @@ export default async function CertificateRequestsVerificationPage() {
 
         {/* Statistics Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow-md p-6 border-l-4 border-orange-500">
+          <div className="bg-white rounded-lg shadow-md p-6 border-l-4 border-green-500">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Pending Requests</p>
                 <p className="text-3xl font-bold text-gray-900 mt-1">{pendingRequests.length}</p>
               </div>
-              <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
-                <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                 </svg>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-md p-6 border-l-4 border-orange-600">
+          <div className="bg-white rounded-lg shadow-md p-6 border-l-4 border-green-600">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Certificate Fee</p>
                 <p className="text-3xl font-bold text-gray-900 mt-1">₱50</p>
                 <p className="text-xs text-gray-500 mt-1">First copy</p>
               </div>
-              <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
-                <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-md p-6 border-l-4 border-orange-700">
+          <div className="bg-white rounded-lg shadow-md p-6 border-l-4 border-green-700">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Required Documents</p>
                 <p className="text-3xl font-bold text-gray-900 mt-1">1-2</p>
                 <p className="text-xs text-gray-500 mt-1">Valid ID + Auth Letter</p>
               </div>
-              <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
-                <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
               </div>
@@ -106,16 +106,16 @@ export default async function CertificateRequestsVerificationPage() {
         </div>
 
         {/* Verification Instructions */}
-        <div className="bg-orange-50 border-l-4 border-orange-500 p-4 mb-6 rounded">
+        <div className="bg-green-50 border-l-4 border-green-500 p-4 mb-6 rounded">
           <div className="flex">
             <div className="flex-shrink-0">
-              <svg className="h-5 w-5 text-orange-400" viewBox="0 0 20 20" fill="currentColor">
+              <svg className="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
                 <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
               </svg>
             </div>
             <div className="ml-3">
-              <h3 className="text-sm font-medium text-orange-800">Verification Guidelines</h3>
-              <div className="mt-2 text-sm text-orange-700">
+              <h3 className="text-sm font-medium text-green-800">Verification Guidelines</h3>
+              <div className="mt-2 text-sm text-green-700">
                 <ul className="list-disc list-inside space-y-1">
                   <li>Verify deceased information matches official records</li>
                   <li>Check requester's valid ID is clear and readable</li>
@@ -188,7 +188,7 @@ export default async function CertificateRequestsVerificationPage() {
                         <div className="text-sm text-gray-500">{request.requesterRelation}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="px-2 py-1 text-xs font-medium bg-orange-100 text-orange-800 rounded">
+                        <span className="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded">
                           {request.numberOfCopies} {request.numberOfCopies === 1 ? 'copy' : 'copies'}
                         </span>
                       </td>
@@ -197,7 +197,7 @@ export default async function CertificateRequestsVerificationPage() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <Link href={`/services/cemetery/certificate-requests/verification/${request.id}`}>
-                          <button className="text-orange-600 hover:text-orange-900 font-semibold">
+                          <button className="text-green-600 hover:text-green-900 font-semibold">
                             Review →
                           </button>
                         </Link>

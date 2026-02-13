@@ -52,7 +52,7 @@ export default function CemeterySubmissionsTable({ submissions }: { submissions:
       case "rejected":
         return <span className="px-2 py-1 bg-red-100 text-red-800 text-xs font-medium rounded">Rejected</span>
       case "sync_error":
-        return <span className="px-2 py-1 bg-orange-100 text-orange-800 text-xs font-medium rounded">Error</span>
+        return <span className="px-2 py-1 bg-green-100 text-green-800 text-xs font-medium rounded">Error</span>
       default:
         return <span className="px-2 py-1 bg-gray-100 text-gray-800 text-xs font-medium rounded">{status}</span>
     }
@@ -206,7 +206,7 @@ export default function CemeterySubmissionsTable({ submissions }: { submissions:
                         setSelectedSubmission(submission)
                         setShowDetailsModal(true)
                       }}
-                      className="text-blue-600 hover:text-blue-900 mr-3"
+                      className="text-green-600 hover:text-green-900 mr-3"
                     >
                       View
                     </button>

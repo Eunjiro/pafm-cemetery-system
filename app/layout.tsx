@@ -16,6 +16,11 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "PAFM - Public Assets & Facilities Management",
   description: "Comprehensive municipal services management system",
+  icons: {
+    icon: "/pafm-logo.png",
+    shortcut: "/pafm-logo.png",
+    apple: "/pafm-logo.png",
+  },
 };
 
 export default function RootLayout({

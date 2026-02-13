@@ -16,31 +16,32 @@ export default async function ParksEmployeeDashboard() {
     redirect("/services/parks")
   }
 
-  // Fetch amenity reservation statistics
-  const amenityStats = await prisma.amenityReservation.groupBy({
-    by: ['status'],
-    _count: true
-  })
+  // Fetch all statistics in parallel
+  const [amenityStats, venueStats, maintenanceStats] = await Promise.all([
+    prisma.amenityReservation.groupBy({
+      by: ['status'],
+      _count: true
+    }),
+    prisma.venueBooking.groupBy({
+      by: ['status'],
+      _count: true
+    }),
+    prisma.parkMaintenanceRequest.groupBy({
+      by: ['status'],
+      _count: true
+    }),
+  ])
+
   const amenityPending = amenityStats.find(s => s.status === 'PENDING_REVIEW')?._count || 0
   const amenityAwaitingPayment = amenityStats.find(s => s.status === 'AWAITING_PAYMENT')?._count || 0
   const amenityApproved = amenityStats.find(s => s.status === 'APPROVED')?._count || 0
   const amenityTotal = amenityStats.reduce((acc, s) => acc + s._count, 0)
 
-  // Fetch venue booking statistics
-  const venueStats = await prisma.venueBooking.groupBy({
-    by: ['status'],
-    _count: true
-  })
   const venuePending = venueStats.find(s => s.status === 'PENDING_REVIEW')?._count || 0
   const venueAwaitingPayment = venueStats.find(s => s.status === 'AWAITING_PAYMENT')?._count || 0
   const venueApproved = venueStats.find(s => s.status === 'APPROVED')?._count || 0
   const venueTotal = venueStats.reduce((acc, s) => acc + s._count, 0)
 
-  // Fetch maintenance request statistics
-  const maintenanceStats = await prisma.parkMaintenanceRequest.groupBy({
-    by: ['status'],
-    _count: true
-  })
   const maintenanceLogged = maintenanceStats.find(s => s.status === 'LOGGED')?._count || 0
   const maintenanceInProgress = maintenanceStats.filter(s => ['UNDER_INSPECTION', 'APPROVED_FOR_REPAIR', 'IN_PROGRESS'].includes(s.status)).reduce((a, s) => a + s._count, 0)
   const maintenanceTotal = maintenanceStats.reduce((acc, s) => acc + s._count, 0)

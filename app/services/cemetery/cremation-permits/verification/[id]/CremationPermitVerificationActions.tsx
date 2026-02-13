@@ -85,7 +85,7 @@ export default function CremationPermitVerificationActions({ permitId }: Cremati
           <button
             onClick={handleApprove}
             disabled={loading}
-            className="w-full px-4 py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:opacity-50 font-medium transition-colors"
+            className="w-full px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 font-medium transition-colors"
           >
             ✓ Approve & Generate OR
           </button>
@@ -93,14 +93,14 @@ export default function CremationPermitVerificationActions({ permitId }: Cremati
           <button
             onClick={() => setShowRejectModal(true)}
             disabled={loading}
-            className="w-full px-4 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 disabled:opacity-50 font-medium transition-colors"
+            className="w-full px-4 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:opacity-50 font-medium transition-colors"
           >
             ✗ Return for Correction
           </button>
         </div>
 
-        <div className="mt-4 p-3 bg-orange-50 rounded-lg border border-orange-200">
-          <p className="text-xs text-orange-800">
+        <div className="mt-4 p-3 bg-green-50 rounded-lg border border-green-200">
+          <p className="text-xs text-green-800">
             Review all documents carefully before approving. Ensure death certificate, cremation form, and valid ID are complete.
           </p>
         </div>
@@ -124,7 +124,7 @@ export default function CremationPermitVerificationActions({ permitId }: Cremati
               <button
                 onClick={handleReject}
                 disabled={loading}
-                className="flex-1 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:opacity-50 font-medium"
+                className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 font-medium"
               >
                 Confirm Return
               </button>

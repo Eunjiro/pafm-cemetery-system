@@ -88,14 +88,14 @@ export default function CertificateRequestVerificationActions({ requestId }: Cer
           <button
             onClick={handleApprove}
             disabled={isApproving}
-            className="w-full py-3 px-4 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-semibold"
+            className="w-full py-3 px-4 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-semibold"
           >
             {isApproving ? "Approving..." : "✓ Approve Request"}
           </button>
           <button
             onClick={() => setShowRejectModal(true)}
             disabled={isRejecting}
-            className="w-full py-3 px-4 bg-orange-500 text-white rounded-lg hover:bg-orange-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-semibold"
+            className="w-full py-3 px-4 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-semibold"
           >
             ✗ Return for Correction
           </button>
@@ -114,7 +114,7 @@ export default function CertificateRequestVerificationActions({ requestId }: Cer
               value={rejectionRemarks}
               onChange={(e) => setRejectionRemarks(e.target.value)}
               placeholder="Enter your remarks here..."
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 mb-4"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 mb-4"
               rows={4}
             />
             <div className="flex gap-3">
@@ -130,7 +130,7 @@ export default function CertificateRequestVerificationActions({ requestId }: Cer
               <button
                 onClick={handleReject}
                 disabled={isRejecting || !rejectionRemarks.trim()}
-                className="flex-1 py-2 px-4 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-semibold"
+                className="flex-1 py-2 px-4 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-semibold"
               >
                 {isRejecting ? "Submitting..." : "Submit"}
               </button>

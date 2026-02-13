@@ -47,18 +47,18 @@ export default async function CemeteryIntegrationPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-red-600 text-white py-6 shadow-lg">
+      <div className="bg-green-600 text-white py-6 shadow-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
             <div>
-              <Link href={userRole === "ADMIN" ? "/services/cemetery/admin-dashboard" : "/services/cemetery/employee-dashboard"} className="text-sm text-red-100 hover:text-white mb-2 inline-block">
+              <Link href={userRole === "ADMIN" ? "/services/cemetery/admin-dashboard" : "/services/cemetery/employee-dashboard"} className="text-sm text-green-100 hover:text-white mb-2 inline-block">
                 ← Back to {userRole === "ADMIN" ? "Admin" : "Employee"} Dashboard
               </Link>
               <h1 className="text-3xl font-bold">Cemetery Plot Assignment Integration</h1>
-              <p className="text-red-100 mt-1">Send approved burial permits to PAFM-C cemetery mapping system</p>
+              <p className="text-green-100 mt-1">Send approved burial permits to PAFM-C cemetery mapping system</p>
             </div>
             <div className="text-right">
-              <p className="text-sm text-red-100">{userRole === "ADMIN" ? "System Administrator" : "Cemetery Employee"}</p>
+              <p className="text-sm text-green-100">{userRole === "ADMIN" ? "System Administrator" : "Cemetery Employee"}</p>
               <p className="font-semibold">{session.user?.name}</p>
             </div>
           </div>
@@ -81,15 +81,15 @@ export default async function CemeteryIntegrationPage() {
             <p className="text-xs text-yellow-100 mt-2">Not yet sent to cemetery</p>
           </div>
 
-          <div className="bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-lg shadow-md p-6">
+          <div className="bg-gradient-to-br from-green-500 to-green-600 text-white rounded-lg shadow-md p-6">
             <div className="flex items-center justify-between mb-2">
               <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
               </svg>
             </div>
-            <p className="text-sm text-blue-100 mb-1">Submitted</p>
+            <p className="text-sm text-green-100 mb-1">Submitted</p>
             <p className="text-4xl font-bold">{submittedCount}</p>
-            <p className="text-xs text-blue-100 mt-2">Awaiting cemetery response</p>
+            <p className="text-xs text-green-100 mt-2">Awaiting cemetery response</p>
           </div>
 
           <div className="bg-gradient-to-br from-green-500 to-green-600 text-white rounded-lg shadow-md p-6">
@@ -103,15 +103,15 @@ export default async function CemeteryIntegrationPage() {
             <p className="text-xs text-green-100 mt-2">Plot assigned</p>
           </div>
 
-          <div className="bg-gradient-to-br from-red-500 to-red-600 text-white rounded-lg shadow-md p-6">
+          <div className="bg-gradient-to-br from-green-500 to-red-600 text-white rounded-lg shadow-md p-6">
             <div className="flex items-center justify-between mb-2">
               <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
-            <p className="text-sm text-red-100 mb-1">Rejected</p>
+            <p className="text-sm text-green-100 mb-1">Rejected</p>
             <p className="text-4xl font-bold">{rejectedCount}</p>
-            <p className="text-xs text-red-100 mt-2">Not approved</p>
+            <p className="text-xs text-green-100 mt-2">Not approved</p>
           </div>
 
           <div className="bg-gradient-to-br from-gray-700 to-gray-800 text-white rounded-lg shadow-md p-6">

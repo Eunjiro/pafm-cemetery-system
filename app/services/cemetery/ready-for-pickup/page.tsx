@@ -132,18 +132,18 @@ export default function ReadyForPickup() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className={`bg-${headerColor}-600 text-white py-6 shadow-lg`}>
+      <div className={`bg-green-600 text-white py-6 shadow-lg`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
             <div>
-              <Link href={dashboardUrl} className={`text-sm text-${headerColor}-100 hover:text-white mb-2 inline-block`}>
+              <Link href={dashboardUrl} className={`text-sm text-green-100 hover:text-white mb-2 inline-block`}>
                 ← Back to Dashboard
               </Link>
               <h1 className="text-3xl font-bold">Ready for Pickup</h1>
-              <p className={`text-${headerColor}-100 mt-1`}>Mark paid requests as ready for pickup</p>
+              <p className={`text-green-100 mt-1`}>Mark paid requests as ready for pickup</p>
             </div>
             <div className="text-right">
-              <p className={`text-sm text-${headerColor}-100`}>{session?.user?.role === "ADMIN" ? "System Administrator" : "Civil Registry Staff"}</p>
+              <p className={`text-sm text-green-100`}>{session?.user?.role === "ADMIN" ? "System Administrator" : "Civil Registry Staff"}</p>
               <p className="font-semibold">{session?.user?.name}</p>
             </div>
           </div>

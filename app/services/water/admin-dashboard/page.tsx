@@ -16,73 +16,66 @@ export default async function WaterAdminDashboard() {
     redirect("/services/water")
   }
 
-  // Fetch drainage request statistics
-  const drainageStats = await prisma.drainageRequest.groupBy({
-    by: ['status'],
-    _count: true
-  })
+  // Fetch all statistics in parallel
+  const [drainageStats, connectionStats, issueStats, drainageByBarangay, connectionByBarangay, issuesByType, allRecentLogs] = await Promise.all([
+    prisma.drainageRequest.groupBy({
+      by: ['status'],
+      _count: true
+    }),
+    prisma.waterConnection.groupBy({
+      by: ['status'],
+      _count: true
+    }),
+    prisma.waterIssue.groupBy({
+      by: ['status'],
+      _count: true
+    }),
+    prisma.drainageRequest.groupBy({
+      by: ['barangay'],
+      _count: true,
+      orderBy: { _count: { barangay: 'desc' } },
+      take: 10
+    }),
+    prisma.waterConnection.groupBy({
+      by: ['barangay'],
+      _count: true,
+      orderBy: { _count: { barangay: 'desc' } },
+      take: 10
+    }),
+    prisma.waterIssue.groupBy({
+      by: ['issueType'],
+      _count: true,
+      orderBy: { _count: { issueType: 'desc' } }
+    }),
+    prisma.auditLog.findMany({
+      where: {
+        OR: [
+          { entityType: { in: ['DrainageRequest', 'WaterConnection', 'WaterIssue'] } },
+          { action: { startsWith: 'DRAINAGE_REQUEST' } },
+          { action: { startsWith: 'WATER_' } },
+        ]
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 15,
+      include: { user: { select: { name: true } } }
+    }),
+  ])
+
   const drainagePending = drainageStats.find(s => s.status === 'PENDING_REVIEW')?._count || 0
   const drainageInProgress = drainageStats.filter(s => ['FOR_IMPLEMENTATION', 'IN_PROGRESS'].includes(s.status)).reduce((a, s) => a + s._count, 0)
   const drainageCompleted = drainageStats.find(s => s.status === 'COMPLETED')?._count || 0
   const drainageTotal = drainageStats.reduce((acc, s) => acc + s._count, 0)
 
-  // Fetch water connection statistics
-  const connectionStats = await prisma.waterConnection.groupBy({
-    by: ['status'],
-    _count: true
-  })
   const connectionPending = connectionStats.find(s => s.status === 'PENDING_EVALUATION')?._count || 0
   const connectionPayment = connectionStats.find(s => s.status === 'AWAITING_PAYMENT')?._count || 0
   const connectionInstallation = connectionStats.filter(s => ['PAYMENT_CONFIRMED', 'INSTALLATION_SCHEDULED', 'INSTALLATION_ONGOING'].includes(s.status)).reduce((a, s) => a + s._count, 0)
   const connectionActive = connectionStats.find(s => s.status === 'ACTIVE_CONNECTION')?._count || 0
   const connectionTotal = connectionStats.reduce((acc, s) => acc + s._count, 0)
 
-  // Fetch water issue statistics
-  const issueStats = await prisma.waterIssue.groupBy({
-    by: ['status'],
-    _count: true
-  })
   const issuePending = issueStats.find(s => s.status === 'PENDING_INSPECTION')?._count || 0
   const issueRepair = issueStats.filter(s => ['FOR_REPAIR', 'FOR_SCHEDULING', 'REPAIR_IN_PROGRESS'].includes(s.status)).reduce((a, s) => a + s._count, 0)
   const issueResolved = issueStats.filter(s => ['RESOLVED', 'CLOSED'].includes(s.status)).reduce((a, s) => a + s._count, 0)
   const issueTotal = issueStats.reduce((acc, s) => acc + s._count, 0)
-
-  // Fetch recent drainage requests by barangay
-  const drainageByBarangay = await prisma.drainageRequest.groupBy({
-    by: ['barangay'],
-    _count: true,
-    orderBy: { _count: { barangay: 'desc' } },
-    take: 10
-  })
-
-  // Fetch recent connection requests by barangay
-  const connectionByBarangay = await prisma.waterConnection.groupBy({
-    by: ['barangay'],
-    _count: true,
-    orderBy: { _count: { barangay: 'desc' } },
-    take: 10
-  })
-
-  // Fetch recent issues by type
-  const issuesByType = await prisma.waterIssue.groupBy({
-    by: ['issueType'],
-    _count: true,
-    orderBy: { _count: { issueType: 'desc' } }
-  })
-
-  // Recent audit logs — match by entityType OR action prefix
-  const allRecentLogs = await prisma.auditLog.findMany({
-    where: {
-      OR: [
-        { entityType: { in: ['DrainageRequest', 'WaterConnection', 'WaterIssue'] } },
-        { action: { startsWith: 'DRAINAGE_REQUEST' } },
-        { action: { startsWith: 'WATER_' } },
-      ]
-    },
-    orderBy: { createdAt: 'desc' },
-    take: 15,
-    include: { user: { select: { name: true } } }
-  })
 
   return (
     <div className="min-h-screen bg-gray-50">

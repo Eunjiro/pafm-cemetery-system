@@ -43,20 +43,20 @@ export default async function CremationPermitVerificationDashboard() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className={`bg-${headerColor}-600 text-white py-6 shadow-lg`}>
+      <div className={`bg-green-600 text-white py-6 shadow-lg`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
             <div>
-              <Link href={dashboardUrl} className={`text-sm text-${headerColor}-100 hover:text-white mb-2 inline-block`}>
+              <Link href={dashboardUrl} className={`text-sm text-green-100 hover:text-white mb-2 inline-block`}>
                 ← Back to Dashboard
               </Link>
               <h1 className="text-3xl font-bold">Cremation Permit Verification</h1>
-              <p className="text-orange-100 mt-1">Review and process pending cremation permit requests</p>
+              <p className="text-green-100 mt-1">Review and process pending cremation permit requests</p>
             </div>
             <div className="text-right">
-              <p className="text-sm text-orange-100">Civil Registry Staff</p>
+              <p className="text-sm text-green-100">Civil Registry Staff</p>
               <p className="font-semibold">{session.user?.name}</p>
-              <span className="inline-block mt-1 px-2 py-1 bg-orange-700 text-orange-100 text-xs font-medium rounded">
+              <span className="inline-block mt-1 px-2 py-1 bg-green-700 text-green-100 text-xs font-medium rounded">
                 {userRole}
               </span>
             </div>
@@ -70,7 +70,7 @@ export default async function CremationPermitVerificationDashboard() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div className="bg-white rounded-lg shadow-md p-6">
             <p className="text-sm text-gray-600 mb-1">Pending Verification</p>
-            <p className="text-3xl font-bold text-orange-600">{pendingPermits.length}</p>
+            <p className="text-3xl font-bold text-green-600">{pendingPermits.length}</p>
           </div>
           <div className="bg-white rounded-lg shadow-md p-6">
             <p className="text-sm text-gray-600 mb-1">Permit Fee</p>
@@ -90,7 +90,7 @@ export default async function CremationPermitVerificationDashboard() {
           
           {pendingPermits.length === 0 ? (
             <div className="text-center py-12">
-              <svg className="mx-auto h-16 w-16 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="mx-auto h-16 w-16 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               <p className="text-gray-600 mt-4">No pending permit requests at the moment</p>
@@ -150,7 +150,7 @@ export default async function CremationPermitVerificationDashboard() {
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
                         <Link
                           href={`/services/cemetery/cremation-permits/verification/${permit.id}`}
-                          className="text-orange-600 hover:text-orange-900 font-medium"
+                          className="text-green-600 hover:text-green-900 font-medium"
                         >
                           Review →
                         </Link>

@@ -37,7 +37,7 @@ export default async function ExhumationPermitReview({ params }: { params: Promi
   const statusColors: Record<string, string> = {
     PENDING_VERIFICATION: "bg-yellow-100 text-yellow-800",
     RETURNED_FOR_CORRECTION: "bg-red-100 text-red-800",
-    APPROVED_FOR_PAYMENT: "bg-blue-100 text-blue-800",
+    APPROVED_FOR_PAYMENT: "bg-blue-100 text-green-800",
     PAYMENT_SUBMITTED: "bg-purple-100 text-purple-800",
     PAYMENT_CONFIRMED: "bg-green-100 text-green-800",
     READY_FOR_PICKUP: "bg-green-100 text-green-800",
@@ -49,7 +49,7 @@ export default async function ExhumationPermitReview({ params }: { params: Promi
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
-          <Link href="/services/cemetery/exhumation-permits/verification" className="text-orange-600 hover:text-orange-700 text-sm font-medium">
+          <Link href="/services/cemetery/exhumation-permits/verification" className="text-green-600 hover:text-green-700 text-sm font-medium">
             ← Back to Verification Queue
           </Link>
           <div className="flex items-center justify-between mt-4">
@@ -180,22 +180,22 @@ export default async function ExhumationPermitReview({ params }: { params: Promi
             <div className="bg-white rounded-lg shadow-md p-6">
               <h2 className="text-xl font-bold text-gray-900 mb-4">Submitted Documents</h2>
               <div className="space-y-3">
-                <div className="flex items-center justify-between p-3 bg-orange-50 rounded-lg border border-orange-200">
+                <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-200">
                   <div className="flex items-center">
-                    <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center mr-3 flex-shrink-0">
-                      <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center mr-3 flex-shrink-0">
+                      <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                       </svg>
                     </div>
                     <div>
                       <p className="font-medium text-gray-900">QC Health Department Letter</p>
-                      <p className="text-sm text-orange-600">Required - Must be authentic</p>
+                      <p className="text-sm text-green-600">Required - Must be authentic</p>
                     </div>
                   </div>
                   <a 
                     href={`/api/cemetery/view-document?path=${encodeURIComponent(permit.exhumationLetter)}`}
                     target="_blank"
-                    className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 text-sm"
+                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm"
                   >
                     View
                   </a>
@@ -216,7 +216,7 @@ export default async function ExhumationPermitReview({ params }: { params: Promi
                   <a 
                     href={`/api/cemetery/view-document?path=${encodeURIComponent(permit.deathCertificate)}`}
                     target="_blank"
-                    className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 text-sm"
+                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm"
                   >
                     View
                   </a>
@@ -237,7 +237,7 @@ export default async function ExhumationPermitReview({ params }: { params: Promi
                   <a 
                     href={`/api/cemetery/view-document?path=${encodeURIComponent(permit.validId)}`}
                     target="_blank"
-                    className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 text-sm"
+                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm"
                   >
                     View
                   </a>
@@ -298,20 +298,20 @@ export default async function ExhumationPermitReview({ params }: { params: Promi
 
             {/* Payment Info */}
             {permit.orderOfPayment && (
-              <div className="bg-orange-50 border border-orange-200 rounded-lg p-6">
-                <h3 className="font-bold text-orange-900 mb-3">Payment Details</h3>
+              <div className="bg-green-50 border border-green-200 rounded-lg p-6">
+                <h3 className="font-bold text-green-900 mb-3">Payment Details</h3>
                 <div className="space-y-2 text-sm">
                   <div>
-                    <p className="text-orange-700">Order of Payment</p>
-                    <p className="font-bold text-orange-900">{permit.orderOfPayment}</p>
+                    <p className="text-green-700">Order of Payment</p>
+                    <p className="font-bold text-green-900">{permit.orderOfPayment}</p>
                   </div>
                   <div>
-                    <p className="text-orange-700">Amount</p>
-                    <p className="font-bold text-orange-900">₱{permit.permitFee.toFixed(2)}</p>
+                    <p className="text-green-700">Amount</p>
+                    <p className="font-bold text-green-900">₱{permit.permitFee.toFixed(2)}</p>
                   </div>
                   <div>
-                    <p className="text-orange-700">Status</p>
-                    <p className={`font-semibold ${permit.paymentConfirmed ? 'text-green-700' : 'text-orange-700'}`}>
+                    <p className="text-green-700">Status</p>
+                    <p className={`font-semibold ${permit.paymentConfirmed ? 'text-green-700' : 'text-green-700'}`}>
                       {permit.paymentConfirmed ? 'Confirmed' : 'Pending'}
                     </p>
                   </div>

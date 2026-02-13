@@ -130,7 +130,7 @@ export default function ExhumationVerificationActions({ permitId, employeeName }
             value={remarks}
             onChange={(e) => setRemarks(e.target.value)}
             rows={3}
-            className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-orange-500 focus:border-transparent placeholder:text-gray-400"
+            className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent placeholder:text-gray-400"
             placeholder="Add any notes or instructions..."
           />
         </div>
@@ -173,7 +173,7 @@ export default function ExhumationVerificationActions({ permitId, employeeName }
           onChange={(e) => setRemarks(e.target.value)}
           rows={4}
           required
-          className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-orange-500 focus:border-transparent placeholder:text-gray-400"
+          className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent placeholder:text-gray-400"
           placeholder="e.g., 'QC Health letter is not authentic', 'Death certificate is incomplete'..."
         />
       </div>

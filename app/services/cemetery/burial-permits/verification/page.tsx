@@ -43,7 +43,7 @@ export default async function BurialPermitVerificationDashboard() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className={`bg-${headerColor}-600 text-white py-6 shadow-lg`}>
+      <div className={`bg-green-600 text-white py-6 shadow-lg`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
             <div>
@@ -54,9 +54,9 @@ export default async function BurialPermitVerificationDashboard() {
               <p className={`text-${headerColor}-100 mt-1`}>Review and process pending permit requests</p>
             </div>
             <div className="text-right">
-              <p className={`text-sm text-${headerColor}-100`}>{userRole === "ADMIN" ? "System Administrator" : "Civil Registry Staff"}</p>
+              <p className={`text-sm text-green-100`}>{userRole === "ADMIN" ? "System Administrator" : "Civil Registry Staff"}</p>
               <p className="font-semibold">{session.user?.name}</p>
-              <span className={`inline-block mt-1 px-2 py-1 bg-${headerColor}-700 text-${headerColor}-100 text-xs font-medium rounded`}>
+              <span className={`inline-block mt-1 px-2 py-1 bg-green-700 text-green-100 text-xs font-medium rounded`}>
                 {userRole}
               </span>
             </div>
@@ -70,7 +70,7 @@ export default async function BurialPermitVerificationDashboard() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <div className="bg-white rounded-lg shadow-md p-6">
             <p className="text-sm text-gray-600 mb-1">Pending Verification</p>
-            <p className="text-3xl font-bold text-orange-600">{pendingPermits.length}</p>
+            <p className="text-3xl font-bold text-green-600">{pendingPermits.length}</p>
           </div>
           <div className="bg-white rounded-lg shadow-md p-6">
             <p className="text-sm text-gray-600 mb-1">Burial/Entrance</p>
@@ -168,7 +168,7 @@ export default async function BurialPermitVerificationDashboard() {
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
                         <Link
                           href={`/services/cemetery/burial-permits/verification/${permit.id}`}
-                          className="text-orange-600 hover:text-orange-900 font-medium"
+                          className="text-green-600 hover:text-green-900 font-medium"
                         >
                           Review →
                         </Link>

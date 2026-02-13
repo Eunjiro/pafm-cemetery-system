@@ -16,34 +16,32 @@ export default async function WaterEmployeeDashboard() {
     redirect("/services/water")
   }
 
-  // Fetch drainage request statistics
-  const drainageStats = await prisma.drainageRequest.groupBy({
-    by: ['status'],
-    _count: true
-  })
+  // Fetch all statistics in parallel
+  const [drainageStats, connectionStats, issueStats] = await Promise.all([
+    prisma.drainageRequest.groupBy({
+      by: ['status'],
+      _count: true
+    }),
+    prisma.waterConnection.groupBy({
+      by: ['status'],
+      _count: true
+    }),
+    prisma.waterIssue.groupBy({
+      by: ['status'],
+      _count: true
+    }),
+  ])
 
   const drainagePending = drainageStats.find(s => s.status === 'PENDING_REVIEW')?._count || 0
   const drainageInspection = drainageStats.filter(s => ['INSPECTION_SCHEDULED', 'INSPECTION_COMPLETED'].includes(s.status)).reduce((a, s) => a + s._count, 0)
   const drainageInProgress = drainageStats.filter(s => ['FOR_IMPLEMENTATION', 'IN_PROGRESS'].includes(s.status)).reduce((a, s) => a + s._count, 0)
   const drainageTotal = drainageStats.reduce((acc, s) => acc + s._count, 0)
 
-  // Fetch water connection statistics
-  const connectionStats = await prisma.waterConnection.groupBy({
-    by: ['status'],
-    _count: true
-  })
-
   const connectionPending = connectionStats.find(s => s.status === 'PENDING_EVALUATION')?._count || 0
   const connectionInspection = connectionStats.find(s => s.status === 'FOR_INSPECTION')?._count || 0
   const connectionPayment = connectionStats.find(s => s.status === 'AWAITING_PAYMENT')?._count || 0
   const connectionInstallation = connectionStats.filter(s => ['PAYMENT_CONFIRMED', 'INSTALLATION_SCHEDULED', 'INSTALLATION_ONGOING'].includes(s.status)).reduce((a, s) => a + s._count, 0)
   const connectionTotal = connectionStats.reduce((acc, s) => acc + s._count, 0)
-
-  // Fetch water issue statistics
-  const issueStats = await prisma.waterIssue.groupBy({
-    by: ['status'],
-    _count: true
-  })
 
   const issuePending = issueStats.find(s => s.status === 'PENDING_INSPECTION')?._count || 0
   const issueRepair = issueStats.filter(s => ['FOR_REPAIR', 'FOR_SCHEDULING', 'REPAIR_IN_PROGRESS'].includes(s.status)).reduce((a, s) => a + s._count, 0)

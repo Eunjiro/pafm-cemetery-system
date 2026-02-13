@@ -166,8 +166,8 @@ async function updateEntityStatus(
           where: { id: entityId },
           data: { 
             paymentStatus: status,
-            status: "PAYMENT_SUBMITTED", // Employee still needs to process and prepare documents
-            paymentConfirmed: true, // Mark as confirmed so employee knows it's verified
+            status: "PAYMENT_CONFIRMED", // Online payment auto-confirmed by gateway
+            paymentConfirmed: true,
             proofOfPayment: receiptInfo || null
           },
         });
@@ -178,8 +178,8 @@ async function updateEntityStatus(
           where: { id: entityId },
           data: { 
             paymentStatus: status,
-            status: "PAYMENT_SUBMITTED", // Employee still needs to process and prepare documents
-            paymentConfirmed: true, // Mark as confirmed so employee knows it's verified
+            status: "REGISTERED_FOR_PICKUP", // Online payment auto-confirmed by gateway
+            paymentConfirmed: true,
             proofOfPayment: receiptInfo || null
           },
         });
@@ -190,8 +190,8 @@ async function updateEntityStatus(
           where: { id: entityId },
           data: { 
             paymentStatus: status,
-            status: "PAYMENT_SUBMITTED", // Employee still needs to process and prepare documents
-            paymentConfirmed: true, // Mark as confirmed so employee knows it's verified
+            status: "REGISTERED_FOR_PICKUP", // Online payment auto-confirmed by gateway
+            paymentConfirmed: true,
             proofOfPayment: receiptInfo || null
           },
         });
@@ -202,7 +202,7 @@ async function updateEntityStatus(
           where: { id: entityId },
           data: { 
             paymentStatus: status,
-            status: "PAYMENT_SUBMITTED", // Employee still needs to process and prepare documents
+            status: "REGISTERED_FOR_PICKUP", // Online payment auto-confirmed by gateway
             paymentProof: receiptInfo || null,
             paymentSubmittedAt: new Date()
           },
@@ -214,7 +214,7 @@ async function updateEntityStatus(
           where: { id: entityId },
           data: { 
             paymentStatus: status,
-            status: "PAYMENT_SUBMITTED", // Employee still needs to process and prepare documents
+            status: "REGISTERED_FOR_PICKUP", // Online payment auto-confirmed by gateway
             paymentProof: receiptInfo || null,
             paymentSubmittedAt: new Date()
           },

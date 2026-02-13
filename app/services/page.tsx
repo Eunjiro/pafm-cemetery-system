@@ -389,7 +389,7 @@ export default function ServicesPage() {
                     </svg>
                   </div>
                   <h3 className="text-xl font-bold text-gray-900 mb-3">Facility Management</h3>
-                  <p className="text-gray-600 leading-relaxed">Manage and maintain public facilities and infrastructure</p>
+                  <p className="text-gray-600 leading-relaxed">Reserve conference halls, gymnasiums, training rooms, and cultural centers</p>
                   <div className="mt-6 flex items-center text-orange-600 font-semibold group-hover:translate-x-2 transition-transform duration-300">
                     <span>Access Service</span>
                     <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">

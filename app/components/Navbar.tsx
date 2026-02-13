@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import Image from "next/image"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback, memo } from "react"
 import { useSession } from "next-auth/react"
 
 export default function Navbar() {
@@ -18,7 +18,6 @@ export default function Navbar() {
       const timeString = now.toLocaleTimeString('en-US', {
         hour: '2-digit',
         minute: '2-digit',
-        second: '2-digit',
         hour12: true
       })
       const dateString = now.toLocaleDateString('en-US', {
@@ -31,7 +30,7 @@ export default function Navbar() {
     }
 
     updateTime()
-    const interval = setInterval(updateTime, 1000)
+    const interval = setInterval(updateTime, 60000)
 
     return () => clearInterval(interval)
   }, [])
@@ -41,8 +40,8 @@ export default function Navbar() {
     if (status === "authenticated") {
       fetchNotifications()
       
-      // Refresh notifications every 30 seconds
-      const notificationInterval = setInterval(fetchNotifications, 30000)
+      // Refresh notifications every 60 seconds
+      const notificationInterval = setInterval(fetchNotifications, 60000)
       return () => clearInterval(notificationInterval)
     }
   }, [status])
@@ -60,7 +59,7 @@ export default function Navbar() {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  const fetchNotifications = async () => {
+  const fetchNotifications = useCallback(async () => {
     try {
       const response = await fetch("/api/notifications")
       if (response.ok) {
@@ -71,7 +70,7 @@ export default function Navbar() {
     } catch (error) {
       console.error("Failed to fetch notifications:", error)
     }
-  }
+  }, [])
 
   const handleDeleteNotification = async (notificationId: string) => {
     try {

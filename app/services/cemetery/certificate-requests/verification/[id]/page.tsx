@@ -36,9 +36,9 @@ export default async function CertificateRequestVerificationDetailPage({ params 
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <div className="bg-white rounded-lg shadow-md p-8 max-w-md w-full">
-          <h1 className="text-2xl font-bold text-orange-600 mb-4">Request Not Found</h1>
+          <h1 className="text-2xl font-bold text-green-600 mb-4">Request Not Found</h1>
           <p className="text-gray-600 mb-6">The certificate request you're looking for doesn't exist.</p>
-          <Link href="/services/cemetery/certificate-requests/verification" className="text-orange-600 hover:underline">
+          <Link href="/services/cemetery/certificate-requests/verification" className="text-green-600 hover:underline">
             Return to Verification List
           </Link>
         </div>
@@ -60,13 +60,13 @@ export default async function CertificateRequestVerificationDetailPage({ params 
   const getStatusColor = (status: string) => {
     switch (status) {
       case "PENDING_VERIFICATION":
-        return "bg-orange-100 text-orange-800 border-orange-300"
+        return "bg-green-100 text-green-800 border-green-300"
       case "APPROVED_FOR_PAYMENT":
-        return "bg-orange-200 text-orange-900 border-orange-400"
+        return "bg-green-200 text-green-900 border-green-400"
       case "RETURNED_FOR_CORRECTION":
-        return "bg-orange-100 text-orange-800 border-orange-300"
+        return "bg-green-100 text-green-800 border-green-300"
       case "REJECTED":
-        return "bg-orange-200 text-orange-900 border-orange-400"
+        return "bg-green-200 text-green-900 border-green-400"
       default:
         return "bg-gray-100 text-gray-800 border-gray-300"
     }
@@ -81,7 +81,7 @@ export default async function CertificateRequestVerificationDetailPage({ params 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-6">
-          <Link href="/services/cemetery/certificate-requests/verification" className="text-orange-600 hover:underline mb-2 inline-block">
+          <Link href="/services/cemetery/certificate-requests/verification" className="text-green-600 hover:underline mb-2 inline-block">
             ← Back to Verification List
           </Link>
           <div className="flex justify-between items-start">
@@ -99,8 +99,8 @@ export default async function CertificateRequestVerificationDetailPage({ params 
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
             {/* Deceased Information */}
-            <div className="bg-white rounded-lg shadow-md overflow-hidden border-l-4 border-orange-500">
-              <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-6 py-4">
+            <div className="bg-white rounded-lg shadow-md overflow-hidden border-l-4 border-green-500">
+              <div className="bg-gradient-to-r from-green-500 to-green-600 px-6 py-4">
                 <h2 className="text-xl font-bold text-white">Deceased Information</h2>
               </div>
               <div className="p-6">
@@ -209,7 +209,7 @@ export default async function CertificateRequestVerificationDetailPage({ params 
                 <div className="space-y-3">
                   <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200">
                     <div className="flex items-center">
-                      <svg className="w-8 h-8 text-orange-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-8 h-8 text-green-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                       </svg>
                       <div>
@@ -221,7 +221,7 @@ export default async function CertificateRequestVerificationDetailPage({ params 
                       href={`/api/cemetery/view-document?filePath=${encodeURIComponent(request.validId)}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors text-sm font-semibold"
+                      className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-semibold"
                     >
                       View Document
                     </a>
@@ -230,7 +230,7 @@ export default async function CertificateRequestVerificationDetailPage({ params 
                   {request.authorizationLetter ? (
                     <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200">
                       <div className="flex items-center">
-                        <svg className="w-8 h-8 text-orange-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-8 h-8 text-green-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
                         <div>
@@ -242,7 +242,7 @@ export default async function CertificateRequestVerificationDetailPage({ params 
                         href={`/api/cemetery/view-document?filePath=${encodeURIComponent(request.authorizationLetter)}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors text-sm font-semibold"
+                        className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-semibold"
                       >
                         View Document
                       </a>
@@ -274,8 +274,8 @@ export default async function CertificateRequestVerificationDetailPage({ params 
               )}
 
               {/* Fee Summary */}
-              <div className="bg-white rounded-lg shadow-md overflow-hidden border-l-4 border-orange-500">
-                <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-6 py-4">
+              <div className="bg-white rounded-lg shadow-md overflow-hidden border-l-4 border-green-500">
+                <div className="bg-gradient-to-r from-green-500 to-green-600 px-6 py-4">
                   <h2 className="text-lg font-bold text-white">Fee Summary</h2>
                 </div>
                 <div className="p-6">
@@ -292,7 +292,7 @@ export default async function CertificateRequestVerificationDetailPage({ params 
                     )}
                     <div className="flex justify-between items-center pt-2">
                       <span className="font-bold text-gray-900">Total Fee</span>
-                      <span className="font-bold text-orange-600 text-xl">₱{request.totalFee.toFixed(2)}</span>
+                      <span className="font-bold text-green-600 text-xl">₱{request.totalFee.toFixed(2)}</span>
                     </div>
                   </div>
                 </div>
@@ -307,7 +307,7 @@ export default async function CertificateRequestVerificationDetailPage({ params 
                   <div className="space-y-4">
                     <div className="flex">
                       <div className="flex flex-col items-center mr-4">
-                        <div className="w-8 h-8 rounded-full bg-orange-500 flex items-center justify-center">
+                        <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center">
                           <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                           </svg>
@@ -321,7 +321,7 @@ export default async function CertificateRequestVerificationDetailPage({ params 
                     </div>
                     <div className="flex">
                       <div className="flex flex-col items-center mr-4">
-                        <div className={`w-8 h-8 rounded-full ${request.verifiedAt ? 'bg-orange-500' : 'bg-gray-300'} flex items-center justify-center`}>
+                        <div className={`w-8 h-8 rounded-full ${request.verifiedAt ? 'bg-green-500' : 'bg-gray-300'} flex items-center justify-center`}>
                           {request.verifiedAt ? (
                             <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -348,25 +348,25 @@ export default async function CertificateRequestVerificationDetailPage({ params 
                 <div className="p-6">
                   <div className="space-y-2">
                     <div className="flex items-center">
-                      <svg className="w-5 h-5 text-orange-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                       </svg>
                       <span className="text-sm text-gray-700">Deceased information complete</span>
                     </div>
                     <div className="flex items-center">
-                      <svg className="w-5 h-5 text-orange-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                       </svg>
                       <span className="text-sm text-gray-700">Requester information complete</span>
                     </div>
                     <div className="flex items-center">
-                      <svg className="w-5 h-5 text-orange-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                       </svg>
                       <span className="text-sm text-gray-700">Valid ID submitted</span>
                     </div>
                     <div className="flex items-center">
-                      <svg className={`w-5 h-5 mr-2 ${request.authorizationLetter ? 'text-orange-500' : 'text-gray-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className={`w-5 h-5 mr-2 ${request.authorizationLetter ? 'text-green-500' : 'text-gray-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                       </svg>
                       <span className="text-sm text-gray-700">Authorization letter {!request.authorizationLetter && '(optional)'}</span>

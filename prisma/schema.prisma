@@ -41,6 +41,7 @@ model User {
   amenityReservations AmenityReservation[]
   venueBookings       VenueBooking[]
   maintenanceRequests ParkMaintenanceRequest[]
+  facilityReservations FacilityReservation[]
 }
 
 enum Role {
@@ -1452,4 +1453,133 @@ enum MaintenanceStatus {
   COMPLETED
   CLOSED
   REJECTED
+}
+
+// =====================================================
+// FACILITY MANAGEMENT MODULE
+// =====================================================
+
+model FacilityReservation {
+  id                  String                    @id @default(uuid())
+  userId              String
+  user                User                      @relation(fields: [userId], references: [id])
+  
+  // Applicant Info
+  applicantName       String
+  organizationName    String?
+  contactPerson       String
+  contactNumber       String
+  
+  // Activity / Event Details
+  activityType        FacilityActivityType
+  activityTypeOther   String?
+  description         String?
+  
+  // Facility & Schedule
+  facilityType        FacilityType
+  facilityDetails     String?
+  desiredStartDate    DateTime
+  desiredEndDate      DateTime
+  estimatedParticipants Int
+  
+  // Optional uploads
+  layoutFile          String?                   // Layout / equipment requirements
+  governmentPermit    String?                   // Government permit / endorsement
+  barangayEndorsement String?                   // Barangay endorsement
+  additionalNotes     String?
+  
+  // Payment
+  paymentStatus       PaymentType               @default(UNPAID)
+  paymentMethod       String?
+  paymentReference    String?
+  paymentProof        String?
+  amountDue           Float?
+  amountPaid          Float?
+  exemptionMemo       String?
+  
+  // Status & Processing
+  status              FacilityReservationStatus  @default(PENDING_REVIEW)
+  remarks             String?
+  processedBy         String?
+  processedAt         DateTime?
+  
+  // Gate Pass / Access
+  gatePassCode        String?                   @unique
+  gatePassUsed        Boolean                   @default(false)
+  
+  // Event Day Operations
+  facilityDayStatus   FacilityDayStatus?
+  markedCompletedAt   DateTime?
+  noShow              Boolean                   @default(false)
+  
+  // Post-Event Inspection
+  inspectionNotes     String?
+  hasDamages          Boolean                   @default(false)
+  damageDescription   String?
+  additionalBilling   Float?
+  
+  // Auto-cancel & holds
+  holdExpiresAt       DateTime?
+  autoCancelled       Boolean                   @default(false)
+  
+  // LGU / Priority flags
+  isLguEvent          Boolean                   @default(false)
+  isPriority          Boolean                   @default(false)
+  isPaymentExempted   Boolean                   @default(false)
+  
+  createdAt           DateTime                  @default(now())
+  updatedAt           DateTime                  @updatedAt
+  
+  @@index([userId])
+  @@index([status])
+  @@index([desiredStartDate])
+  @@index([facilityType])
+  @@index([gatePassCode])
+  @@index([createdAt])
+}
+
+enum FacilityActivityType {
+  MEETING
+  SEMINAR
+  SPORTS_EVENT
+  OUTREACH
+  EXHIBIT
+  TRAINING
+  WEDDING
+  ASSEMBLY
+  LGU_EVENT
+  CULTURAL_EVENT
+  OTHER
+}
+
+enum FacilityType {
+  CONFERENCE_HALL
+  GYMNASIUM
+  TRAINING_ROOM
+  AUDITORIUM
+  CULTURAL_CENTER
+  MULTIPURPOSE_HALL
+  COVERED_COURT
+  OTHER_FACILITY
+}
+
+enum FacilityReservationStatus {
+  PENDING_REVIEW
+  AWAITING_REQUIREMENTS
+  AWAITING_PAYMENT
+  PAYMENT_VERIFIED
+  APPROVED
+  REJECTED
+  CANCELLED
+  IN_USE
+  COMPLETED
+  COMPLETED_WITH_DAMAGES
+  NO_SHOW
+}
+
+enum FacilityDayStatus {
+  IN_USE
+  COMPLETED
+  COMPLETED_WITH_DAMAGES
+  NO_SHOW
 }

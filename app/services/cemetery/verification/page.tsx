@@ -43,20 +43,20 @@ export default async function VerificationDashboard() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className={userRole === "ADMIN" ? "bg-red-600 text-white py-6 shadow-lg" : "bg-orange-600 text-white py-6 shadow-lg"}>
+      <div className="bg-green-600 text-white py-6 shadow-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
             <div>
-              <Link href={dashboardUrl} className={userRole === "ADMIN" ? "text-sm text-red-100 hover:text-white mb-2 inline-block" : "text-sm text-orange-100 hover:text-white mb-2 inline-block"}>
+              <Link href={dashboardUrl} className={userRole === "ADMIN" ? "text-sm text-green-100 hover:text-white mb-2 inline-block" : "text-sm text-green-100 hover:text-white mb-2 inline-block"}>
                 ← Back to Dashboard
               </Link>
               <h1 className="text-3xl font-bold">Death Registration Verification</h1>
-              <p className={userRole === "ADMIN" ? "text-red-100 mt-1" : "text-orange-100 mt-1"}>Review and process pending submissions</p>
+              <p className={userRole === "ADMIN" ? "text-green-100 mt-1" : "text-green-100 mt-1"}>Review and process pending submissions</p>
             </div>
             <div className="text-right">
-              <p className={userRole === "ADMIN" ? "text-sm text-red-100" : "text-sm text-orange-100"}>{userRole === "ADMIN" ? "System Administrator" : "Civil Registry Staff"}</p>
+              <p className={userRole === "ADMIN" ? "text-sm text-green-100" : "text-sm text-green-100"}>{userRole === "ADMIN" ? "System Administrator" : "Civil Registry Staff"}</p>
               <p className="font-semibold">{session.user?.name}</p>
-              <span className={userRole === "ADMIN" ? "inline-block mt-1 px-2 py-1 bg-red-700 text-red-100 text-xs font-medium rounded" : "inline-block mt-1 px-2 py-1 bg-orange-700 text-orange-100 text-xs font-medium rounded"}>
+              <span className={userRole === "ADMIN" ? "inline-block mt-1 px-2 py-1 bg-green-700 text-green-100 text-xs font-medium rounded" : "inline-block mt-1 px-2 py-1 bg-green-700 text-green-100 text-xs font-medium rounded"}>
                 {userRole}
               </span>
             </div>
@@ -70,7 +70,7 @@ export default async function VerificationDashboard() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <div className="bg-white rounded-lg shadow-md p-6">
             <p className="text-sm text-gray-600 mb-1">Pending Verification</p>
-            <p className="text-3xl font-bold text-orange-600">{pendingRegistrations.length}</p>
+            <p className="text-3xl font-bold text-green-600">{pendingRegistrations.length}</p>
           </div>
           <div className="bg-white rounded-lg shadow-md p-6">
             <p className="text-sm text-gray-600 mb-1">Regular Fee</p>
@@ -79,12 +79,12 @@ export default async function VerificationDashboard() {
           </div>
           <div className="bg-white rounded-lg shadow-md p-6">
             <p className="text-sm text-gray-600 mb-1">Delayed Fee</p>
-            <p className="text-3xl font-bold text-orange-600">₱150.00</p>
+            <p className="text-3xl font-bold text-green-600">₱150.00</p>
             <p className="text-xs text-gray-500 mt-1">11 working days</p>
           </div>
           <div className="bg-white rounded-lg shadow-md p-6">
             <p className="text-sm text-gray-600 mb-1">Your Role</p>
-            <p className="text-2xl font-bold text-blue-600">{userRole}</p>
+            <p className="text-2xl font-bold text-green-600">{userRole}</p>
           </div>
         </div>
 
@@ -136,7 +136,7 @@ export default async function VerificationDashboard() {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded ${
                           reg.registrationType === "DELAYED" 
-                            ? "bg-orange-100 text-orange-800" 
+                            ? "bg-green-100 text-green-800" 
                             : "bg-green-100 text-green-800"
                         }`}>
                           {reg.registrationType === "DELAYED" ? "Delayed" : "Regular"}
@@ -162,7 +162,7 @@ export default async function VerificationDashboard() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
                         <Link href={`/services/cemetery/verification/${reg.id}`}>
-                          <button className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors">
+                          <button className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
                             Review
                           </button>
                         </Link>

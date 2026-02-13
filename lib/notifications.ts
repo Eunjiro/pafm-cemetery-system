@@ -297,6 +297,39 @@ export async function notifyVenueBookingUpdate(
 }
 
 /**
+ * Create notification for facility reservation status change
+ */
+export async function notifyFacilityReservationUpdate(
+  userId: string,
+  facilityType: string,
+  status: string,
+  reservationId: string
+) {
+  const statusMessages: Record<string, string> = {
+    PENDING_REVIEW: "submitted – under review",
+    AWAITING_REQUIREMENTS: "awaiting additional requirements",
+    AWAITING_PAYMENT: "awaiting payment",
+    PAYMENT_VERIFIED: "payment verified",
+    APPROVED: "approved – booking confirmed",
+    REJECTED: "rejected – schedule unavailable or incomplete requirements",
+    CANCELLED: "cancelled",
+    IN_USE: "facility currently in use",
+    COMPLETED: "completed – no issues",
+    COMPLETED_WITH_DAMAGES: "completed – with damages noted",
+    NO_SHOW: "marked as no-show",
+  }
+  return createNotification({
+    userId,
+    title: "Facility Reservation Update",
+    message: `Your facility reservation for ${facilityType.replace(/_/g, ' ').toLowerCase()} is now ${statusMessages[status] || status.replace(/_/g, ' ').toLowerCase()}`,
+    type: "facility_reservation",
+    entityId: reservationId,
+    entityType: "FacilityReservation",
+    status,
+  })
+}
+
+/**
  * Create notification for park maintenance request status change
  */
 export async function notifyParkMaintenanceUpdate(

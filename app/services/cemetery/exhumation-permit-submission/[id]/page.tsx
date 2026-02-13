@@ -48,14 +48,14 @@ const statusConfig: Record<string, { label: string; color: string; bgColor: stri
   },
   APPROVED_FOR_PAYMENT: {
     label: "Approved - Awaiting Payment",
-    color: "text-blue-700",
+    color: "text-green-700",
     bgColor: "bg-blue-100",
     icon: "💳"
   },
   PAYMENT_SUBMITTED: {
     label: "Payment Submitted",
-    color: "text-orange-700",
-    bgColor: "bg-orange-100",
+    color: "text-green-700",
+    bgColor: "bg-green-100",
     icon: "📄"
   },
   REGISTERED_FOR_PICKUP: {
@@ -327,12 +327,12 @@ export default function ExhumationPermitSubmission() {
 
         {/* Payment Section */}
         {canSubmitPayment && (
-          <div className="bg-white rounded-lg shadow-md p-6 mb-6 border-l-4 border-blue-500">
+          <div className="bg-white rounded-lg shadow-md p-6 mb-6 border-l-4 border-green-500">
             <h3 className="text-xl font-bold text-gray-900 mb-4">🏢 Submit Manual Payment</h3>
             <div className="bg-blue-50 p-4 rounded-lg mb-6">
               <p className="text-sm font-medium text-blue-900">Order of Payment: {permit.orderOfPayment}</p>
-              <p className="text-sm text-blue-700 mt-1">Amount Due: ₱{permit.permitFee.toFixed(2)}</p>
-              <p className="text-xs text-blue-600 mt-2">Please pay at the cemetery office and submit proof of payment below.</p>
+              <p className="text-sm text-green-700 mt-1">Amount Due: ₱{permit.permitFee.toFixed(2)}</p>
+              <p className="text-xs text-green-600 mt-2">Please pay at the cemetery office and submit proof of payment below.</p>
             </div>
 
             <form onSubmit={handlePaymentSubmission}>
@@ -347,7 +347,7 @@ export default function ExhumationPermitSubmission() {
                   }}
                   className={`flex-1 py-2 px-4 rounded-lg font-medium transition-colors ${
                     uploadMode === "file"
-                      ? "bg-blue-600 text-white"
+                      ? "bg-green-600 text-white"
                       : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                   }`}
                 >
@@ -362,7 +362,7 @@ export default function ExhumationPermitSubmission() {
                   }}
                   className={`flex-1 py-2 px-4 rounded-lg font-medium transition-colors ${
                     uploadMode === "or"
-                      ? "bg-blue-600 text-white"
+                      ? "bg-green-600 text-white"
                       : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                   }`}
                 >
@@ -379,7 +379,7 @@ export default function ExhumationPermitSubmission() {
                     type="file"
                     accept="image/*,.pdf"
                     onChange={(e) => setProofFile(e.target.files?.[0] || null)}
-                    className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder:text-gray-400"
+                    className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-green-500 focus:border-transparent placeholder:text-gray-400"
                   />
                   {proofFile && (
                     <p className="text-sm text-green-600 mt-2">Selected: {proofFile.name}</p>
@@ -395,7 +395,7 @@ export default function ExhumationPermitSubmission() {
                     value={orNumber}
                     onChange={(e) => setOrNumber(e.target.value)}
                     placeholder="Enter OR number"
-                    className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder:text-gray-400"
+                    className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent placeholder:text-gray-400"
                   />
                 </div>
               )}

@@ -37,7 +37,7 @@ export default async function BurialPermitVerificationDetail({ params }: { param
   const statusColors: Record<string, string> = {
     PENDING_VERIFICATION: "bg-yellow-100 text-yellow-800",
     RETURNED_FOR_CORRECTION: "bg-red-100 text-red-800",
-    APPROVED_FOR_PAYMENT: "bg-blue-100 text-blue-800",
+    APPROVED_FOR_PAYMENT: "bg-blue-100 text-green-800",
     PAYMENT_SUBMITTED: "bg-purple-100 text-purple-800",
     PAYMENT_CONFIRMED: "bg-green-100 text-green-800",
     REGISTERED_FOR_PICKUP: "bg-green-100 text-green-800",
@@ -47,7 +47,7 @@ export default async function BurialPermitVerificationDetail({ params }: { param
 
   const burialTypeColors: Record<string, string> = {
     BURIAL: "bg-green-100 text-green-800",
-    ENTRANCE: "bg-blue-100 text-blue-800",
+    ENTRANCE: "bg-blue-100 text-green-800",
     NICHE: "bg-purple-100 text-purple-800"
   }
 
@@ -56,7 +56,7 @@ export default async function BurialPermitVerificationDetail({ params }: { param
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
-          <Link href="/services/cemetery/burial-permits/verification" className="text-orange-600 hover:text-orange-700 text-sm font-medium">
+          <Link href="/services/cemetery/burial-permits/verification" className="text-green-600 hover:text-green-700 text-sm font-medium">
             ← Back to Verification Queue
           </Link>
           <div className="flex items-center justify-between mt-4">
@@ -78,20 +78,20 @@ export default async function BurialPermitVerificationDetail({ params }: { param
           <div className="lg:col-span-2 space-y-6">
             
             {/* Permit Type & Fee */}
-            <div className="bg-gradient-to-r from-orange-500 to-orange-600 rounded-lg shadow-md p-6 text-white">
+            <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-lg shadow-md p-6 text-white">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-orange-100 text-sm mb-1">Permit Type</p>
+                  <p className="text-green-100 text-sm mb-1">Permit Type</p>
                   <p className="text-2xl font-bold">{permit.burialType} PERMIT</p>
                   {permit.burialType === 'NICHE' && permit.nicheType && (
-                    <p className="text-orange-100 mt-1">Niche Type: {permit.nicheType}</p>
+                    <p className="text-green-100 mt-1">Niche Type: {permit.nicheType}</p>
                   )}
                 </div>
                 <div className="text-right">
-                  <p className="text-orange-100 text-sm mb-1">Total Fee</p>
+                  <p className="text-green-100 text-sm mb-1">Total Fee</p>
                   <p className="text-4xl font-bold">₱{permit.totalFee.toFixed(2)}</p>
                   {permit.nicheFee && (
-                    <p className="text-orange-100 text-xs mt-1">
+                    <p className="text-green-100 text-xs mt-1">
                       ₱{permit.permitFee.toFixed(2)} + ₱{permit.nicheFee.toFixed(2)}
                     </p>
                   )}
@@ -155,7 +155,7 @@ export default async function BurialPermitVerificationDetail({ params }: { param
                   <span className="text-gray-600">From Another LGU:</span>
                   <span className="font-semibold text-gray-900">
                     {permit.isFromAnotherLGU ? (
-                      <span className="text-orange-600">Yes</span>
+                      <span className="text-green-600">Yes</span>
                     ) : (
                       <span className="text-green-600">No</span>
                     )}
@@ -204,7 +204,7 @@ export default async function BurialPermitVerificationDetail({ params }: { param
                     href={`/api/cemetery/view-document?path=${encodeURIComponent(permit.deathCertificate)}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-blue-600 hover:text-blue-800 font-medium text-sm"
+                    className="text-green-600 hover:text-green-800 font-medium text-sm"
                   >
                     View →
                   </a>
@@ -225,7 +225,7 @@ export default async function BurialPermitVerificationDetail({ params }: { param
                     href={`/api/cemetery/view-document?path=${encodeURIComponent(permit.burialForm)}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-blue-600 hover:text-blue-800 font-medium text-sm"
+                    className="text-green-600 hover:text-green-800 font-medium text-sm"
                   >
                     View →
                   </a>
@@ -246,7 +246,7 @@ export default async function BurialPermitVerificationDetail({ params }: { param
                     href={`/api/cemetery/view-document?path=${encodeURIComponent(permit.validId)}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-blue-600 hover:text-blue-800 font-medium text-sm"
+                    className="text-green-600 hover:text-green-800 font-medium text-sm"
                   >
                     View →
                   </a>
@@ -254,21 +254,21 @@ export default async function BurialPermitVerificationDetail({ params }: { param
 
                 {/* Transfer Permit (if applicable) */}
                 {permit.transferPermit && (
-                  <div className="flex items-center justify-between p-3 bg-orange-50 rounded-lg border border-orange-200">
+                  <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-200">
                     <div className="flex items-center gap-3">
-                      <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
                       </svg>
                       <div>
                         <p className="font-medium text-gray-900">Transfer/Entrance Permit</p>
-                        <p className="text-xs text-orange-600">From Another LGU</p>
+                        <p className="text-xs text-green-600">From Another LGU</p>
                       </div>
                     </div>
                     <a 
                       href={`/api/cemetery/view-document?path=${encodeURIComponent(permit.transferPermit)}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-blue-600 hover:text-blue-800 font-medium text-sm"
+                      className="text-green-600 hover:text-green-800 font-medium text-sm"
                     >
                       View →
                     </a>
@@ -277,21 +277,21 @@ export default async function BurialPermitVerificationDetail({ params }: { param
 
                 {/* Affidavit of Undertaking (if applicable) */}
                 {permit.affidavitOfUndertaking && (
-                  <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200">
+                  <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-200">
                     <div className="flex items-center gap-3">
-                      <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                       </svg>
                       <div>
                         <p className="font-medium text-gray-900">Affidavit of Undertaking</p>
-                        <p className="text-xs text-blue-600">Bagbag/Novaliches Cemetery</p>
+                        <p className="text-xs text-green-600">Bagbag/Novaliches Cemetery</p>
                       </div>
                     </div>
                     <a 
                       href={`/api/cemetery/view-document?path=${encodeURIComponent(permit.affidavitOfUndertaking)}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-blue-600 hover:text-blue-800 font-medium text-sm"
+                      className="text-green-600 hover:text-green-800 font-medium text-sm"
                     >
                       View →
                     </a>
@@ -314,7 +314,7 @@ export default async function BurialPermitVerificationDetail({ params }: { param
               <h3 className="text-lg font-bold text-gray-900 mb-4">Status Timeline</h3>
               <div className="space-y-3">
                 <div className="flex items-start gap-3">
-                  <div className="w-2 h-2 bg-blue-600 rounded-full mt-2"></div>
+                  <div className="w-2 h-2 bg-green-600 rounded-full mt-2"></div>
                   <div>
                     <p className="font-medium text-gray-900">Submitted</p>
                     <p className="text-sm text-gray-500">
@@ -352,15 +352,15 @@ export default async function BurialPermitVerificationDetail({ params }: { param
                 )}
                 <div className="border-t pt-2 flex justify-between font-bold">
                   <span>Total:</span>
-                  <span className="text-orange-600">₱{permit.totalFee.toFixed(2)}</span>
+                  <span className="text-green-600">₱{permit.totalFee.toFixed(2)}</span>
                 </div>
               </div>
             </div>
 
             {/* Verification Checklist */}
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <h3 className="text-sm font-bold text-blue-900 mb-3">Verification Checklist</h3>
-              <ul className="space-y-2 text-xs text-blue-800">
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+              <h3 className="text-sm font-bold text-green-900 mb-3">Verification Checklist</h3>
+              <ul className="space-y-2 text-xs text-green-800">
                 <li>✓ Death certificate is valid and legible</li>
                 <li>✓ Burial form (QCHD) is complete</li>
                 <li>✓ Valid ID matches requester name</li>

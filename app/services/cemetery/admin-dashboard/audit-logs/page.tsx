@@ -80,7 +80,7 @@ export default function AuditLogs() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto"></div>
           <p className="mt-4 text-gray-600">Loading audit logs...</p>
         </div>
       </div>
@@ -90,20 +90,20 @@ export default function AuditLogs() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-red-600 text-white py-6 shadow-lg">
+      <div className="bg-green-600 text-white py-6 shadow-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
             <div>
-              <Link href="/services/cemetery/admin-dashboard" className="text-sm text-red-100 hover:text-white mb-2 inline-block">
+              <Link href="/services/cemetery/admin-dashboard" className="text-sm text-green-100 hover:text-white mb-2 inline-block">
                 ← Back to Dashboard
               </Link>
               <h1 className="text-3xl font-bold">System Audit Logs</h1>
-              <p className="text-red-100 mt-1">Complete activity trail of all system actions</p>
+              <p className="text-green-100 mt-1">Complete activity trail of all system actions</p>
             </div>
             <div className="text-right">
-              <p className="text-sm text-red-100">System Administrator</p>
+              <p className="text-sm text-green-100">System Administrator</p>
               <p className="font-semibold">{session?.user?.name}</p>
-              <span className="inline-block mt-1 px-2 py-1 bg-red-700 text-red-100 text-xs font-medium rounded">
+              <span className="inline-block mt-1 px-2 py-1 bg-green-700 text-green-100 text-xs font-medium rounded">
                 ADMIN
               </span>
             </div>
@@ -124,7 +124,7 @@ export default function AuditLogs() {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Search by user name, email, or action..."
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900"
               />
             </div>
             <div>
@@ -132,7 +132,7 @@ export default function AuditLogs() {
               <select
                 value={filter}
                 onChange={(e) => setFilter(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900"
               >
                 <option value="all">All Activities</option>
                 <option value="DeathRegistration">Death Registrations</option>
@@ -150,7 +150,7 @@ export default function AuditLogs() {
           </div>
           <div className="bg-white rounded-lg shadow-md p-4">
             <p className="text-sm text-gray-600">Today</p>
-            <p className="text-2xl font-bold text-blue-600">
+            <p className="text-2xl font-bold text-green-600">
               {logs.filter(l => new Date(l.createdAt).toDateString() === new Date().toDateString()).length}
             </p>
           </div>
