@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import { useDialog } from "@/app/components/DialogProvider"
 
 interface DeathRegistration {
   id: string
@@ -38,6 +39,7 @@ const statusConfig: Record<string, { label: string; color: string; bgColor: stri
 export default function AllRegistrations() {
   const { data: session, status } = useSession()
   const router = useRouter()
+  const dialog = useDialog()
   const [registrations, setRegistrations] = useState<DeathRegistration[]>([])
   const [loading, setLoading] = useState(true)
   const [filterStatus, setFilterStatus] = useState<string>("all")
@@ -312,7 +314,7 @@ export default function AllRegistrations() {
         {/* Export Button */}
         <div className="mt-6 flex justify-end">
           <button
-            onClick={() => alert('Export functionality coming soon!')}
+            onClick={async () => await dialog.info('Export functionality coming soon!')}
             className="px-6 py-3 bg-gray-600 text-white rounded-lg font-medium hover:bg-gray-700 transition-colors"
           >
             📥 Export to CSV

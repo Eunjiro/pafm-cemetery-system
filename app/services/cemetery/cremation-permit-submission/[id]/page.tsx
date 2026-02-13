@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react"
 import { useRouter, useParams } from "next/navigation"
 import Link from "next/link"
 import OnlinePaymentButton from "@/app/components/OnlinePaymentButton"
+import { useDialog } from "@/app/components/DialogProvider"
 
 interface CremationPermit {
   id: string
@@ -80,6 +81,7 @@ export default function CremationPermitSubmission() {
   const { data: session, status } = useSession()
   const router = useRouter()
   const params = useParams()
+  const dialog = useDialog()
   const [permit, setPermit] = useState<CremationPermit | null>(null)
   const [loading, setLoading] = useState(true)
   const [uploadMode, setUploadMode] = useState<"file" | "or">("file")
@@ -128,12 +130,12 @@ export default function CremationPermitSubmission() {
     e.preventDefault()
     
     if (uploadMode === "file" && !proofFile) {
-      alert("Please select a file to upload")
+      await dialog.warning("Please select a file to upload")
       return
     }
     
     if (uploadMode === "or" && !orNumber.trim()) {
-      alert("Please enter the OR number")
+      await dialog.warning("Please enter the OR number")
       return
     }
 
@@ -157,16 +159,16 @@ export default function CremationPermitSubmission() {
       const data = await response.json()
 
       if (response.ok) {
-        alert("Payment submitted successfully!")
+        await dialog.success("Payment submitted successfully!")
         fetchPermit() // Refresh the permit data
         setProofFile(null)
         setOrNumber("")
       } else {
-        alert(data.error || "Failed to submit payment")
+        await dialog.error(data.error || "Failed to submit payment")
       }
     } catch (error) {
       console.error("Error submitting payment:", error)
-      alert("An error occurred while submitting payment")
+      await dialog.error("An error occurred while submitting payment")
     } finally {
       setSubmitting(false)
     }

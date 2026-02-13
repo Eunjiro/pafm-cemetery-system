@@ -4,6 +4,7 @@ import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import Link from "next/link"
+import { useDialog } from "@/app/components/DialogProvider"
 
 const sanitizeText = (text: string) => text.replace(/<[^>]*>/g, '')
 
@@ -34,6 +35,7 @@ export default function NewWaterConnectionPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState("")
   const [showGuide, setShowGuide] = useState(false)
+  const dialog = useDialog()
 
   const [formData, setFormData] = useState({
     applicantName: "",
@@ -96,7 +98,7 @@ export default function NewWaterConnectionPage() {
         return
       }
 
-      alert("Water connection application submitted successfully! You will receive an acknowledgment and tracking number via notification.")
+      await dialog.success("Water connection application submitted successfully! You will receive an acknowledgment and tracking number via notification.")
       router.push("/services/water/user-dashboard")
 
     } catch (err) {

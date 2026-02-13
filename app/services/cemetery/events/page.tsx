@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import { useDialog } from "@/app/components/DialogProvider"
 
 interface Event {
   id: string
@@ -19,6 +20,7 @@ interface Event {
 export default function EventsPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
+  const dialog = useDialog()
   const [events, setEvents] = useState<Event[]>([])
   const [loading, setLoading] = useState(true)
   const [filterCategory, setFilterCategory] = useState<string>("all")
@@ -71,7 +73,7 @@ export default function EventsPage() {
       const data = await response.json()
 
       if (response.ok) {
-        alert("Event added successfully!")
+        await dialog.success("Event added successfully!")
         setShowAddModal(false)
         setNewEvent({
           title: "",
@@ -82,15 +84,15 @@ export default function EventsPage() {
         })
         fetchEvents()
       } else {
-        alert(data.error || "Failed to add event")
+        await dialog.error(data.error || "Failed to add event")
       }
     } catch (error) {
-      alert("An error occurred")
+      await dialog.error("An error occurred")
     }
   }
 
   const handleDeleteEvent = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this event?")) return
+    if (!(await dialog.confirm({ message: "Are you sure you want to delete this event?", title: "Delete Event", confirmText: "Delete", confirmColor: "red" }))) return
 
     try {
       const response = await fetch(`/api/cemetery/events?id=${id}`, {
@@ -98,14 +100,14 @@ export default function EventsPage() {
       })
 
       if (response.ok) {
-        alert("Event deleted successfully!")
+        await dialog.success("Event deleted successfully!")
         fetchEvents()
       } else {
         const data = await response.json()
-        alert(data.error || "Failed to delete event")
+        await dialog.error(data.error || "Failed to delete event")
       }
     } catch (error) {
-      alert("An error occurred")
+      await dialog.error("An error occurred")
     }
   }
 

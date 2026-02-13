@@ -4,6 +4,7 @@ import ServiceCard from "./components/ServiceCard"
 import { useState, useEffect } from "react"
 import { signIn } from "next-auth/react"
 import { useRouter } from "next/navigation"
+import { useDialog } from "@/app/components/DialogProvider"
 
 export default function Home() {
   const [email, setEmail] = useState("")
@@ -40,6 +41,7 @@ export default function Home() {
   const [registerError, setRegisterError] = useState("")
   const [registerLoading, setRegisterLoading] = useState(false)
   const router = useRouter()
+  const dialog = useDialog()
 
   // Check if user has already accepted Google terms
   useEffect(() => {
@@ -164,7 +166,7 @@ export default function Home() {
       const data = await response.json()
 
       if (response.ok) {
-        alert("Registration successful! Please login.")
+        await dialog.success("Registration successful! Please login.")
         setShowRegisterModal(false)
         setEmail(registerData.email)
         // Reset form

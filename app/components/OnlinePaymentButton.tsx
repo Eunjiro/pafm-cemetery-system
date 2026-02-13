@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { initiatePayment, generatePaymentReference, generatePaymentPurpose } from '@/lib/payment';
+import { useDialog } from '@/app/components/DialogProvider';
 
 interface OnlinePaymentButtonProps {
   entityType: 'DeathRegistration' | 'BurialPermit' | 'ExhumationPermit' | 'CremationPermit' | 'DeathCertificateRequest';
@@ -24,6 +25,7 @@ export default function OnlinePaymentButton({
 }: OnlinePaymentButtonProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const dialog = useDialog();
 
   async function handlePayment() {
     try {
@@ -63,7 +65,7 @@ export default function OnlinePaymentButton({
           ? '⚠️ Test Mode: External gateway unavailable. You will be redirected to a test payment page.'
           : '✓ Payment initiated! Redirecting to payment gateway...';
         
-        alert(message);
+        await dialog.info(message);
 
         // For PHP gateway, submit form with POST data
         if (result.paymentData && !result.testMode) {

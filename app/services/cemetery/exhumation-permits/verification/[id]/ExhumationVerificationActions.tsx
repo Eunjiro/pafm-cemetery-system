@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { useDialog } from "@/app/components/DialogProvider"
 
 interface ExhumationVerificationActionsProps {
   permitId: string
@@ -10,6 +11,7 @@ interface ExhumationVerificationActionsProps {
 
 export default function ExhumationVerificationActions({ permitId, employeeName }: ExhumationVerificationActionsProps) {
   const router = useRouter()
+  const dialog = useDialog()
   const [action, setAction] = useState<"approve" | "reject" | null>(null)
   const [remarks, setRemarks] = useState("")
   const [submitting, setSubmitting] = useState(false)
@@ -30,15 +32,15 @@ export default function ExhumationVerificationActions({ permitId, employeeName }
       const data = await response.json()
       
       if (response.ok) {
-        alert("Exhumation permit approved successfully!")
+        await dialog.success("Exhumation permit approved successfully!")
         router.push("/services/cemetery/exhumation-permits/verification")
         router.refresh()
       } else {
-        alert(data.error || "Failed to approve permit")
+        await dialog.error(data.error || "Failed to approve permit")
       }
     } catch (error) {
       console.error("Approval error:", error)
-      alert("An error occurred while approving the permit")
+      await dialog.error("An error occurred while approving the permit")
     } finally {
       setSubmitting(false)
       setAction(null)
@@ -47,7 +49,7 @@ export default function ExhumationVerificationActions({ permitId, employeeName }
 
   const handleReject = async () => {
     if (!remarks.trim()) {
-      alert("Please provide remarks for rejection")
+      await dialog.warning("Please provide remarks for rejection")
       return
     }
 
@@ -66,15 +68,15 @@ export default function ExhumationVerificationActions({ permitId, employeeName }
       const data = await response.json()
       
       if (response.ok) {
-        alert("Exhumation permit returned for correction")
+        await dialog.success("Exhumation permit returned for correction")
         router.push("/services/cemetery/exhumation-permits/verification")
         router.refresh()
       } else {
-        alert(data.error || "Failed to reject permit")
+        await dialog.error(data.error || "Failed to reject permit")
       }
     } catch (error) {
       console.error("Rejection error:", error)
-      alert("An error occurred while rejecting the permit")
+      await dialog.error("An error occurred while rejecting the permit")
     } finally {
       setSubmitting(false)
       setAction(null)

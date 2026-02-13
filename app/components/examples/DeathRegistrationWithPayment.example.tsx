@@ -10,9 +10,11 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import OnlinePaymentButton from '@/app/components/OnlinePaymentButton';
+import { useDialog } from '@/app/components/DialogProvider';
 
 export default function DeathRegistrationFormWithPayment() {
   const router = useRouter();
+  const dialog = useDialog();
   const [loading, setLoading] = useState(false);
   const [submittedRegistration, setSubmittedRegistration] = useState<{
     id: string;
@@ -56,11 +58,11 @@ export default function DeathRegistrationFormWithPayment() {
       });
 
       // 4. Show success message
-      alert('Registration submitted successfully! Please proceed with payment.');
+      await dialog.success('Registration submitted successfully! Please proceed with payment.');
 
     } catch (error) {
       console.error('Submission error:', error);
-      alert('Failed to submit registration');
+      await dialog.error('Failed to submit registration');
     } finally {
       setLoading(false);
     }

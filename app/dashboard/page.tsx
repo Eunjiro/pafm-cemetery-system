@@ -109,7 +109,7 @@ export default function DashboardPage() {
             </div>
           </Link>
 
-          <Link href="/services/inventory">
+          <Link href={userRole === 'ADMIN' ? '/admin/inventory' : '/services/inventory'}>
             <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow cursor-pointer border-l-4 border-purple-600">
               <div className="flex items-start">
                 <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mr-4">
@@ -117,7 +117,12 @@ export default function DashboardPage() {
                 </div>
                 <div>
                   <h3 className="text-lg font-bold text-gray-900 mb-1">Assets Inventory</h3>
-                  <p className="text-sm text-gray-600">Track municipal assets and equipment</p>
+                  <p className="text-sm text-gray-600">{userRole === 'ADMIN' ? 'Warehouse management, receiving, requisitions & reports' : 'Track municipal assets and equipment'}</p>
+                  {userRole === 'ADMIN' && (
+                    <span className="inline-block mt-1 px-2 py-1 bg-purple-100 text-purple-700 text-xs font-medium rounded">
+                      Admin Module
+                    </span>
+                  )}
                 </div>
               </div>
             </div>

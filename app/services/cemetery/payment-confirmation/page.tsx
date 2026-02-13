@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import { useDialog } from "@/app/components/DialogProvider"
 
 type SubmissionType = 'death_registration' | 'burial_permit' | 'exhumation_permit' | 'cremation_permit' | 'death_certificate_request'
 
@@ -87,6 +88,7 @@ export default function PaymentConfirmation() {
   const router = useRouter()
   const [submissions, setSubmissions] = useState<PaymentSubmission[]>([])
   const [loading, setLoading] = useState(true)
+  const dialog = useDialog()
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -115,7 +117,7 @@ export default function PaymentConfirmation() {
   }
 
   const handleConfirmPayment = async (id: string, type: SubmissionType) => {
-    if (!confirm("Are you sure you want to confirm this payment?")) return
+    if (!(await dialog.confirm("Are you sure you want to confirm this payment?"))) return
 
     try {
       let endpoint = ""
@@ -147,13 +149,13 @@ export default function PaymentConfirmation() {
       const data = await response.json()
 
       if (response.ok) {
-        alert("Payment confirmed successfully!")
+        await dialog.success("Payment confirmed successfully!")
         fetchSubmissions()
       } else {
-        alert(data.error || "Confirmation failed")
+        await dialog.error(data.error || "Confirmation failed")
       }
     } catch (error) {
-      alert("An error occurred")
+      await dialog.error("An error occurred")
     }
   }
 
@@ -191,25 +193,25 @@ export default function PaymentConfirmation() {
       const data = await response.json()
 
       if (response.ok) {
-        alert("Payment rejected. User will need to resubmit.")
+        await dialog.success("Payment rejected. User will need to resubmit.")
         fetchSubmissions()
       } else {
-        alert(data.error || "Rejection failed")
+        await dialog.error(data.error || "Rejection failed")
       }
     } catch (error) {
-      alert("An error occurred")
+      await dialog.error("An error occurred")
     }
   }
 
-  const viewProof = (proofPath: string) => {
+  const viewProof = async (proofPath: string) => {
     if (!proofPath) {
-      alert('No proof of payment available')
+      await dialog.warning('No proof of payment available')
       return
     }
     
     if (proofPath.startsWith("OR:")) {
       const orNumber = proofPath.substring(3)
-      alert(`OR Number entered: ${orNumber}`)
+      await dialog.info(`OR Number entered: ${orNumber}`)
       return
     }
     

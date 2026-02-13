@@ -4,10 +4,12 @@ import { useState } from "react"
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import { useDialog } from "@/app/components/DialogProvider"
 
 export default function BurialPermitRequest() {
   const { data: session } = useSession()
   const router = useRouter()
+  const dialog = useDialog()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const [showGuide, setShowGuide] = useState(false)
@@ -161,7 +163,7 @@ export default function BurialPermitRequest() {
       const result = await response.json()
 
       if (response.ok) {
-        alert("Burial permit request submitted successfully!")
+        await dialog.success("Burial permit request submitted successfully!")
         router.push("/services/cemetery/user-dashboard")
       } else {
         setError(result.error || "Submission failed")

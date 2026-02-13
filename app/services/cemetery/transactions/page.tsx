@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import { useDialog } from "@/app/components/DialogProvider"
 
 interface Transaction {
   id: string
@@ -33,6 +34,7 @@ const statusColors: Record<string, string> = {
 export default function TransactionsPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
+  const dialog = useDialog()
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [loading, setLoading] = useState(true)
   const [filterType, setFilterType] = useState<string>("all")
@@ -275,7 +277,7 @@ export default function TransactionsPage() {
             Showing {filteredTransactions.length} of {transactions.length} transactions
           </div>
           <button
-            onClick={() => alert('Export functionality coming soon!')}
+            onClick={async () => await dialog.info('Export functionality coming soon!')}
             className="px-6 py-3 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors"
           >
             Export to Excel

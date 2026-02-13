@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import { useDialog } from "@/app/components/DialogProvider"
 
 type SubmissionType = 'death_registration' | 'burial_permit' | 'exhumation_permit' | 'cremation_permit' | 'death_certificate_request'
 
@@ -26,6 +27,7 @@ export default function ReadyForPickup() {
   const router = useRouter()
   const [submissions, setSubmissions] = useState<PaymentSubmission[]>([])
   const [loading, setLoading] = useState(true)
+  const dialog = useDialog()
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -54,7 +56,7 @@ export default function ReadyForPickup() {
   }
 
   const handleMarkReady = async (id: string, type: SubmissionType) => {
-    if (!confirm("Mark this paid request as ready for pickup?")) return
+    if (!(await dialog.confirm("Mark this paid request as ready for pickup?"))) return
 
     try {
       let endpoint = ""
@@ -86,25 +88,25 @@ export default function ReadyForPickup() {
       const data = await response.json()
 
       if (response.ok) {
-        alert("Marked as ready for pickup")
+        await dialog.success("Marked as ready for pickup")
         fetchSubmissions()
       } else {
-        alert(data.error || "Operation failed")
+        await dialog.error(data.error || "Operation failed")
       }
     } catch (error) {
-      alert("An error occurred")
+      await dialog.error("An error occurred")
     }
   }
 
-  const viewProof = (proofPath: string) => {
+  const viewProof = async (proofPath: string) => {
     if (!proofPath) {
-      alert('No proof of payment available')
+      await dialog.warning('No proof of payment available')
       return
     }
     
     if (proofPath.startsWith("OR:")) {
       const orNumber = proofPath.substring(3)
-      alert(`OR Number entered: ${orNumber}`)
+      await dialog.info(`OR Number entered: ${orNumber}`)
       return
     }
     

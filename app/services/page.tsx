@@ -338,7 +338,7 @@ export default function ServicesPage() {
               </div>
             </Link>
 
-            <Link href="/services/inventory">
+            <Link href={userRole === 'ADMIN' ? '/admin/inventory' : '/services/inventory'}>
               <div className="group bg-white rounded-2xl shadow-lg p-8 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-100">
                 <div className="flex flex-col items-center text-center">
                   <div className="w-20 h-20 bg-gradient-to-br from-purple-400 to-purple-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
@@ -347,7 +347,7 @@ export default function ServicesPage() {
                     </svg>
                   </div>
                   <h3 className="text-xl font-bold text-gray-900 mb-3">Assets Inventory</h3>
-                  <p className="text-gray-600 leading-relaxed">Track and manage municipal assets and equipment inventory</p>
+                  <p className="text-gray-600 leading-relaxed">{userRole === 'ADMIN' ? 'Warehouse management, receiving, requisitions & reports' : 'Track and manage municipal assets and equipment inventory'}</p>
                   <div className="mt-6 flex items-center text-purple-600 font-semibold group-hover:translate-x-2 transition-transform duration-300">
                     <span>Access Service</span>
                     <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">

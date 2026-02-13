@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { useParams } from "next/navigation"
 import Link from "next/link"
+import { useDialog } from "@/app/components/DialogProvider"
 
 interface WaterConnection {
   id: string
@@ -81,6 +82,7 @@ export default function ConnectionVerificationDetailPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [activeTab, setActiveTab] = useState<"status" | "inspection" | "billing" | "installation">("status")
+  const dialog = useDialog()
 
   // Form states
   const [status, setStatus] = useState("")
@@ -136,7 +138,7 @@ export default function ConnectionVerificationDetailPage() {
   }
 
   const handleUpdate = async (updateBody: any) => {
-    if (!confirm("Are you sure you want to update this application?")) return
+    if (!(await dialog.confirm("Are you sure you want to update this application?"))) return
     setSaving(true)
     try {
       const res = await fetch(`/api/water/connection/${id}`, {
@@ -145,14 +147,14 @@ export default function ConnectionVerificationDetailPage() {
         body: JSON.stringify(updateBody),
       })
       if (res.ok) {
-        alert("Application updated successfully!")
+        await dialog.success("Application updated successfully!")
         fetchConnection()
       } else {
         const data = await res.json()
-        alert(data.error || "Update failed")
+        await dialog.error(data.error || "Update failed")
       }
     } catch {
-      alert("An error occurred")
+      await dialog.error("An error occurred")
     } finally {
       setSaving(false)
     }
@@ -187,9 +189,9 @@ export default function ConnectionVerificationDetailPage() {
     handleUpdate(body)
   }
 
-  const handlePaymentConfirm = () => {
+  const handlePaymentConfirm = async () => {
     if (!orNumber.trim()) {
-      alert("Please enter the Official Receipt (OR) number")
+      await dialog.warning("Please enter the Official Receipt (OR) number")
       return
     }
     handleUpdate({ orNumber })

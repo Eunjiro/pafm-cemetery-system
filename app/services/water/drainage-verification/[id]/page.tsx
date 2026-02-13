@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
 import Link from "next/link"
+import { useDialog } from "@/app/components/DialogProvider"
 
 interface DrainageRequest {
   id: string
@@ -61,6 +62,7 @@ export default function DrainageVerificationDetailPage() {
   const [request, setRequest] = useState<DrainageRequest | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const dialog = useDialog()
 
   // Form state
   const [status, setStatus] = useState("")
@@ -101,7 +103,7 @@ export default function DrainageVerificationDetailPage() {
   }
 
   const handleUpdate = async () => {
-    if (!confirm("Are you sure you want to update this drainage request?")) return
+    if (!(await dialog.confirm("Are you sure you want to update this drainage request?"))) return
     setSaving(true)
     try {
       const body: any = { status, remarks }
@@ -120,14 +122,14 @@ export default function DrainageVerificationDetailPage() {
       })
 
       if (res.ok) {
-        alert("Drainage request updated successfully!")
+        await dialog.success("Drainage request updated successfully!")
         fetchRequest()
       } else {
         const data = await res.json()
-        alert(data.error || "Update failed")
+        await dialog.error(data.error || "Update failed")
       }
     } catch {
-      alert("An error occurred")
+      await dialog.error("An error occurred")
     } finally {
       setSaving(false)
     }

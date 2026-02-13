@@ -924,3 +924,240 @@ enum WaterIssueStatus {
   CANNOT_REPAIR
   CLOSED
 }
+
+// ========================================
+// ASSET INVENTORY & WAREHOUSE MANAGEMENT
+// ========================================
+
+model InventoryItem {
+  id                String              @id @default(uuid())
+  itemCode          String              @unique       // System-generated identifier
+  name              String
+  description       String?
+  category          InventoryCategory   @default(SUPPLIES)
+  unit              String                            // e.g., "pcs", "box", "kg", "roll"
+  
+  // Stock tracking
+  currentStock      Int                 @default(0)
+  reservedStock     Int                 @default(0)   // Tagged for pending issuance
+  reorderLevel      Int                 @default(0)   // Minimum stock before alert
+  
+  // Storage location
+  storageZone       String?                           // e.g., "Zone A", "Rack 1"
+  storageRack       String?                           // e.g., "Shelf 3"
+  
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  
+  // Relations
+  deliveryItems     DeliveryItem[]
+  requisitionItems  RequisitionItem[]
+  stockAdjustments  StockAdjustment[]
+  
+  @@index([itemCode])
+  @@index([category])
+  @@index([name])
+}
+
+enum InventoryCategory {
+  SUPPLIES
+  MATERIALS
+  EQUIPMENT
+  TOOLS
+  FURNITURE
+  IT_EQUIPMENT
+  CHEMICALS
+  OTHER
+}
+
+model Delivery {
+  id                String            @id @default(uuid())
+  deliveryNumber    String            @unique         // System-generated
+  
+  // Supplier info
+  supplierName      String
+  supplierContact   String?
+  supplierAddress   String?
+  
+  // Documents
+  purchaseOrderNumber String
+  purchaseOrderFile   String?                         // Uploaded PO document
+  deliveryReceiptNumber String?
+  deliveryReceiptFile   String?                       // Uploaded DR document
+  noticeOfDelivery    String?                         // Uploaded NOD if applicable
+  
+  // Delivery details
+  deliveryDate      DateTime          @default(now())
+  receivedBy        String                            // Staff ID who received
+  receivedByName    String?
+  remarks           String?
+  
+  // Status flow: PENDING_VERIFICATION → VERIFIED → STORED
+  status            DeliveryStatus    @default(PENDING_VERIFICATION)
+  verifiedBy        String?                           // Staff who verified
+  verifiedAt        DateTime?
+  storedAt          DateTime?
+  
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  
+  // Relations
+  items             DeliveryItem[]
+  
+  @@index([deliveryNumber])
+  @@index([status])
+  @@index([createdAt])
+}
+
+enum DeliveryStatus {
+  PENDING_VERIFICATION
+  VERIFIED
+  STORED
+}
+
+model DeliveryItem {
+  id              String          @id @default(uuid())
+  deliveryId      String
+  delivery        Delivery        @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
+  itemId          String?
+  item            InventoryItem?  @relation(fields: [itemId], references: [id])
+  
+  itemName        String                              // Name (in case item not yet in system)
+  description     String?
+  quantity        Int
+  unit            String
+  verifiedQty     Int?                                // Actual qty after verification
+  remarks         String?
+  
+  createdAt       DateTime        @default(now())
+  
+  @@index([deliveryId])
+  @@index([itemId])
+}
+
+model Requisition {
+  id                  String              @id @default(uuid())
+  risNumber           String              @unique     // Requisition and Issue Slip number
+  
+  // Requesting party
+  requestingOffice    String                          // Department / Office name
+  requestedBy         String                          // Staff name
+  requestedById       String?                         // User ID if in system
+  purpose             String
+  
+  // Approval
+  approvedBy          String?                         // Warehouse Officer ID
+  approvedByName      String?
+  approvedAt          DateTime?
+  rejectionReason     String?
+  
+  // Issuance
+  issuedBy            String?                         // Staff who prepared/released
+  issuedByName        String?
+  issuedAt            DateTime?
+  acknowledgement     String?                         // Digital signature / acknowledgement note
+  acknowledgementFile String?                         // Uploaded signed acknowledgement
+  
+  // Status: PENDING_APPROVAL → APPROVED / REJECTED / PENDING_STOCK → FOR_RELEASE → ISSUED
+  status              RequisitionStatus   @default(PENDING_APPROVAL)
+  remarks             String?
+  
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+  
+  // Relations
+  items               RequisitionItem[]
+  
+  @@index([risNumber])
+  @@index([status])
+  @@index([requestingOffice])
+  @@index([createdAt])
+}
+
+enum RequisitionStatus {
+  PENDING_APPROVAL
+  APPROVED
+  REJECTED
+  PENDING_STOCK
+  FOR_RELEASE
+  ISSUED
+}
+
+model RequisitionItem {
+  id              String          @id @default(uuid())
+  requisitionId   String
+  requisition     Requisition     @relation(fields: [requisitionId], references: [id], onDelete: Cascade)
+  itemId          String
+  item            InventoryItem   @relation(fields: [itemId], references: [id])
+  
+  requestedQty    Int
+  approvedQty     Int?                                // May differ from requested
+  issuedQty       Int?                                // Actual issued
+  remarks         String?
+  
+  createdAt       DateTime        @default(now())
+  
+  @@index([requisitionId])
+  @@index([itemId])
+}
+
+model StockAdjustment {
+  id              String              @id @default(uuid())
+  itemId          String
+  item            InventoryItem       @relation(fields: [itemId], references: [id])
+  
+  adjustmentType  StockAdjustmentType
+  previousQty     Int
+  newQty          Int
+  difference      Int                                 // Can be negative
+  reason          String
+  
+  performedBy     String                              // Staff ID
+  performedByName String?
+  
+  createdAt       DateTime            @default(now())
+  
+  @@index([itemId])
+  @@index([adjustmentType])
+  @@index([createdAt])
+}
+
+enum StockAdjustmentType {
+  PHYSICAL_COUNT
+  CORRECTION
+  DAMAGE
+  LOSS
+  RETURN
+  INITIAL_STOCK
+}
+
+model InventoryReport {
+  id              String            @id @default(uuid())
+  reportType      ReportType
+  reportPeriod    String                              // e.g., "Week 6 2026", "January 2026", "Q1 2026"
+  periodStart     DateTime
+  periodEnd       DateTime
+  
+  // Report data stored as JSON
+  data            String                              // JSON with report details
+  
+  generatedBy     String                              // Staff ID
+  generatedByName String?
+  submittedTo     String?                             // e.g., "City Accounting Office", "COA"
+  submittedAt     DateTime?
+  
+  notes           String?
+  
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  
+  @@index([reportType])
+  @@index([createdAt])
+}
+
+enum ReportType {
+  WEEKLY
+  MONTHLY
+  QUARTERLY
+  ANNUAL
+}

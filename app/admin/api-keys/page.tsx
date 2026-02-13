@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import { useDialog } from "@/app/components/DialogProvider"
 
 interface ApiKey {
   id: string
@@ -18,6 +19,7 @@ interface ApiKey {
 export default function ApiKeysPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
+  const dialog = useDialog()
   const [apiKeys, setApiKeys] = useState<ApiKey[]>([])
   const [loading, setLoading] = useState(true)
   const [showCreateModal, setShowCreateModal] = useState(false)
@@ -67,10 +69,10 @@ export default function ApiKeysPage() {
         setNewKeyName("")
         fetchApiKeys()
       } else {
-        alert(data.error || "Failed to create API key")
+        await dialog.error(data.error || "Failed to create API key")
       }
     } catch (error) {
-      alert("An error occurred")
+      await dialog.error("An error occurred")
     }
   }
 
@@ -85,15 +87,15 @@ export default function ApiKeysPage() {
       if (response.ok) {
         fetchApiKeys()
       } else {
-        alert("Failed to update API key")
+        await dialog.error("Failed to update API key")
       }
     } catch (error) {
-      alert("An error occurred")
+      await dialog.error("An error occurred")
     }
   }
 
   const handleDeleteKey = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this API key? This action cannot be undone.")) return
+    if (!(await dialog.confirm({ message: "Are you sure you want to delete this API key? This action cannot be undone.", title: "Delete API Key", confirmText: "Delete", confirmColor: "red" }))) return
 
     try {
       const response = await fetch(`/api/admin/api-keys?id=${id}`, {
@@ -101,19 +103,19 @@ export default function ApiKeysPage() {
       })
 
       if (response.ok) {
-        alert("API key deleted successfully")
+        await dialog.success("API key deleted successfully")
         fetchApiKeys()
       } else {
-        alert("Failed to delete API key")
+        await dialog.error("Failed to delete API key")
       }
     } catch (error) {
-      alert("An error occurred")
+      await dialog.error("An error occurred")
     }
   }
 
-  const copyToClipboard = (text: string) => {
+  const copyToClipboard = async (text: string) => {
     navigator.clipboard.writeText(text)
-    alert("Copied to clipboard!")
+    await dialog.success("Copied to clipboard!")
   }
 
   if (loading) {

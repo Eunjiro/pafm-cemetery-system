@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { useDialog } from "@/app/components/DialogProvider"
 
 interface CertificateRequestVerificationActionsProps {
   requestId: string
@@ -9,13 +10,14 @@ interface CertificateRequestVerificationActionsProps {
 
 export default function CertificateRequestVerificationActions({ requestId }: CertificateRequestVerificationActionsProps) {
   const router = useRouter()
+  const dialog = useDialog()
   const [isApproving, setIsApproving] = useState(false)
   const [isRejecting, setIsRejecting] = useState(false)
   const [showRejectModal, setShowRejectModal] = useState(false)
   const [rejectionRemarks, setRejectionRemarks] = useState("")
 
   const handleApprove = async () => {
-    if (!confirm("Are you sure you want to approve this certificate request? This will generate an Order of Payment.")) {
+    if (!(await dialog.confirm("Are you sure you want to approve this certificate request? This will generate an Order of Payment."))) {
       return
     }
 
@@ -33,12 +35,12 @@ export default function CertificateRequestVerificationActions({ requestId }: Cer
         throw new Error(data.error || "Failed to approve request")
       }
 
-      alert(`Request approved successfully! Order of Payment: ${data.orderOfPayment}`)
+      await dialog.success(`Request approved successfully! Order of Payment: ${data.orderOfPayment}`)
       router.push("/services/cemetery/employee-dashboard")
       router.refresh()
     } catch (error: unknown) {
       console.error("Error approving request:", error)
-      alert(error instanceof Error ? error.message : "Failed to approve request. Please try again.")
+      await dialog.error(error instanceof Error ? error.message : "Failed to approve request. Please try again.")
     } finally {
       setIsApproving(false)
     }
@@ -46,7 +48,7 @@ export default function CertificateRequestVerificationActions({ requestId }: Cer
 
   const handleReject = async () => {
     if (!rejectionRemarks.trim()) {
-      alert("Please provide remarks for rejection")
+      await dialog.warning("Please provide remarks for rejection")
       return
     }
 
@@ -67,12 +69,12 @@ export default function CertificateRequestVerificationActions({ requestId }: Cer
         throw new Error(data.error || "Failed to reject request")
       }
 
-      alert("Request returned for correction successfully!")
+      await dialog.success("Request returned for correction successfully!")
       router.push("/services/cemetery/employee-dashboard")
       router.refresh()
     } catch (error: unknown) {
       console.error("Error rejecting request:", error)
-      alert(error instanceof Error ? error.message : "Failed to reject request. Please try again.")
+      await dialog.error(error instanceof Error ? error.message : "Failed to reject request. Please try again.")
     } finally {
       setIsRejecting(false)
     }

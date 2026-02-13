@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { useDialog } from "@/app/components/DialogProvider"
 
 interface VerificationActionsProps {
   registrationId: string
@@ -10,12 +11,13 @@ interface VerificationActionsProps {
 
 export default function VerificationActions({ registrationId, employeeName }: VerificationActionsProps) {
   const router = useRouter()
+  const dialog = useDialog()
   const [loading, setLoading] = useState(false)
   const [showRejectModal, setShowRejectModal] = useState(false)
   const [remarks, setRemarks] = useState("")
 
   const handleApprove = async () => {
-    if (!confirm("Are you sure you want to approve this death registration? An Order of Payment will be generated.")) {
+    if (!(await dialog.confirm("Are you sure you want to approve this death registration? An Order of Payment will be generated."))) {
       return
     }
 
@@ -33,14 +35,14 @@ export default function VerificationActions({ registrationId, employeeName }: Ve
       const data = await response.json()
 
       if (response.ok) {
-        alert(`Approved! Order of Payment: ${data.orderOfPayment}`)
+        await dialog.success(`Approved! Order of Payment: ${data.orderOfPayment}`)
         router.push("/services/cemetery/verification")
         router.refresh()
       } else {
-        alert(data.error || "Approval failed")
+        await dialog.error(data.error || "Approval failed")
       }
     } catch (error) {
-      alert("An error occurred")
+      await dialog.error("An error occurred")
     } finally {
       setLoading(false)
     }
@@ -48,7 +50,7 @@ export default function VerificationActions({ registrationId, employeeName }: Ve
 
   const handleReject = async () => {
     if (!remarks.trim()) {
-      alert("Please provide remarks for rejection")
+      await dialog.warning("Please provide remarks for rejection")
       return
     }
 
@@ -65,15 +67,15 @@ export default function VerificationActions({ registrationId, employeeName }: Ve
       })
 
       if (response.ok) {
-        alert("Application returned for correction. User will be notified.")
+        await dialog.success("Application returned for correction. User will be notified.")
         router.push("/services/cemetery/verification")
         router.refresh()
       } else {
         const data = await response.json()
-        alert(data.error || "Rejection failed")
+        await dialog.error(data.error || "Rejection failed")
       }
     } catch (error) {
-      alert("An error occurred")
+      await dialog.error("An error occurred")
     } finally {
       setLoading(false)
       setShowRejectModal(false)

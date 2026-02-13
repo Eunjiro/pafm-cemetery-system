@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react"
 import { useRouter, useParams } from "next/navigation"
 import Link from "next/link"
 import OnlinePaymentButton from "@/app/components/OnlinePaymentButton"
+import { useDialog } from "@/app/components/DialogProvider"
 
 interface BurialPermit {
   id: string
@@ -80,6 +81,7 @@ export default function BurialPermitSubmissionDetail() {
   const { data: session, status } = useSession()
   const router = useRouter()
   const params = useParams()
+  const dialog = useDialog()
   const [permit, setPermit] = useState<BurialPermit | null>(null)
   const [loading, setLoading] = useState(true)
   const [uploadMode, setUploadMode] = useState<"file" | "or">("file")
@@ -124,13 +126,14 @@ export default function BurialPermitSubmissionDetail() {
   const handlePaymentSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
+    
     if (uploadMode === "file" && !proofFile) {
-      alert("Please upload proof of payment")
+      await dialog.warning("Please upload proof of payment")
       return
     }
     
     if (uploadMode === "or" && !orNumber.trim()) {
-      alert("Please enter OR number")
+      await dialog.warning("Please enter OR number")
       return
     }
 
@@ -154,15 +157,15 @@ export default function BurialPermitSubmissionDetail() {
       const data = await response.json()
 
       if (response.ok) {
-        alert("Payment submitted successfully! Waiting for confirmation.")
+        await dialog.success("Payment submitted successfully! Waiting for confirmation.")
         fetchPermit()
         setProofFile(null)
         setOrNumber("")
       } else {
-        alert(data.error || "Submission failed")
+        await dialog.error(data.error || "Submission failed")
       }
     } catch (error) {
-      alert("An error occurred")
+      await dialog.error("An error occurred")
     } finally {
       setSubmitting(false)
     }

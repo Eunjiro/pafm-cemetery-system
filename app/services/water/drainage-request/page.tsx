@@ -4,6 +4,7 @@ import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import Link from "next/link"
+import { useDialog } from "@/app/components/DialogProvider"
 
 const sanitizeText = (text: string) => text.replace(/<[^>]*>/g, '')
 
@@ -13,6 +14,7 @@ export default function DrainageRequestPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState("")
   const [showGuide, setShowGuide] = useState(false)
+  const dialog = useDialog()
 
   const [formData, setFormData] = useState({
     requesterName: "",
@@ -71,7 +73,7 @@ export default function DrainageRequestPage() {
         return
       }
 
-      alert("Drainage request submitted successfully! You will receive status updates via notifications.")
+      await dialog.success("Drainage request submitted successfully! You will receive status updates via notifications.")
       router.push("/services/water/user-dashboard")
 
     } catch (err) {

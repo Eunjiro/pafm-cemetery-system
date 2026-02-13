@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { useDialog } from "@/app/components/DialogProvider"
 
 type CemeterySubmission = {
   id: string
@@ -29,6 +30,7 @@ export default function CemeterySubmissionsTable({ submissions }: { submissions:
   const [selectedSubmission, setSelectedSubmission] = useState<CemeterySubmission | null>(null)
   const [showDetailsModal, setShowDetailsModal] = useState(false)
   const router = useRouter()
+  const dialog = useDialog()
 
   const filteredSubmissions = submissions.filter(submission => {
     if (filter === "all") return true
@@ -220,15 +222,15 @@ export default function CemeterySubmissionsTable({ submissions }: { submissions:
 
                             const data = await res.json()
                             if (!res.ok || !data?.success) {
-                              alert('Failed to send to cemetery: ' + (data?.error || 'unknown'))
+                              await dialog.error('Failed to send to cemetery: ' + (data?.error || 'unknown'))
                               return
                             }
 
-                            alert('Submission sent to cemetery successfully')
+                            await dialog.success('Submission sent to cemetery successfully')
                             router.refresh()
                           } catch (err) {
                             console.error(err)
-                            alert('Unexpected error sending to cemetery')
+                            await dialog.error('Unexpected error sending to cemetery')
                           }
                         }}
                         className="text-green-600 hover:text-green-900"
@@ -238,8 +240,8 @@ export default function CemeterySubmissionsTable({ submissions }: { submissions:
                     )}
                     {submission.status === "SUBMITTED" && (
                       <button
-                        onClick={() => {
-                          alert("Check Status functionality coming soon!")
+                        onClick={async () => {
+                          await dialog.info("Check Status functionality coming soon!")
                         }}
                         className="text-purple-600 hover:text-purple-900"
                       >

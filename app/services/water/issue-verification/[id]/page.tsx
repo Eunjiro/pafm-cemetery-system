@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { useParams } from "next/navigation"
 import Link from "next/link"
+import { useDialog } from "@/app/components/DialogProvider"
 
 interface WaterIssue {
   id: string
@@ -68,6 +69,7 @@ export default function IssueVerificationDetailPage() {
   const [issue, setIssue] = useState<WaterIssue | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const dialog = useDialog()
 
   // Form state
   const [status, setStatus] = useState("")
@@ -107,7 +109,7 @@ export default function IssueVerificationDetailPage() {
   }
 
   const handleUpdate = async () => {
-    if (!confirm("Are you sure you want to update this issue report?")) return
+    if (!(await dialog.confirm("Are you sure you want to update this issue report?"))) return
     setSaving(true)
     try {
       const body: any = { status, remarks }
@@ -125,14 +127,14 @@ export default function IssueVerificationDetailPage() {
         body: JSON.stringify(body),
       })
       if (res.ok) {
-        alert("Issue report updated successfully!")
+        await dialog.success("Issue report updated successfully!")
         fetchIssue()
       } else {
         const data = await res.json()
-        alert(data.error || "Update failed")
+        await dialog.error(data.error || "Update failed")
       }
     } catch {
-      alert("An error occurred")
+      await dialog.error("An error occurred")
     } finally {
       setSaving(false)
     }
