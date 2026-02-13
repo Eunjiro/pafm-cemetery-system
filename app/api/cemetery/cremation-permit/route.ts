@@ -124,12 +124,17 @@ export async function POST(request: NextRequest) {
     )
 
     // Create cremation permit
-    // Note: Using old schema fields until migration is applied
     const permit = await prisma.cremationPermit.create({
       data: {
         userId: user.id,
         deceasedName: `${data.deceasedFirstName} ${data.deceasedMiddleName} ${data.deceasedLastName}`.trim(),
+        deceasedFirstName: data.deceasedFirstName,
+        deceasedMiddleName: data.deceasedMiddleName || null,
+        deceasedLastName: data.deceasedLastName,
+        deceasedSuffix: data.deceasedSuffix || null,
+        deceasedDateOfBirth: data.deceasedDateOfBirth,
         deceasedDateOfDeath: data.deceasedDateOfDeath,
+        deceasedGender: data.deceasedGender || null,
         requesterName: data.requesterName,
         requesterRelation: data.requesterRelation,
         requesterContactNumber: data.requesterContactNumber,
