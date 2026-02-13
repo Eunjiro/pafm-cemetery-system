@@ -34,12 +34,35 @@ model User {
   deathCertificateRequests DeathCertificateRequest[]
   auditLogs          AuditLog[]
   transactions       Transaction[]
+  notifications      Notification[]
+  drainageRequests   DrainageRequest[]
+  waterConnections   WaterConnection[]
+  waterIssues        WaterIssue[]
 }
 
 enum Role {
   USER
   EMPLOYEE
   ADMIN
+}
+
+model Notification {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  title       String
+  message     String
+  type        String   // e.g., "death_registration", "burial_permit", etc.
+  entityId    String?  // ID of related entity
+  entityType  String?  // Type of related entity
+  status      String?  // Status value from the entity
+  isRead      Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([userId])
+  @@index([isRead])
+  @@index([createdAt])
 }
 
 model ApiKey {
@@ -643,4 +666,261 @@ enum CemeterySubmissionStatus {
   ASSIGNED                // Cemetery assigned plot
   REJECTED                // Cemetery rejected
   SYNC_ERROR              // Error communicating with cemetery system
+}
+
+// ============================================================================
+// WATER SUPPLY & DRAINAGE SERVICES
+// ============================================================================
+
+model DrainageRequest {
+  id                    String                @id @default(uuid())
+  userId                String
+  user                  User                  @relation(fields: [userId], references: [id])
+  
+  // Requester Information
+  requesterName         String
+  contactNumber         String
+  
+  // Location Details
+  street                String
+  barangay              String
+  exactLocation         String?               // Additional location details / landmark
+  
+  // Request Details
+  issueType             DrainageIssueType     @default(DECLOGGING)
+  description           String?
+  urgency               DrainageUrgency       @default(NORMAL)
+  
+  // Photos (optional)
+  photo1                String?
+  photo2                String?
+  photo3                String?
+  
+  // Assignment
+  assignedTo            String?               // Employee ID (District Engineer)
+  assignedAt            DateTime?
+  
+  // Inspection
+  inspectionDate        DateTime?
+  inspectionNotes       String?
+  inspectionPhotos      String?               // JSON array of photo paths
+  programOfWorks        String?               // Uploaded document
+  
+  // Materials
+  materialsStatus       String?               // AVAILABLE, NOT_AVAILABLE, NOT_NEEDED
+  materialsNotes        String?
+  
+  // Work Completion
+  workReport            String?
+  beforePhoto           String?
+  afterPhoto            String?
+  completedAt           DateTime?
+  completedBy           String?               // Employee who completed
+  
+  // Feedback
+  citizenFeedback       String?
+  citizenRating         Int?                  // 1-5 star rating
+  
+  // Status and Processing
+  status                DrainageRequestStatus @default(PENDING_REVIEW)
+  remarks               String?
+  processedBy           String?
+  processedAt           DateTime?
+  
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+  
+  @@index([userId])
+  @@index([status])
+  @@index([barangay])
+  @@index([issueType])
+  @@index([createdAt])
+}
+
+enum DrainageIssueType {
+  DECLOGGING
+  DESILTING
+  MANHOLE_REPAIR
+  GUTTER_MAINTENANCE
+  INLET_MAINTENANCE
+  FLOODING
+  OTHER
+}
+
+enum DrainageUrgency {
+  LOW
+  NORMAL
+  HIGH
+  EMERGENCY
+}
+
+enum DrainageRequestStatus {
+  PENDING_REVIEW
+  INSPECTION_SCHEDULED
+  INSPECTION_COMPLETED
+  FOR_APPROVAL
+  APPROVED_WITH_MATERIALS
+  PENDING_NO_MATERIALS
+  FOR_IMPLEMENTATION
+  IN_PROGRESS
+  COMPLETED
+  REJECTED
+}
+
+model WaterConnection {
+  id                    String                    @id @default(uuid())
+  userId                String
+  user                  User                      @relation(fields: [userId], references: [id])
+  
+  // Applicant Information
+  applicantName         String
+  contactNumber         String
+  
+  // Installation Address
+  houseNumber           String?
+  street                String
+  barangay              String
+  landmark              String?
+  
+  // Structure Type
+  structureType         StructureType             @default(RESIDENTIAL)
+  
+  // Document Uploads
+  validId               String                    // Government ID
+  propertyProof         String                    // Proof of property possession
+  propertyProofType     String?                   // Type of proof uploaded
+  
+  // Inspection
+  assignedInspector     String?                   // Employee ID
+  inspectionDate        DateTime?
+  mainlineAvailable     Boolean?
+  tappingPointAvailable Boolean?
+  pipeDistance           Float?                    // Distance in meters
+  estimatedMaterials    String?                   // JSON or text description
+  inspectionNotes       String?
+  inspectionPhotos      String?                   // Photo path
+  
+  // Payment
+  pipeSize              String?                   // e.g., "13mm", "20mm", etc.
+  connectionFee         Float?                    // Based on pipe size
+  paymentType           String?                   // FULL or INSTALLMENT (for 13mm)
+  orNumber              String?                   // Official Receipt Number (entered by cashier)
+  paymentConfirmedBy    String?                   // Cashier employee ID
+  paymentConfirmedAt    DateTime?
+  
+  // Installation
+  assignedTeam          String?                   // Installation team
+  installationDate      DateTime?
+  installationStatus    String?                   // SCHEDULED, ONGOING, COMPLETED
+  installationNotes     String?
+  
+  // Status and Processing
+  status                WaterConnectionStatus     @default(PENDING_EVALUATION)
+  remarks               String?
+  processedBy           String?
+  processedAt           DateTime?
+  
+  createdAt             DateTime                  @default(now())
+  updatedAt             DateTime                  @updatedAt
+  
+  @@index([userId])
+  @@index([status])
+  @@index([barangay])
+  @@index([createdAt])
+}
+
+enum StructureType {
+  RESIDENTIAL
+  APARTMENT_TOWNHOUSE
+  COMMERCIAL
+  SCHOOL_CHURCH_OTHERS
+}
+
+enum WaterConnectionStatus {
+  PENDING_EVALUATION
+  RETURNED_INCOMPLETE
+  FOR_INSPECTION
+  FOR_BILLING
+  AWAITING_PAYMENT
+  PAYMENT_CONFIRMED
+  INSTALLATION_SCHEDULED
+  INSTALLATION_ONGOING
+  ACTIVE_CONNECTION
+  REJECTED
+}
+
+model WaterIssue {
+  id                    String                @id @default(uuid())
+  userId                String
+  user                  User                  @relation(fields: [userId], references: [id])
+  
+  // Reporter Information
+  reporterName          String
+  address               String
+  contactNumber         String
+  
+  // Issue Details
+  issueType             WaterIssueType        @default(NO_WATER)
+  description           String?
+  
+  // Photos (optional)
+  photo1                String?
+  photo2                String?
+  photo3                String?
+  
+  // Assignment & Inspection
+  assignedTo            String?               // Maintenance team / Inspector ID
+  assignedAt            DateTime?
+  
+  // Inspection Details
+  confirmedIssueType    String?               // Actual issue found: INTERNAL, MAINLINE, LEAKAGE, METER_DAMAGE, ILLEGAL_CONNECTION, OTHER
+  estimatedMaterials    String?
+  inspectionNotes       String?
+  inspectionPhotos      String?
+  
+  // Repair Details
+  repairDate            DateTime?
+  repairNotes           String?
+  completionPhoto       String?
+  resolvedAt            DateTime?
+  resolvedBy            String?
+  
+  // Issue Classification (Admin)
+  issueTag              String?               // MINOR_LEAK, MAJOR_LINE_BREAK, ILLEGAL_CONNECTION, UPGRADE_REQUIRED
+  
+  // Status and Processing
+  status                WaterIssueStatus      @default(PENDING_INSPECTION)
+  remarks               String?
+  processedBy           String?
+  processedAt           DateTime?
+  
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+  
+  @@index([userId])
+  @@index([status])
+  @@index([issueType])
+  @@index([createdAt])
+}
+
+enum WaterIssueType {
+  NO_WATER
+  LOW_PRESSURE
+  PIPE_LEAK
+  SERVICE_INTERRUPTION
+  METER_PROBLEM
+  OTHER
+}
+
+enum WaterIssueStatus {
+  PENDING_INSPECTION
+  FOR_SITE_INSPECTION
+  RESOLVED_DUPLICATE
+  FOR_REPAIR
+  FOR_SCHEDULING
+  AWAITING_PARTS
+  REPAIR_IN_PROGRESS
+  RESOLVED
+  CANNOT_REPAIR
+  CLOSED
 }
