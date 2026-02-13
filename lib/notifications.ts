@@ -232,3 +232,98 @@ export async function notifyWaterIssueUpdate(
     status,
   })
 }
+
+/**
+ * Create notification for amenity reservation status change
+ */
+export async function notifyAmenityReservationUpdate(
+  userId: string,
+  amenityType: string,
+  status: string,
+  reservationId: string
+) {
+  const statusMessages: Record<string, string> = {
+    PENDING_REVIEW: "pending review",
+    AWAITING_PAYMENT: "awaiting payment",
+    PAYMENT_VERIFIED: "payment verified",
+    APPROVED: "approved – reservation confirmed",
+    REJECTED: "rejected – slot unavailable",
+    CANCELLED: "cancelled",
+    CHECKED_IN: "checked in",
+    NO_SHOW: "marked as no-show",
+    COMPLETED: "completed",
+  }
+  return createNotification({
+    userId,
+    title: "Amenity Reservation Update",
+    message: `Your ${amenityType.replace(/_/g, ' ').toLowerCase()} reservation is now ${statusMessages[status] || status.replace(/_/g, ' ').toLowerCase()}`,
+    type: "amenity_reservation",
+    entityId: reservationId,
+    entityType: "AmenityReservation",
+    status,
+  })
+}
+
+/**
+ * Create notification for venue booking status change
+ */
+export async function notifyVenueBookingUpdate(
+  userId: string,
+  venueName: string,
+  status: string,
+  bookingId: string
+) {
+  const statusMessages: Record<string, string> = {
+    PENDING_REVIEW: "pending review",
+    AWAITING_REQUIREMENTS: "awaiting requirements",
+    AWAITING_PAYMENT: "awaiting payment",
+    PAYMENT_VERIFIED: "payment verified",
+    APPROVED: "approved – reservation confirmed",
+    REJECTED: "rejected – date unavailable",
+    CANCELLED: "cancelled",
+    IN_USE: "venue currently in use",
+    COMPLETED: "completed",
+    NO_SHOW: "marked as no-show",
+  }
+  return createNotification({
+    userId,
+    title: "Venue Booking Update",
+    message: `Your venue booking for ${venueName.replace(/_/g, ' ').toLowerCase()} is now ${statusMessages[status] || status.replace(/_/g, ' ').toLowerCase()}`,
+    type: "venue_booking",
+    entityId: bookingId,
+    entityType: "VenueBooking",
+    status,
+  })
+}
+
+/**
+ * Create notification for park maintenance request status change
+ */
+export async function notifyParkMaintenanceUpdate(
+  userId: string,
+  parkLocation: string,
+  status: string,
+  requestId: string
+) {
+  const statusMessages: Record<string, string> = {
+    LOGGED: "logged – pending inspection",
+    PENDING_INSPECTION: "pending inspection",
+    UNDER_INSPECTION: "under inspection",
+    APPROVED_FOR_REPAIR: "approved for repair",
+    PENDING_MATERIALS: "pending materials / budget",
+    PENDING_CONTRACTOR: "pending contractor",
+    IN_PROGRESS: "repair in progress",
+    COMPLETED: "completed",
+    CLOSED: "closed",
+    REJECTED: "rejected",
+  }
+  return createNotification({
+    userId,
+    title: "Park Maintenance Update",
+    message: `Your maintenance report for ${parkLocation} is now ${statusMessages[status] || status.replace(/_/g, ' ').toLowerCase()}`,
+    type: "park_maintenance",
+    entityId: requestId,
+    entityType: "ParkMaintenanceRequest",
+    status,
+  })
+}

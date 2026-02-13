@@ -38,6 +38,9 @@ model User {
   drainageRequests   DrainageRequest[]
   waterConnections   WaterConnection[]
   waterIssues        WaterIssue[]
+  amenityReservations AmenityReservation[]
+  venueBookings       VenueBooking[]
+  maintenanceRequests ParkMaintenanceRequest[]
 }
 
 enum Role {
@@ -1160,4 +1163,293 @@ enum ReportType {
   MONTHLY
   QUARTERLY
   ANNUAL
+}
+
+// =====================================================
+// PARKS & RECREATION MODULE
+// =====================================================
+
+// SUB MODULE 1: Water Park Amenity Reservation
+model AmenityReservation {
+  id                String              @id @default(uuid())
+  userId            String
+  user              User                @relation(fields: [userId], references: [id])
+  
+  requesterName     String
+  contactNumber     String
+  preferredDate     DateTime
+  preferredTime     String                              // e.g., "09:00 AM - 12:00 PM"
+  numberOfGuests    Int
+  amenityType       AmenityType
+  amenityDetails    String?                             // specific cottage/table name
+  
+  proofOfResidency  String?                             // file path
+  specialRequests   String?
+  
+  // Payment
+  paymentStatus     PaymentType         @default(UNPAID)
+  paymentMethod     String?                             // GCash / Onsite / Manual Override
+  paymentReference  String?
+  paymentProof      String?                             // file path
+  amountDue         Float?
+  amountPaid        Float?
+  exemptionMemo     String?                             // file path for LGU-sponsored events
+  
+  // Processing
+  status            ReservationStatus   @default(PENDING_REVIEW)
+  remarks           String?
+  processedBy       String?
+  processedAt       DateTime?
+  
+  // Entry Pass / QR
+  entryPassCode     String?             @unique
+  entryPassUsed     Boolean             @default(false)
+  checkedInAt       DateTime?
+  checkedInBy       String?
+  noShow            Boolean             @default(false)
+  
+  // Auto-cancel tracking
+  holdExpiresAt     DateTime?                           // 24hr hold
+  autoCancelled     Boolean             @default(false)
+  
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  
+  @@index([userId])
+  @@index([status])
+  @@index([preferredDate])
+  @@index([amenityType])
+  @@index([entryPassCode])
+}
+
+enum AmenityType {
+  SWIMMING_ENTRANCE
+  COTTAGE
+  TABLE
+  ROOM
+  OTHER
+}
+
+enum ReservationStatus {
+  PENDING_REVIEW
+  AWAITING_PAYMENT
+  PAYMENT_VERIFIED
+  APPROVED
+  REJECTED
+  CANCELLED
+  CHECKED_IN
+  NO_SHOW
+  COMPLETED
+}
+
+enum PaymentType {
+  UNPAID
+  AWAITING_PAYMENT
+  PAID
+  VERIFIED
+  EXEMPTED
+}
+
+// SUB MODULE 2: Venue Rental
+model VenueBooking {
+  id                  String            @id @default(uuid())
+  userId              String
+  user                User              @relation(fields: [userId], references: [id])
+  
+  applicantName       String
+  organizationName    String?
+  eventType           EventType
+  eventTypeOther      String?                           // if EventType = OTHER
+  
+  venueType           VenueType
+  venueDetails        String?                           // specific venue name
+  
+  desiredStartDate    DateTime
+  desiredEndDate      DateTime
+  estimatedAttendees  Int
+  
+  layoutFile          String?                           // file upload path
+  contactPerson       String
+  contactNumber       String
+  
+  // Permits / endorsements
+  governmentPermit    String?                           // file path
+  barangayEndorsement String?                           // file path
+  
+  // Payment
+  paymentStatus       PaymentType       @default(UNPAID)
+  paymentMethod       String?
+  paymentReference    String?
+  paymentProof        String?
+  amountDue           Float?
+  amountPaid          Float?
+  exemptionMemo       String?                           // file path for LGU waiver
+  
+  // Processing
+  status              VenueBookingStatus @default(PENDING_REVIEW)
+  remarks             String?
+  processedBy         String?
+  processedAt         DateTime?
+  
+  // Gate Pass
+  gatePassCode        String?           @unique
+  gatePassUsed        Boolean           @default(false)
+  
+  // Event day tracking
+  venueStatus         VenueDayStatus?
+  markedCompletedAt   DateTime?
+  noShow              Boolean           @default(false)
+  
+  // Auto-cancel tracking
+  holdExpiresAt       DateTime?                         // 48hr hold
+  autoCancelled       Boolean           @default(false)
+  
+  // Priority
+  isLguSponsored      Boolean           @default(false)
+  isPriority          Boolean           @default(false)
+  
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+  
+  @@index([userId])
+  @@index([status])
+  @@index([desiredStartDate])
+  @@index([venueType])
+  @@index([gatePassCode])
+}
+
+enum EventType {
+  BIRTHDAY
+  ASSEMBLY
+  WEDDING
+  OUTREACH
+  LGU_EVENT
+  SPORTS
+  COMMERCIAL
+  OTHER
+}
+
+enum VenueType {
+  PICNIC_GROUND
+  COVERED_COURT
+  AMPHITHEATER
+  CAFETERIA
+  EVENT_HALL
+  OTHER_VENUE
+}
+
+enum VenueBookingStatus {
+  PENDING_REVIEW
+  AWAITING_REQUIREMENTS
+  AWAITING_PAYMENT
+  PAYMENT_VERIFIED
+  APPROVED
+  REJECTED
+  CANCELLED
+  IN_USE
+  COMPLETED
+  NO_SHOW
+}
+
+enum VenueDayStatus {
+  IN_USE
+  COMPLETED
+  NO_SHOW
+}
+
+// SUB MODULE 3: Parks Maintenance Requests
+model ParkMaintenanceRequest {
+  id                  String                    @id @default(uuid())
+  userId              String
+  user                User                      @relation(fields: [userId], references: [id])
+  
+  reporterName        String?                             // optional for anonymous
+  parkLocation        String                              // park dropdown
+  issueCategory       MaintenanceCategory
+  issueCategoryOther  String?                             // if OTHER
+  description         String
+  
+  // Photos
+  photo1              String?
+  photo2              String?
+  photo3              String?
+  
+  // Inspection
+  inspectionScheduled DateTime?
+  inspectionNotes     String?
+  inspectionPhotos    String?                             // JSON array of file paths
+  urgencyLevel        MaintenanceUrgency        @default(NORMAL)
+  
+  // Categorization
+  repairScale         RepairScale?
+  
+  // Resource / materials
+  materialsStatus     String?                             // Available / Needs Contractor / No Materials
+  materialsNotes      String?
+  
+  // Work assignment
+  assignedTeam        String?
+  assignedTo          String?
+  assignedAt          DateTime?
+  workStartedAt       DateTime?
+  
+  // Completion
+  beforePhotos        String?                             // JSON array of file paths
+  afterPhotos         String?                             // JSON array of file paths
+  workReport          String?
+  completedAt         DateTime?
+  completedBy         String?
+  
+  // Processing
+  status              MaintenanceStatus         @default(LOGGED)
+  remarks             String?
+  processedBy         String?
+  processedAt         DateTime?
+  
+  createdAt           DateTime                  @default(now())
+  updatedAt           DateTime                  @updatedAt
+  
+  @@index([userId])
+  @@index([status])
+  @@index([parkLocation])
+  @@index([issueCategory])
+  @@index([urgencyLevel])
+  @@index([createdAt])
+}
+
+enum MaintenanceCategory {
+  DAMAGED_BENCH
+  FALLEN_TREE
+  PLAYGROUND_EQUIPMENT
+  VANDALISM
+  LIGHTING
+  CLEANLINESS
+  PATHWAY
+  FENCING
+  IRRIGATION
+  OTHER
+}
+
+enum MaintenanceUrgency {
+  NORMAL
+  PRIORITY
+  HAZARD
+}
+
+enum RepairScale {
+  MINOR
+  MAJOR
+}
+
+enum MaintenanceStatus {
+  LOGGED
+  PENDING_INSPECTION
+  UNDER_INSPECTION
+  APPROVED_FOR_REPAIR
+  PENDING_MATERIALS
+  PENDING_CONTRACTOR
+  IN_PROGRESS
+  COMPLETED
+  CLOSED
+  REJECTED
 }

@@ -13,7 +13,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     Credentials({
       credentials: {
         email: { label: "Email", type: "email" },
-        password: { label: "Password", type: "password" }
+        password: { label: "Password", type: "password" },
+        rememberMe: { label: "Remember Me", type: "text" }
       },
       authorize: async (credentials) => {
         if (!credentials?.email || !credentials?.password) {
@@ -43,7 +44,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           id: user.id,
           email: user.email,
           name: user.name,
-          role: user.role
+          role: user.role,
+          rememberMe: credentials.rememberMe === "true"
         }
       }
     })
@@ -81,7 +83,19 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (user) {
         token.id = user.id
         token.role = user.role
-      } else if (token.email) {
+        token.rememberMe = (user as any).rememberMe || false
+        token.loginAt = Math.floor(Date.now() / 1000)
+      }
+
+      // Expire non-remember-me sessions after 24 hours
+      if (token.loginAt && !token.rememberMe) {
+        const elapsed = Math.floor(Date.now() / 1000) - (token.loginAt as number)
+        if (elapsed > 24 * 60 * 60) {
+          return {} as any
+        }
+      }
+
+      if (!user && token.email) {
         // Fetch user from database to get role and profile status
         const dbUser = await prisma.user.findUnique({
           where: { email: token.email }
@@ -108,5 +122,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   },
   session: {
     strategy: "jwt",
+    maxAge: 30 * 24 * 60 * 60, // 30 days for remember me
   },
 })

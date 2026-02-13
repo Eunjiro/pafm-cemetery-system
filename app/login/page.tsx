@@ -11,6 +11,7 @@ export default function LoginPage() {
     email: "",
     password: ""
   })
+  const [rememberMe, setRememberMe] = useState(false)
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
 
@@ -23,6 +24,7 @@ export default function LoginPage() {
       const result = await signIn("credentials", {
         email: formData.email,
         password: formData.password,
+        rememberMe: rememberMe.toString(),
         redirect: false
       })
 
@@ -91,6 +93,21 @@ export default function LoginPage() {
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all text-gray-900"
                 placeholder="••••••••"
               />
+            </div>
+
+            <div className="flex items-center justify-between">
+              <label className="flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                />
+                <span className="ml-2 text-sm text-gray-600">Remember me</span>
+              </label>
+              <Link href="/reset-password" className="text-sm text-green-600 hover:text-green-700 font-medium">
+                Forgot password?
+              </Link>
             </div>
 
             <button

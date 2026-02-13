@@ -5,7 +5,7 @@ import { redirect } from "next/navigation"
 import Link from "next/link"
 import { useEffect, useState } from "react"
 
-export default function WaterUserDashboard() {
+export default function ParksUserDashboard() {
   const { data: session, status } = useSession()
   const [showNotifications, setShowNotifications] = useState(false)
   const [notifications, setNotifications] = useState<any[]>([])
@@ -73,28 +73,28 @@ export default function WaterUserDashboard() {
 
   const userRole = session?.user?.role || "USER"
   if (userRole !== "USER") {
-    redirect("/services/water")
+    redirect("/services/parks")
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-blue-600 text-white py-6 shadow-lg">
+      <div className="bg-teal-600 text-white py-6 shadow-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
             <div>
-              <Link href="/services" className="text-sm text-blue-100 hover:text-white mb-2 inline-block">
+              <Link href="/services" className="text-sm text-teal-100 hover:text-white mb-2 inline-block">
                 ← Back to Services
               </Link>
-              <h1 className="text-3xl font-bold">Water Supply & Drainage Services</h1>
-              <p className="text-blue-100 mt-1">Submit and track your water and drainage service requests</p>
+              <h1 className="text-3xl font-bold">Parks & Recreation Services</h1>
+              <p className="text-teal-100 mt-1">Reserve amenities, book venues, and report park maintenance issues</p>
             </div>
             <div className="flex items-center gap-4">
               {/* Notifications */}
               <div className="relative notifications-menu">
                 <button
                   onClick={() => setShowNotifications(!showNotifications)}
-                  className="relative p-2 text-blue-100 hover:text-white hover:bg-blue-700 rounded-full transition-colors"
+                  className="relative p-2 text-teal-100 hover:text-white hover:bg-teal-700 rounded-full transition-colors"
                 >
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
@@ -113,7 +113,7 @@ export default function WaterUserDashboard() {
                     </div>
                     {notifications.length > 0 ? (
                       notifications.map((notif) => (
-                        <div key={notif.id} className={`px-4 py-3 hover:bg-gray-50 border-b border-gray-100 ${!notif.isRead ? 'bg-blue-50' : ''}`}>
+                        <div key={notif.id} className={`px-4 py-3 hover:bg-gray-50 border-b border-gray-100 ${!notif.isRead ? 'bg-teal-50' : ''}`}>
                           <div className="flex justify-between items-start">
                             <div className="flex-1 pr-2">
                               <p className="text-sm text-gray-900 font-medium">{notif.title}</p>
@@ -122,7 +122,7 @@ export default function WaterUserDashboard() {
                             </div>
                             <div className="flex items-center space-x-1">
                               {!notif.isRead && (
-                                <button onClick={(e) => { e.stopPropagation(); handleMarkAsRead(notif.id) }} className="p-1 text-blue-600 hover:text-blue-800 hover:bg-blue-100 rounded" title="Mark as read">
+                                <button onClick={(e) => { e.stopPropagation(); handleMarkAsRead(notif.id) }} className="p-1 text-teal-600 hover:text-teal-800 hover:bg-teal-100 rounded" title="Mark as read">
                                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
                                 </button>
                               )}
@@ -141,8 +141,8 @@ export default function WaterUserDashboard() {
               </div>
               <div className="text-right">
                 <p className="text-lg font-semibold">{session?.user?.name}</p>
-                <Link href="/services/water/my-submissions">
-                  <button className="text-sm text-blue-100 hover:text-white hover:bg-blue-700 px-4 py-1 rounded-md transition-colors">
+                <Link href="/services/parks/my-submissions">
+                  <button className="text-sm text-teal-100 hover:text-white hover:bg-teal-700 px-4 py-1 rounded-md transition-colors">
                     My Submissions →
                   </button>
                 </Link>
@@ -156,54 +156,54 @@ export default function WaterUserDashboard() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 
-          {/* Drainage Request */}
-          <Link href="/services/water/drainage-request">
+          {/* Water Park Amenity Reservation */}
+          <Link href="/services/parks/amenity-reservation">
             <div className="group bg-white rounded-xl shadow-md p-6 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-100">
               <div className="flex items-start space-x-4">
                 <div className="w-14 h-14 bg-gradient-to-br from-cyan-400 to-cyan-600 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
                   <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
                   </svg>
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-lg font-bold text-gray-900 group-hover:text-cyan-600">Drainage Request</h3>
-                  <p className="text-sm text-gray-600 mt-1">Declogging, desilting, manhole repair, gutter & inlet maintenance</p>
-                  <p className="text-xs text-green-600 font-medium mt-2">No fees required</p>
+                  <h3 className="text-lg font-bold text-gray-900 group-hover:text-cyan-600">Water Park Amenity Reservation</h3>
+                  <p className="text-sm text-gray-600 mt-1">Swimming entrance, cottages, tables, rooms & more</p>
+                  <p className="text-xs text-orange-600 font-medium mt-2">Fee based on amenity type</p>
                 </div>
               </div>
             </div>
           </Link>
 
-          {/* New Water Connection */}
-          <Link href="/services/water/new-connection">
+          {/* Venue Rental */}
+          <Link href="/services/parks/venue-booking">
             <div className="group bg-white rounded-xl shadow-md p-6 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-100">
               <div className="flex items-start space-x-4">
-                <div className="w-14 h-14 bg-gradient-to-br from-blue-400 to-blue-600 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
-                  <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>
+                <div className="w-14 h-14 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                   </svg>
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-lg font-bold text-gray-900 group-hover:text-blue-600">New Water Connection</h3>
-                  <p className="text-sm text-gray-600 mt-1">Apply for a new water service connection to your property</p>
-                  <p className="text-xs text-orange-600 font-medium mt-2">Fee based on pipe size</p>
+                  <h3 className="text-lg font-bold text-gray-900 group-hover:text-emerald-600">Venue Rental / Event Booking</h3>
+                  <p className="text-sm text-gray-600 mt-1">Picnic grounds, covered court, amphitheater, event hall & more</p>
+                  <p className="text-xs text-orange-600 font-medium mt-2">Fee varies by venue & event type</p>
                 </div>
               </div>
             </div>
           </Link>
 
-          {/* Report Water Issue */}
-          <Link href="/services/water/report-issue">
+          {/* Park Maintenance Report */}
+          <Link href="/services/parks/maintenance-report">
             <div className="group bg-white rounded-xl shadow-md p-6 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-100">
               <div className="flex items-start space-x-4">
-                <div className="w-14 h-14 bg-gradient-to-br from-red-400 to-red-600 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+                <div className="w-14 h-14 bg-gradient-to-br from-amber-400 to-amber-600 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
                   <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
                   </svg>
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-lg font-bold text-gray-900 group-hover:text-red-600">Report Water Issue</h3>
-                  <p className="text-sm text-gray-600 mt-1">No water, low pressure, pipe leak, meter problems & more</p>
+                  <h3 className="text-lg font-bold text-gray-900 group-hover:text-amber-600">Park Maintenance Report</h3>
+                  <p className="text-sm text-gray-600 mt-1">Report damaged benches, fallen trees, vandalism, lighting & more</p>
                   <p className="text-xs text-green-600 font-medium mt-2">No fees required</p>
                 </div>
               </div>

@@ -338,6 +338,7 @@ export default function ServicesPage() {
               </div>
             </Link>
 
+            {userRole !== 'USER' && (
             <Link href={userRole === 'ADMIN' ? '/admin/inventory' : '/services/inventory'}>
               <div className="group bg-white rounded-2xl shadow-lg p-8 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-100">
                 <div className="flex flex-col items-center text-center">
@@ -357,6 +358,7 @@ export default function ServicesPage() {
                 </div>
               </div>
             </Link>
+            )}
 
             <Link href="/services/parks">
               <div className="group bg-white rounded-2xl shadow-lg p-8 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-100">
