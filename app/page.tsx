@@ -2,11 +2,12 @@
 import Navbar from "./components/Navbar"
 import ServiceCard from "./components/ServiceCard"
 import { useState, useEffect } from "react"
-import { signIn } from "next-auth/react"
+import { signIn, useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { useDialog } from "@/app/components/DialogProvider"
 
 export default function Home() {
+  const { data: session, status } = useSession()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [rememberMe, setRememberMe] = useState(false)
@@ -42,6 +43,13 @@ export default function Home() {
   const [registerLoading, setRegisterLoading] = useState(false)
   const router = useRouter()
   const dialog = useDialog()
+
+  // Redirect authenticated users to services page
+  useEffect(() => {
+    if (status === "authenticated") {
+      router.push("/services")
+    }
+  }, [status, router])
 
   // Check if user has already accepted Google terms
   useEffect(() => {
@@ -247,6 +255,15 @@ export default function Home() {
       href: "/services/facilities"
     }
   ]
+
+  // Show loading while checking auth, or redirect if authenticated
+  if (status === "loading" || status === "authenticated") {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-xl text-gray-500">Loading...</div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">

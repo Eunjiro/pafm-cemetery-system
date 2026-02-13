@@ -136,7 +136,7 @@ export default function Navbar() {
           {/* Right side with notifications and time */}
           <div className="flex items-center space-x-2 sm:space-x-4">
             {/* Profile link - only show if user is logged in */}
-            {status === "authenticated" && (
+            {status === "authenticated" && session?.user && (
               <Link
                 href="/profile"
                 className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-colors"
@@ -149,7 +149,7 @@ export default function Navbar() {
             )}
 
             {/* Notifications - only show if user is logged in */}
-            {status === "authenticated" && (
+            {status === "authenticated" && session?.user && (
               <div className="relative notifications-menu">
                 <button
                   onClick={() => setShowNotifications(!showNotifications)}
