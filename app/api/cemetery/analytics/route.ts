@@ -1,108 +1,23 @@
+import { NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
-import { NextResponse } from "next/server"
-
-export const dynamic = "force-dynamic"
 
 export async function GET() {
   const session = await auth()
-  if (!session || !["ADMIN", "EMPLOYEE"].includes(session.user?.role || "")) {
+  if (!session || !["ADMIN", "EMPLOYEE"].includes(session.user.role)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
-  const now = new Date()
-  const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 5, 1)
+  const [deathRegs, burialPermits, exhumationPermits, cremationPermits, deathCertRequests] =
+    await Promise.all([
+      prisma.deathRegistration.findMany({ select: { id: true, status: true, createdAt: true, updatedAt: true } }),
+      prisma.burialPermit.findMany({ select: { id: true, status: true, createdAt: true, updatedAt: true } }),
+      prisma.exhumationPermit.findMany({ select: { id: true, status: true, createdAt: true, updatedAt: true } }),
+      prisma.cremationPermit.findMany({ select: { id: true, status: true, createdAt: true, updatedAt: true } }),
+      prisma.deathCertificateRequest.findMany({ select: { id: true, status: true, createdAt: true, updatedAt: true } }),
+    ])
 
-  const [
-    deathRegs,
-    burialPermits,
-    exhumationPermits,
-    cremationPermits,
-    deathCertRequests,
-    transactions,
-  ] = await Promise.all([
-    prisma.deathRegistration.findMany({
-      select: {
-        id: true,
-        status: true,
-        registrationType: true,
-        registrationFee: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-    }),
-    prisma.burialPermit.findMany({
-      select: {
-        id: true,
-        status: true,
-        burialType: true,
-        totalFee: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-    }),
-    prisma.exhumationPermit.findMany({
-      select: {
-        id: true,
-        status: true,
-        permitFee: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-    }),
-    prisma.cremationPermit.findMany({
-      select: {
-        id: true,
-        status: true,
-        permitFee: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-    }),
-    prisma.deathCertificateRequest.findMany({
-      select: {
-        id: true,
-        status: true,
-        totalFee: true,
-        numberOfCopies: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-    }),
-    prisma.transaction.findMany({
-      where: {
-        entityType: {
-          in: [
-            "DeathRegistration",
-            "BurialPermit",
-            "ExhumationPermit",
-            "CremationPermit",
-            "DeathCertificateRequest",
-          ],
-        },
-      },
-      select: {
-        id: true,
-        amount: true,
-        status: true,
-        entityType: true,
-        paymentMethod: true,
-        createdAt: true,
-      },
-    }),
-  ])
-
-  // --- Volume Trends (last 6 months) ---
-  const monthLabels: string[] = []
-  for (let i = 5; i >= 0; i--) {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
-    monthLabels.push(d.toLocaleString("default", { month: "short", year: "2-digit" }))
-  }
-
-  const getMonthKey = (date: Date) =>
-    new Date(date).toLocaleString("default", { month: "short", year: "2-digit" })
-
-  const allItems = [
+  const allRecords = [
     ...deathRegs.map((r) => ({ ...r, type: "Death Registration" })),
     ...burialPermits.map((r) => ({ ...r, type: "Burial Permit" })),
     ...exhumationPermits.map((r) => ({ ...r, type: "Exhumation Permit" })),
@@ -110,152 +25,86 @@ export async function GET() {
     ...deathCertRequests.map((r) => ({ ...r, type: "Death Certificate" })),
   ]
 
-  const volumeTrends = monthLabels.map((label) => {
-    const monthItems = allItems.filter((item) => getMonthKey(item.createdAt) === label)
-    return {
-      month: label,
-      "Death Registration": monthItems.filter((i) => i.type === "Death Registration").length,
-      "Burial Permit": monthItems.filter((i) => i.type === "Burial Permit").length,
-      "Exhumation Permit": monthItems.filter((i) => i.type === "Exhumation Permit").length,
-      "Cremation Permit": monthItems.filter((i) => i.type === "Cremation Permit").length,
-      "Death Certificate": monthItems.filter((i) => i.type === "Death Certificate").length,
-      Total: monthItems.length,
-    }
-  })
+  const total = allRecords.length
+  const completed = allRecords.filter((r) => ["APPROVED", "COMPLETED", "RELEASED"].includes(r.status)).length
+  const pending = allRecords.filter((r) => ["PENDING", "UNDER_REVIEW", "PROCESSING"].includes(r.status)).length
+  const rejected = allRecords.filter((r) => ["REJECTED", "DENIED"].includes(r.status)).length
 
-  // --- Status Distribution ---
-  const statusCounts: Record<string, number> = {}
-  allItems.forEach((item) => {
-    statusCounts[item.status] = (statusCounts[item.status] || 0) + 1
-  })
-  const statusDistribution = Object.entries(statusCounts).map(([status, count]) => ({
-    status: status.replace(/_/g, " "),
-    count,
-    percentage: Math.round((count / allItems.length) * 100),
-  }))
+  // Avg processing days (only completed records)
+  const completedRecords = allRecords.filter((r) => ["APPROVED", "COMPLETED", "RELEASED"].includes(r.status))
+  let avgProcessingDays = 0
+  if (completedRecords.length > 0) {
+    const totalDays = completedRecords.reduce((sum, r) => {
+      return sum + (new Date(r.updatedAt).getTime() - new Date(r.createdAt).getTime()) / (1000 * 60 * 60 * 24)
+    }, 0)
+    avgProcessingDays = Math.round((totalDays / completedRecords.length) * 10) / 10
+  }
 
-  // --- Type Breakdown ---
+  // Type breakdown
   const typeBreakdown = [
-    { type: "Death Registration", count: deathRegs.length, color: "#10b981" },
-    { type: "Burial Permit", count: burialPermits.length, color: "#3b82f6" },
-    { type: "Exhumation Permit", count: exhumationPermits.length, color: "#f59e0b" },
-    { type: "Cremation Permit", count: cremationPermits.length, color: "#ef4444" },
-    { type: "Death Certificate", count: deathCertRequests.length, color: "#8b5cf6" },
+    { type: "Death Registration", count: deathRegs.length },
+    { type: "Burial Permit", count: burialPermits.length },
+    { type: "Exhumation Permit", count: exhumationPermits.length },
+    { type: "Cremation Permit", count: cremationPermits.length },
+    { type: "Death Certificate", count: deathCertRequests.length },
   ]
 
-  // --- Processing Efficiency ---
-  const completedItems = allItems.filter((item) =>
-    ["COMPLETED", "REGISTERED_FOR_PICKUP"].includes(item.status)
+  // Status distribution (merge similar statuses)
+  const statusMap: Record<string, number> = {}
+  allRecords.forEach((r) => {
+    const label = r.status.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
+    statusMap[label] = (statusMap[label] || 0) + 1
+  })
+  const statusDistribution = Object.entries(statusMap)
+    .map(([status, count]) => ({ status, count }))
+    .filter((s) => s.count > 0)
+    .sort((a, b) => b.count - a.count)
+
+  // Volume trends (last 6 months)
+  const now = new Date()
+  const volumeTrends: Array<{ month: string; count: number }> = []
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
+    const monthEnd = new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59)
+    const label = d.toLocaleString("default", { month: "short", year: "2-digit" })
+    const count = allRecords.filter((r) => {
+      const created = new Date(r.createdAt)
+      return created >= d && created <= monthEnd
+    }).length
+    volumeTrends.push({ month: label, count })
+  }
+
+  // Bottlenecks - pending items with long wait times
+  const pendingRecords = allRecords.filter((r) =>
+    ["PENDING", "UNDER_REVIEW", "PROCESSING", "PAYMENT_PENDING"].includes(r.status)
   )
-  const processingTimes = completedItems.map((item) => {
-    const created = new Date(item.createdAt).getTime()
-    const updated = new Date(item.updatedAt).getTime()
-    return (updated - created) / (1000 * 60 * 60 * 24) // days
+  const bottleneckMap: Record<string, { count: number; totalDays: number }> = {}
+  pendingRecords.forEach((r) => {
+    const label = r.status.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
+    if (!bottleneckMap[label]) bottleneckMap[label] = { count: 0, totalDays: 0 }
+    bottleneckMap[label].count++
+    bottleneckMap[label].totalDays += (now.getTime() - new Date(r.createdAt).getTime()) / (1000 * 60 * 60 * 24)
   })
-  const avgProcessingTime =
-    processingTimes.length > 0
-      ? Math.round((processingTimes.reduce((a, b) => a + b, 0) / processingTimes.length) * 10) / 10
-      : 0
-
-  const processingByType = [
-    "Death Registration",
-    "Burial Permit",
-    "Exhumation Permit",
-    "Cremation Permit",
-    "Death Certificate",
-  ].map((type) => {
-    const items = completedItems.filter((i) => i.type === type)
-    const times = items.map((i) => {
-      const c = new Date(i.createdAt).getTime()
-      const u = new Date(i.updatedAt).getTime()
-      return (u - c) / (1000 * 60 * 60 * 24)
-    })
-    return {
-      type,
-      avgDays:
-        times.length > 0
-          ? Math.round((times.reduce((a, b) => a + b, 0) / times.length) * 10) / 10
-          : 0,
-      count: items.length,
-    }
-  })
-
-  // --- Completion Rates ---
-  const completionRate = allItems.length > 0
-    ? Math.round((completedItems.length / allItems.length) * 100)
-    : 0
-  const rejectedItems = allItems.filter((i) => i.status === "REJECTED")
-  const rejectionRate = allItems.length > 0
-    ? Math.round((rejectedItems.length / allItems.length) * 100)
-    : 0
-
-  // --- Bottlenecks ---
-  const pendingItems = allItems.filter((item) =>
-    !["COMPLETED", "REGISTERED_FOR_PICKUP", "REJECTED"].includes(item.status)
-  )
-  const bottleneckByStatus: Record<string, { count: number; avgWaitDays: number }> = {}
-  pendingItems.forEach((item) => {
-    const waitDays =
-      (now.getTime() - new Date(item.createdAt).getTime()) / (1000 * 60 * 60 * 24)
-    if (!bottleneckByStatus[item.status]) {
-      bottleneckByStatus[item.status] = { count: 0, avgWaitDays: 0 }
-    }
-    bottleneckByStatus[item.status].count++
-    bottleneckByStatus[item.status].avgWaitDays += waitDays
-  })
-  const bottlenecks = Object.entries(bottleneckByStatus)
+  const bottlenecks = Object.entries(bottleneckMap)
     .map(([status, data]) => ({
-      status: status.replace(/_/g, " "),
+      status,
       count: data.count,
-      avgWaitDays: Math.round((data.avgWaitDays / data.count) * 10) / 10,
+      avgWaitDays: Math.round((data.totalDays / data.count) * 10) / 10,
     }))
     .sort((a, b) => b.avgWaitDays - a.avgWaitDays)
 
-  // --- Revenue ---
-  const totalRevenue = transactions
-    .filter((t) => t.status === "CONFIRMED")
-    .reduce((sum, t) => sum + (t.amount || 0), 0)
-
-  const revenueByMonth = monthLabels.map((label) => {
-    const monthTx = transactions.filter(
-      (t) => t.status === "CONFIRMED" && getMonthKey(t.createdAt) === label
-    )
-    return {
-      month: label,
-      revenue: monthTx.reduce((sum, t) => sum + (t.amount || 0), 0),
-    }
-  })
-
-  // --- Registration Type Breakdown ---
-  const regularCount = deathRegs.filter((r) => r.registrationType === "REGULAR").length
-  const delayedCount = deathRegs.filter((r) => r.registrationType === "DELAYED").length
-
-  // --- KPI Summary ---
-  const kpis = {
-    totalRequests: allItems.length,
-    completedRequests: completedItems.length,
-    pendingRequests: pendingItems.length,
-    rejectedRequests: rejectedItems.length,
-    completionRate,
-    rejectionRate,
-    avgProcessingDays: avgProcessingTime,
-    totalRevenue,
-    thisMonthRequests: allItems.filter(
-      (i) => getMonthKey(i.createdAt) === monthLabels[monthLabels.length - 1]
-    ).length,
-    lastMonthRequests: allItems.filter(
-      (i) => monthLabels.length > 1 && getMonthKey(i.createdAt) === monthLabels[monthLabels.length - 2]
-    ).length,
-  }
-
   return NextResponse.json({
-    kpis,
-    volumeTrends,
-    statusDistribution,
+    kpis: {
+      totalRequests: total,
+      completedRequests: completed,
+      pendingRequests: pending,
+      rejectedRequests: rejected,
+      completionRate: total > 0 ? Math.round((completed / total) * 100) : 0,
+      avgProcessingDays,
+    },
     typeBreakdown,
-    processingByType,
+    statusDistribution,
+    volumeTrends,
     bottlenecks,
-    revenueByMonth,
-    registrationTypes: { regular: regularCount, delayed: delayedCount },
   })
 }

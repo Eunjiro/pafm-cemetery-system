@@ -135,6 +135,19 @@ export default function Navbar() {
 
           {/* Right side with notifications and time */}
           <div className="flex items-center space-x-2 sm:space-x-4">
+            {/* Profile link - only show if user is logged in */}
+            {status === "authenticated" && (
+              <Link
+                href="/profile"
+                className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-colors"
+                title="Account Settings"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+              </Link>
+            )}
+
             {/* Notifications - only show if user is logged in */}
             {status === "authenticated" && (
               <div className="relative notifications-menu">
