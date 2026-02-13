@@ -27,6 +27,14 @@ export async function GET(req: NextRequest) {
       )
     }
 
+    // Check if key has expired
+    if (validKey.expiresAt && new Date() > validKey.expiresAt) {
+      return NextResponse.json(
+        { error: "API key has expired" },
+        { status: 403 }
+      )
+    }
+
     // Update last used timestamp
     await prisma.apiKey.update({
       where: { id: validKey.id },

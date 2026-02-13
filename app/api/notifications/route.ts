@@ -71,6 +71,14 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { userId, title, message, type, entityId, entityType, status } = body
 
+    // Prevent cross-user notification creation — only allow creating for self or by admin
+    if (userId !== session.user.id && session.user.role !== "ADMIN" && session.user.role !== "EMPLOYEE") {
+      return NextResponse.json(
+        { error: "Cannot create notifications for other users" },
+        { status: 403 }
+      )
+    }
+
     // Create notification
     const notification = await prisma.notification.create({
       data: {

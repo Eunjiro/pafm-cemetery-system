@@ -5,6 +5,14 @@ import { NextRequest, NextResponse } from "next/server";
  * This page simulates the external payment gateway for development/testing
  */
 export async function GET(req: NextRequest) {
+  // Block test endpoints in production
+  if (process.env.NODE_ENV === 'production') {
+    return NextResponse.json(
+      { error: "Test payment page is disabled in production" },
+      { status: 403 }
+    )
+  }
+
   const { searchParams } = new URL(req.url);
   const transactionId = searchParams.get("transactionId");
   const ref = searchParams.get("ref");

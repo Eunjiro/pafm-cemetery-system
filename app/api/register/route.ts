@@ -3,15 +3,43 @@ export const dynamic = 'force-dynamic'
 import { prisma } from "@/lib/prisma"
 import bcrypt from "bcryptjs"
 import { createAuditLog, AUDIT_ACTIONS } from "@/lib/auditLog"
+import { rateLimit, getClientIp } from "@/lib/rate-limit"
 
 export async function POST(request: NextRequest) {
   try {
+    // Rate limit: 5 registrations per 15 minutes per IP
+    const ip = getClientIp(request)
+    const { limited, retryAfter } = rateLimit(`register:${ip}`, 5, 15 * 60 * 1000)
+    if (limited) {
+      return NextResponse.json(
+        { error: "Too many registration attempts. Please try again later." },
+        { status: 429, headers: { "Retry-After": String(retryAfter) } }
+      )
+    }
+
     const { email, password, name, mobile, birthdate, address, houseNumber, street, barangay } = await request.json()
 
     // Validate input
     if (!email || !password || !name) {
       return NextResponse.json(
         { error: "Missing required fields" },
+        { status: 400 }
+      )
+    }
+
+    // Enforce password strength
+    if (password.length < 10) {
+      return NextResponse.json(
+        { error: "Password must be at least 10 characters long" },
+        { status: 400 }
+      )
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email)) {
+      return NextResponse.json(
+        { error: "Invalid email format" },
         { status: 400 }
       )
     }

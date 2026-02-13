@@ -5,6 +5,14 @@ import { NextRequest, NextResponse } from "next/server";
  * Use this to manually complete payment after paying on the external gateway
  */
 export async function GET(req: NextRequest) {
+  // Block test endpoints in production
+  if (process.env.NODE_ENV === 'production') {
+    return NextResponse.json(
+      { error: "Manual callback page is disabled in production" },
+      { status: 403 }
+    )
+  }
+
   const { searchParams } = new URL(req.url);
   const ref = searchParams.get("ref") || "";
 
